@@ -9,5 +9,5 @@
 7. Monad and its laws, examples. Do-notation. Alternative and Monad Plus.
 8. Monads: IO, State, Writer, Reader and their uses.
 9. Monad transformers.
-10. Concurrent and parallel Haskell: introduction to the GHC.Conc, Control.Concurrent module.
+10. Concurrent and parallel Haskell: introduction to the GHC.Conc and Control.Concurrent module.
 11. Concurrent and parallel Haskell: async library.
