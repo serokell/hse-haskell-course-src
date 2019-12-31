@@ -1,0 +1,228 @@
+\documentclass[10pt,pdf,utf8,russian,aspectratio=169]{beamer}
+\usepackage[T2A]{fontenc}
+\usetheme{Copenhagen}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz-cd}
+\usepackage[all, 2cell]{xy}
+\usepackage{amssymb}
+\usepackage{verba tim}
+\usepackage[all]{xy}
+\usepackage{tikz}
+\usepackage{bussproofs}
+\usepackage{dsfont}
+\usepackage{mathabx}
+\usepackage{animate}
+\usetikzlibrary{graphs}
+\usetikzlibrary{arrows}
+\usepackage{hyperref}
+\usepackage[english,russian]{babel}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{listings}
+\pgfplotsset{compat=1.16}
+\newtheorem{defin}{Definition}
+\newtheorem{theor}{Theorem}
+\newtheorem{prop}{Proposition}
+\title{Functional programming, Seminar No. 2}
+\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
+\date{Higher School of Economics \\ Faculty of Computer Science}
+\begin{document}
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+\maketitle
+
+\begin{frame}[fragile]
+  \frametitle{Bindings}
+
+  The equality sign in Haskall denotes binding:
+
+    \begin{lstlisting}[language=Haskell]
+      fortyTwo = 42
+      coolString = "coolString"
+    \end{lstlisting}
+
+\vspace{\baselineskip}
+
+Local binding with the \verb"let"-keyword:
+  \begin{lstlisting}[language=Haskell]
+    fortyTwo = let number = 43 in number - 1
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function definitions}
+
+  Functions are also defined as bindings:
+
+  \begin{lstlisting}[language=Haskell]
+    add x y = x + y
+    userName name = "Username: " ++ name
+    id x = x
+  \end{lstlisting}
+
+  \vspace{\baselineskip}
+
+  The same functions defined via lambda:
+  \begin{lstlisting}[language=Haskell]
+    add = \x y -> x + y
+    userName = \name -> "Username: " ++ name
+    id = \x -> x
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function application}
+
+  As in lambda calculus, function application is right associative by default
+
+  \begin{lstlisting}[language=Haskell]
+    {-
+    foo x y z = f x y z = ((f x) y) z
+    -}
+  \end{lstlisting}
+
+\vspace{\baselineskip}
+
+  One may use the dollar infix operator in order to avoid brackets overuse. For example, the following functions have exactly the same behaviour:
+
+  \begin{lstlisting}[language=Haskell]
+    function f x y z = f ((x y) z)
+    function1 f x y z = f $ x y $ z
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Immutability and laziness}
+
+In Haskell, values are immutable. For example, the following code doesn't terminate since it yields an infinite loop in contrast to Python or JS:
+
+  \begin{lstlisting}[language=Haskell]
+    x = 5
+    x = x + x
+  \end{lstlisting}
+
+\vspace{\baselineskip}
+
+The following program doesn't fail since our semantics is lazy:
+
+  \begin{lstlisting}[language=Haskell]
+    seventyTwo = const 72 undefined
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recursion}
+
+  The straightforward recursion:
+  \begin{lstlisting}[language=Haskell]
+    factorial n = if n == 0 then 1 else n * factorial (n - 1)
+  \end{lstlisting}
+
+  \vspace{\baselineskip}
+
+  The factorial function implemented via so-called tail recursion:
+  \begin{lstlisting}[language=Haskell]
+    tailFactorial n = helper 1 n
+      where
+      helper acc x =
+        if x > 1
+        then then helper (acc * x) (x - 1)
+        else acc
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Guards}
+
+  Let us take a look at the factorial implementation via guards:
+
+  \begin{lstlisting}[language=Haskell]
+    tailFactorial n = helper 1 n
+      where
+      helper acc x | x > 1 = helper (acc * x) (x - 1)
+                   | otherwise acc
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Currying and partial application}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Basic datatypes}
+  The basic datatypes are:
+  \begin{itemize}
+    \item \verb"Bool": Boolean values
+    \item \verb"Int": Bounded integer datatype
+    \item \verb"Integer": Unbounded integer datatype
+    \item \verb"Char": Unicode characters
+    \item \verb"()": Unit value datatype
+    \item If \verb"a" and \verb"b" are types, then \verb"a -> b" is a type
+    \item If \verb"a" and \verb"b" are types, then \verb"(a,b)" is a type
+    \item If \verb"a" is a type, then \verb"[a]" is a type
+  \end{itemize}
+
+  A type declaration has the following form:
+
+  \begin{lstlisting}[language=Haskell]
+    term :: type
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Function declaration with datatypes}
+
+  Let us recall the examples of function declarations:
+
+    \begin{lstlisting}[language=Haskell]
+      add x y = x + y
+      userName name = "Username: " ++ name
+      id x = x
+    \end{lstlisting}
+
+    \vspace{\baselineskip}
+
+    One may annotate these functions with types as follows:
+
+    \begin{lstlisting}[language=Haskell]
+      add :: Int -> Int -> Int
+      add x y = x + y
+
+      userName :: String -> String
+      userName name = "Username: " ++ name
+
+      id :: Char -> Char
+      id x = x
+    \end{lstlisting}
+
+\vspace{\baselineskip}
+
+  Note that such calls as \verb"userName 5" or \verb"id ''hello stewart''" cause type errors.
+
+\end{frame}
+
+\end{document}
