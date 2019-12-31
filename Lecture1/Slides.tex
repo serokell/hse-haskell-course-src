@@ -34,46 +34,146 @@
 
 \begin{frame}
   \frametitle{General words on Haskell}
+
+  \begin{itemize}
+    \item The language is named after American logician Haskell Curry
+    \item First implementation: 1990
+    \item The language standard: Haskell2010
+    \item Default compiler: Glasgow Haskell compiler
+    \item Haskell is a strongly-typed, polymorphic, and purely functional programming language
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{GHC}
+
+  \begin{itemize}
+    \item GHC is a default Haskell compiler as we told above
+    \item GHC is an open-source project. Don't hesistate to contribute!
+    \item GHC is mostly implemented on Haskell
+    \item GHC development is produced under the GHC Steering committee control
+    \item Very roughly, compiling pipeline is arranged as follows: \\ parsing $\Rightarrow$ compile-time (type-checking)
+    $\Rightarrow$ runtime (program execution)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{GHCi}
+
+  \begin{itemize}
+    \item GHCi is a Haskell interpreter based on GHC.
+    \item One may run GHCi with a quite simple command \verb"ghci" on a shell
+    \item
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Cabal}
+
+  \begin{itemize}
+    \item Cabal is a system of library and dependency management
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The Haskell Platform installation}
+
+  There are several ways to install the Haskell platform on Mac:
+
+  \begin{itemize}
+    \item Download the \verb".pkg" file
+    \item Run the script \verb"curl -sSL https://get.haskellstack.org/ | sh"
+    \item Install ghc, stack, and cabal via Homebrew
+  \end{itemize}
+
+  Choose any way you prefer. All those ways are equivalence to each other.
+
+  \vspace{\baselineskip}
+
+ I'm a Mac user, but I believe that you'll manage to install the Haskell Platform on NixOs/Windows/Linux.
 \end{frame}
 
 \begin{frame}
   \frametitle{Stack}
+
+  \begin{itemize}
+    \item Stack is a cross-platform build tool for Haskell projects
+    \item Stack allows one to
+    \begin{itemize}
+      \item install packages and version of GHC (and their concrete versions) you need
+      \item build, execute, and test projects
+      \item reproduce builds
+      \item create an isolated location
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Snapshots}
+
+  \begin{itemize}
+    \item Snapshot is a curated package set used by Stack
+    \item Stackage is a stable repository that stores snapshots
+    \item Resolver is a reference to a required snapshot
+    \item Let us take a look at the screenshot from Stackage:
+
+    TODO: insert a screenshots
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Creating a Haskell project via Stack}
+  \begin{itemize}
+    \item Figure out how to call your project and run the script \verb"stack new <projectname>"
+    \item You will see the following story after \verb"ls" in the project directory:
+
+    TODO: insert a screenshot
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{\verb"stack.yaml" and cabal files}
+
+  Let us discuss dependencies files in a Haskell project. First of all, we observe the stack yaml file:
+
+  TODO: insert a screenshot
 \end{frame}
 
 \begin{frame}
   \frametitle{Building and running a project}
+
+The following commands are crucially important:
+
+  \begin{itemize}
+    \item \verb"stack build"
+    \item \verb"stack run"
+    \item \verb"stack exec"
+    \item \verb"stack ghci"
+    \item \verb"stack clean"
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Hackage}
+
+  According to its description, 'Hackage is the Haskell community's central package archive of open source software`.
+
+  \begin{itemize}
+    \item Webpage: \verb"https://hackage.haskell.org"
+    \item Browsing packages
+    \item Simplified package search
+    \item Current uploads
+  \end{itemize}
+
+  TODO: screenshot
 \end{frame}
 
 \begin{frame}
   \frametitle{Hoogle}
+
+  Hoogle is a sort of Haskell search engine. Webpage: \verb"https://hoogle.haskell.org".
+
+  TODO: screenshot
 \end{frame}
 
 \begin{frame}
