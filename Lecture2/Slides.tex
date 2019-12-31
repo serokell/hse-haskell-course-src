@@ -116,6 +116,30 @@ Local binding with the \verb"let"-keyword:
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{Currying and partial application}
+
+Let us recall the function \verb"add" once more:
+
+\begin{lstlisting}[language=Haskell]
+  add x y = x + y
+\end{lstlisting}
+
+Here is an example of a partial application in the following GHCi session
+
+\vspace{\baselineskip}
+
+\begin{lstlisting}[language=Haskell]
+add x y = x + y
+addFive = add 5
+twentyEight = addFive 23
+  -- 28
+\end{lstlisting}
+
+Partial application is well-defined since all many-argument functions in Haskell are curried by default.
+
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{Immutability and laziness}
 
 In Haskell, values are immutable. For example, the following code doesn't terminate since it yields an infinite loop in contrast to Python or JS:
@@ -166,10 +190,6 @@ The following program doesn't fail since our semantics is lazy:
       helper acc x | x > 1 = helper (acc * x) (x - 1)
                    | otherwise acc
   \end{lstlisting}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Currying and partial application}
 \end{frame}
 
 \begin{frame}[fragile]
