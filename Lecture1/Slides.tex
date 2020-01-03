@@ -26,7 +26,7 @@
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
 \newtheorem{prop}{Proposition}
-\title{Functional programming, Seminar No 1}
+\title{Functional programming, Seminar No. 1}
 \author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
 \date{Higher School of Economics \\ Faculty of Computer Science}
 \begin{document}
@@ -45,43 +45,12 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{GHC}
-
-  \begin{itemize}
-    \item GHC is a default Haskell compiler as we told above
-    \item GHC is an open-source project. Don't hesistate to contribute!
-    \item GHC is mostly implemented on Haskell
-    \item GHC development is produced under the GHC Steering committee control
-    \item Very roughly, compiling pipeline is arranged as follows: \\ parsing $\Rightarrow$ compile-time (type-checking)
-    $\Rightarrow$ runtime (program execution)
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{GHCi}
-
-  \begin{itemize}
-    \item GHCi is a Haskell interpreter based on GHC.
-    \item One may run GHCi with a quite simple command \verb"ghci" on a shell
-    \item
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Cabal}
-
-  \begin{itemize}
-    \item Cabal is a system of library and dependency management
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{The Haskell Platform installation}
 
   There are several ways to install the Haskell platform on Mac:
 
   \begin{itemize}
-    \item Download the \verb".pkg" file
+    \item Download the \verb".pkg" file and install the corresponding package
     \item Run the script \verb"curl -sSL https://get.haskellstack.org/ | sh"
     \item Install ghc, stack, and cabal via Homebrew
   \end{itemize}
@@ -90,7 +59,42 @@
 
   \vspace{\baselineskip}
 
- I'm a Mac user, but I believe that you'll manage to install the Haskell Platform on NixOs/Windows/Linux.
+ I'm a Mac user, but I believe that you'll manage to install the Haskell Platform on NixOs/Windows/Linux/etc quite quickly.
+\end{frame}
+
+\begin{frame}
+  \frametitle{GHC}
+
+  \begin{itemize}
+    \item GHC is a default Haskell compiler as we told above
+    \item GHC is an open-source project. Don't hesistate to contribute!
+    \item GHC is mostly implemented on Haskell
+    \item GHC development is produced under the GHC Steering committee control
+    \item Very roughly, compiling pipeline is arranged as follows: \\ parsing $\Rightarrow$ compile-time (type-checking mostly)
+    $\Rightarrow$ runtime (program execution)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{GHCi}
+
+  \begin{itemize}
+    \item GHCi is a Haskell interpreter based on GHC
+    \item One may run GHCi with a quite simple command \verb"ghci" on a shell
+    \item You play with GHCi as a calculator, the ordinary arithmetical operators are written in a usual way
+    \item Take a look at the GHCi chapter in the GHC User's Guide to be familiar with GHCi closely
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cabal}
+
+  \begin{itemize}
+    \item Cabal is a system of library and dependency management
+    \item A \verb".cabal" file describe the version of a package and its dependencies
+    \item Cabal is also a packaging tool
+    \item Cabal is known as a reason of so-called dependency hell
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -117,34 +121,50 @@
     \item Resolver is a reference to a required snapshot
     \item Let us take a look at the screenshot from Stackage:
 
-    TODO: insert a screenshots
+    TODO: Snapshots.jpg
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ecosystem encapsulation}
+
+  The Haskell ecosystem encapsulation might be described as the following sequence:
+
+  TODO: visualise this story somehow
 \end{frame}
 
 \begin{frame}
   \frametitle{Creating a Haskell project via Stack}
   \begin{itemize}
     \item Figure out how to call your project and run the script \verb"stack new <projectname>"
-    \item You will see the following story after \verb"ls" in the project directory:
+    \item You will see the following story after the command \verb"tree ." in the project directory:
 
-    TODO: insert a screenshot
+    TODO: Tree.jpg
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{\verb"stack.yaml"}
 
-  Let us discuss dependencies files in a Haskell project. First of all, we observe the stack yaml file:
+  Let us discuss dependencies files in a Haskell project. First of all, we observe the \verb"stack.yaml" file:
 
-  TODO: insert a screenshot
+  TODO: StackYaml.jpg
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cabal file}
+
+  As we told above, the \verb".cabal" file describe the relevant version of a project and its dependencies:
+
+  TODO: Cabal.jpg
 \end{frame}
 
 \begin{frame}
   \frametitle{\verb"package.yaml"}
-\end{frame}
 
-\begin{frame}
-  \frametitle{Cabal files}
+  The \verb"package.yaml" generates automatically from the \verb"stack.yaml" and \verb".cabal" files:
+
+  TODO: PackageYaml.jpg
 \end{frame}
 
 \begin{frame}
@@ -159,6 +179,8 @@ The following commands are crucially important:
     \item \verb"stack ghci"
     \item \verb"stack clean"
   \end{itemize}
+
+  The roles of these commands follow their names which are quite self-explanatory.
 \end{frame}
 
 \begin{frame}
@@ -173,7 +195,7 @@ The following commands are crucially important:
     \item Current uploads
   \end{itemize}
 
-  TODO: screenshot
+  TODO: StackScreen.jpg
 \end{frame}
 
 \begin{frame}
@@ -181,11 +203,30 @@ The following commands are crucially important:
 
   Hoogle is a sort of Haskell search engine. Webpage: \verb"https://hoogle.haskell.org".
 
-  TODO: screenshot
+  TODO: Hoogle.jpg
 \end{frame}
 
 \begin{frame}
   \frametitle{Summary}
+
+  We observed today such topics as
+
+  \begin{enumerate}
+    \item General aspects of GHC and GHCi
+    \item The Haskell Platform installation
+    \item Dependency management via Stack and Cabal
+  \end{enumerate}
+
+  \vspace{\baselineskip}
+
+  On the next seminar, we will discuss:
+
+  \begin{enumerate}
+    \item The basic Haskell syntax
+    \item The underlying aspects of the Haskell type system
+    \item Functions and lambdas
+    \item Immutability and Laziness
+  \end{enumerate}
 \end{frame}
 
 \end{document}
