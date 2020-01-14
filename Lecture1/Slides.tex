@@ -36,11 +36,20 @@
   \frametitle{General words on Haskell}
 
   \begin{itemize}
-    \item The language is named after American logician Haskell Curry
+    \item The language is named after an American logician Haskell Curry
     \item First implementation: 1990
     \item The language standard: Haskell2010
     \item Default compiler: Glasgow Haskell compiler
     \item Haskell is a strongly-typed, polymorphic, and purely functional programming language
+    \onslide<2->{
+    \item This course is quite introductory. We partially piggyback the ITMO Haskell course.
+    }
+    \onslide<3->{
+    \item Vox populi:
+    \begin{center}
+    \includegraphics[scale=0.5]{Pics/VoxPopuli.png}
+    \end{center}
+    }
   \end{itemize}
 \end{frame}
 
@@ -49,29 +58,39 @@
 
   There are several ways to install the Haskell platform on Mac:
 
+\onslide<1->{
   \begin{itemize}
-    \item Download the \verb".pkg" file and install the corresponding package
-    \item Run the script \verb"curl -sSL https://get.haskellstack.org/ | sh"
-    \item Install ghc, stack, and cabal via Homebrew
+    \item Download the \verb".pkg" file and install the corresponding package}
+    \onslide<2->{\item Run the script \verb"curl -sSL https://get.haskellstack.org/ | sh"}
+    \onslide<3->{\item Install ghc, stack, and cabal via Homebrew
   \end{itemize}
+  }
 
+\onslide<4->{
   Choose any way you prefer. All these ways are equivalent to each other.
-
+}
   \vspace{\baselineskip}
 
+
+\onslide<5->{
  I'm a Mac user, but I believe that you'll manage to install the Haskell Platform on NixOs/Windows/Linux/etc quite quickly.
+ }
 \end{frame}
 
 \begin{frame}
   \frametitle{GHC}
 
+\onslide<1->{
   \begin{itemize}
     \item GHC is a default Haskell compiler as we told above
     \item GHC is an open-source project. Don't hesistate to contribute!
     \item GHC is mostly implemented on Haskell
-    \item GHC development is produced under the GHC Steering committee control
+    }
+    \item GHC is developed under the GHC Steering committee control
+    \onslide<2->{
     \item Very roughly, compiling pipeline is arranged as follows: \\ parsing $\Rightarrow$ compile-time (type-checking mostly)
     $\Rightarrow$ runtime (program execution)
+    }
   \end{itemize}
 \end{frame}
 
@@ -84,44 +103,75 @@
     \item You play with GHCi as a calculator, the ordinary arithmetical operators are written in a usual way
     \item Take a look at the GHCi chapter in the GHC User's Guide to be familiar with GHCi closely
   \end{itemize}
+
+  \begin{center}
+  \includegraphics[scale=0.5]{Pics/GHCi.png}
+  \end{center}
 \end{frame}
 
 \begin{frame}
   \frametitle{Cabal}
 
+\onslide<1->{
   \begin{itemize}
     \item Cabal is a system of library and dependency management
-    \item A \verb".cabal" file describe the version of a package and its dependencies
+    \item A \verb".cabal" file describes the version of a package and its dependencies
     \item Cabal is also a packaging tool
-    \item Cabal is known as a reason of so-called dependency hell
-  \end{itemize}
+    \item Keep in mind that Cabal is known as a reason of so-called dependency hell
+  \end{itemize}}
+
+\onslide<2->{
+  That's how this dependency hell might look like:
+
+  \begin{center}
+  \includegraphics[scale=0.18]{Pics/Bosch.jpg}
+  \end{center}
+}
 \end{frame}
 
 \begin{frame}
   \frametitle{Stack}
 
+\onslide<1->{
   \begin{itemize}
     \item Stack is a cross-platform build tool for Haskell projects
     \item Stack allows one to
+    }
+  \onslide<2->{
     \begin{itemize}
       \item install packages and version of GHC (and their concrete versions) you need
+      }
+  \onslide<3->{
       \item build, execute, and test projects
+      }
+  \onslide<4->{
       \item reproduce builds
+      }
+  \onslide<5->{
       \item create an isolated location
     \end{itemize}
   \end{itemize}
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{Snapshots}
 
   \begin{itemize}
+    \onslide<1->{
     \item Snapshot is a curated package set used by Stack
-    \item Stackage is a stable repository that stores snapshots
-    \item Resolver is a reference to a required snapshot
+    }
+    \onslide<2->{
+    \item Stackage is a stable repository that stores snapshots}
+    \onslide<3->{\item Resolver is a reference to a required snapshot
+    }
+    \onslide<4->{
     \item Let us take a look at the screenshot from Stackage:
 
-    TODO: Snapshots.jpg
+    \begin{center}
+    \includegraphics[scale=0.3]{Pics/Snapshots.png}
+    \end{center}
+    }
   \end{itemize}
 \end{frame}
 
@@ -130,95 +180,145 @@
 
   The Haskell ecosystem encapsulation might be described as the following sequence:
 
-  TODO: visualise this story somehow
+  \begin{center}
+  \includegraphics[scale=0.3]{Pics/Eco.png}
+  \end{center}
 \end{frame}
 
 \begin{frame}
   \frametitle{Creating a Haskell project via Stack}
+  \onslide<1->{
   \begin{itemize}
     \item Figure out how to call your project and run the script \verb"stack new <projectname>"
     \item You will see the following story after the command \verb"tree ." in the project directory:
+    }
+  \onslide<2->{
 
-    TODO: Tree.jpg
+  \begin{center}
+  \includegraphics[scale=0.35]{Pics/Tree.png}
+  \end{center}
   \end{itemize}
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{\verb"stack.yaml"}
 
+\onslide<1->{
   Let us discuss dependencies files in a Haskell project. First of all, we observe the \verb"stack.yaml" file:
+}
 
-  TODO: StackYaml.jpg
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.35]{Pics/StackYaml.png}
+\end{center}
+}
 \end{frame}
 
 \begin{frame}
   \frametitle{Cabal file}
 
+\onslide<1->{
   As we told above, the \verb".cabal" file describe the relevant version of a project and its dependencies:
-
-  TODO: Cabal.jpg
+}
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.35]{Pics/CabalFile.png}
+\end{center}
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{\verb"package.yaml"}
 
+\onslide<1->{
   The \verb"package.yaml" generates automatically from the \verb"stack.yaml" and \verb".cabal" files:
+}
 
-  TODO: PackageYaml.jpg
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.36]{Pics/PackageYaml.png}
+\end{center}
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{Building and running a project}
 
+\onslide<1->{
 The following commands are crucially important:
+}
 
+\onslide<2->{
   \begin{itemize}
-    \item \verb"stack build"
-    \item \verb"stack run"
-    \item \verb"stack exec"
-    \item \verb"stack ghci"
-    \item \verb"stack clean"
+    \item \verb"stack build"}
+    \onslide<3->{\item \verb"stack run"}
+    \onslide<4->{\item \verb"stack exec"}
+    \onslide<5->{\item \verb"stack ghci"}
+    \onslide<6->{\item \verb"stack clean"}
+    \onslide<7->{\item \verb"stack test"
   \end{itemize}
-
+  }
+\onslide<8->{
   The roles of these commands follow their names which are quite self-explanatory.
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{Hackage}
 
+\onslide<1->{
   According to its description, 'Hackage is the Haskell community's central package archive of open source software`.
+}
 
+\onslide<2->{
   \begin{itemize}
     \item Webpage: \verb"https://hackage.haskell.org"
-    \item Browsing packages
-    \item Simplified package search
-    \item Current uploads
+    }
+\onslide<3->{
+    \item Browsing packages, simplified package search, current uploads.
   \end{itemize}
-
-  TODO: StackScreen.jpg
+  }
+\onslide<4->{
+\begin{center}
+\includegraphics[scale=0.23]{Pics/HackageExample.png}
+\end{center}
+  }
 \end{frame}
 
 \begin{frame}
   \frametitle{Hoogle}
 
+\onslide<1->{
   Hoogle is a sort of Haskell search engine. Webpage: \verb"https://hoogle.haskell.org".
+}
 
-  TODO: Hoogle.jpg
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.3]{Pics/Hoogle.png}
+\end{center}
+}
 \end{frame}
 
 \begin{frame}
   \frametitle{Summary}
 
+\onslide<1->{
   We observed today such topics as
 
   \begin{enumerate}
     \item General aspects of GHC and GHCi
     \item The Haskell Platform installation
     \item Dependency management via Stack and Cabal
+  }
+  \onslide<2->{
+    \item In other words, the Haskell ecosystem in a nutshell
   \end{enumerate}
+  }
 
   \vspace{\baselineskip}
 
+\onslide<3->{
   On the next seminar, we will discuss:
 
   \begin{enumerate}
@@ -227,6 +327,7 @@ The following commands are crucially important:
     \item Functions and lambdas
     \item Immutability and Laziness
   \end{enumerate}
+  }
 \end{frame}
 
 \end{document}
