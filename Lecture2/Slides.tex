@@ -55,10 +55,35 @@
 }
 \maketitle
 
+\begin{frame}
+  \frametitle{Intro}
+
+  On the previous seminar, we:
+
+\onslide<1->{
+  \begin{itemize}
+    \item discuss general aspects of Haskell
+    \item took a look at the Haskell ecosystem
+  \end{itemize}
+  }
+
+\vspace{\baselineskip}
+
+\onslide<2->{
+  Today, we:
+
+  \begin{itemize}
+    \item study the basic Haskell syntax
+    \item examine a list as one of the Haskell data structures
+    \item realise why Haskell is a lazy language
+  \end{itemize}
+  }
+\end{frame}
+
 \begin{frame}[fragile]
   \frametitle{Bindings}
 
-  The equality sign in Haskall denotes binding:
+  The equality sign in Haskell denotes binding:
 
     \begin{lstlisting}[language=Haskell]
       fortyTwo = 42
@@ -97,7 +122,7 @@ Local binding with the \verb"let"-keyword:
 \begin{frame}[fragile]
   \frametitle{Function application}
 
-  As in lambda calculus, function application is right associative by default
+  As in lambda calculus, function application is left associative by default
 
   \begin{lstlisting}[language=Haskell]
     {-
@@ -494,7 +519,7 @@ From the one hand:
 \begin{itemize}
   \onslide<1->{\item The applicative (normal) order is often called call-by-value (call-by-name)}
   \onslide<2->{\item The most mainstream programming languages you know (Java, Python, Kotlin, etc) have call-by-value semantics}
-  \onslide<3->{\item The Haskell reduction has a call-by-value strategy. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell doesn't compute a value if it's not needed at the moment}
+  \onslide<3->{\item The Haskell reduction has a call-by-name strategy. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell doesn't compute a value if it's not needed at the moment}
   \onslide<4->{\item Call-by-name reduction reduces reducible terms to the bitter end, but it's not always optimal, unfortunately}
 \end{itemize}
 \end{frame}
@@ -614,8 +639,12 @@ On the next seminar, we
 \begin{itemize}
   \item start to learn polymorphism and its advantages
   \item introduce typeclasses
-  \item study the first examples of crucially important examples of type classes
+  \item study the first examples of crucially important examples of typeclasses
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Thank you!}
 \end{frame}
 
 \end{document}
