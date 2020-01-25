@@ -62,7 +62,7 @@
 
 \onslide<1->{
   \begin{itemize}
-    \item discuss general aspects of Haskell
+    \item discussed the general aspects of Haskell
     \item took a look at the Haskell ecosystem
   \end{itemize}
   }
@@ -132,7 +132,7 @@ Local binding with the \verb"let"-keyword:
 
 \vspace{\baselineskip}
 
-  One may use the dollar infix operator in order to avoid brackets overuse. For example, the following functions have exactly the same behaviour:
+  One may use the dollar infix operator in order to avoid the brackets overuse. For example, the following functions have exactly the same behaviour:
 
   \begin{lstlisting}[language=Haskell]
     function f x y z = f ((x y) z)
@@ -249,7 +249,7 @@ In Haskell, values are immutable. The GHCi example:
 
 \begin{frame}
   \frametitle{Datatypes and constructors}
- Let us recall the list of basic data types above and associative constructors with them. A constructor is a term that allows one to obtain a value of the desired type.
+ We take the list of basic data types and associate constructors with these types. A constructor is a term that allows one to obtain a value of the desired type.
 \begin{center}
 \begin{tabular}{ |c|c| }
 \hline
@@ -426,14 +426,18 @@ getFont n =
 \begin{frame}
   \frametitle{Theoretical Flashback. Reduction strategies}
 
-  Here we recall some of relatable definition from lambda calculus:
-
+\onslide<1->{
+  We recall some of relatable definition from lambda calculus:
+}
+\onslide<2->{
   \begin{enumerate}
-    \item A term $M$ is called \emph{weakly normalisable} (WN), if there exists some halting reduction path that starts from $M$
-    \item A term $M$ is called \emph{strongly normalisable} (SN), if any reduction path that starts from $M$ terminates
+    \item A term $M$ is called \emph{weakly normalisable} (WN), if there exists some halting reduction path that starts from $M$}
+    \onslide<3->{\item A term $M$ is called \emph{strongly normalisable} (SN), if any reduction path that starts from $M$ terminates}
   \end{enumerate}
 
-  It is clear, that SN implies WN, not vice versa. In other words, there exists a term, that has an infinite reduction path, but it has a finite reduction path.
+\onslide<4->{
+  It is clear, that SN implies WN, not vice versa. In other words, there exists a term that has an infinite reduction path, but it has a finite reduction path at the same time.
+  }
 \end{frame}
 
 \begin{frame}
@@ -464,7 +468,7 @@ From the one hand:
   & (\lambda x y. x) (\lambda z. z) ((\lambda x. x x) (\lambda x. x x)) \rightarrow_{\beta} & \\
   & (\lambda x y. x) (\lambda z. z) (x x)(x := [\lambda x. x x]) \rightarrow_{\beta}& \\
   & (\lambda x y. x) (\lambda z. z) ((\lambda x. x x) (\lambda x. x x)) \rightarrow_{\beta} \dots & \\
-  & \text{ spasiti pamagiti pajalusta ya tak bolshe ni magu (((((((9(99(}&
+  & \text{ spasiti pamagiti pajalusta ya tak bolshe ni magu (((((((9(99( lol kek}&
   \end{array}$
 }
 \end{frame}
@@ -500,12 +504,12 @@ From the one hand:
   Thus, one needs to overview of the possible ways of application reduction. We have two chairs:
 } \onslide<2->{
   \begin{enumerate}
-    \item $(\lambda x. M) N_1 \dots N_n$: we firtsly reduce $(N_i)_{i \in \{ 1, \dots, n \}}$
-    \item $(\lambda x. M) N_1 \dots N_n$: reduce $(\lambda x. M) N_1$ and go further from left to right
+    \item $(\lambda x_1 \dots x_n. M) N_1 \dots N_n$: we firtsly reduce $(N_i)_{i \in \{ 1, \dots, n \}}$
+    \item $(\lambda x_1 \dots x_n. M) N_1 \dots N_n$: reduce $(\lambda x. M) N_1$ and go further from left to right
   \end{enumerate}
 } \onslide<3->{
 
-  The first way is called \emph{applicative order}, the second one is normal one. In the following sense, normal order is better:
+  The first way is called an \emph{applicative order}, the second one is a normal one. In the following sense, a normal order is much more better:
 } \onslide<4->{
   \begin{theorem}
     Let $M$ be a term such that $M$ has a normal form $M'$, then $M$ might be reduced to $M'$ via normal order
@@ -608,7 +612,7 @@ From the one hand:
 \begin{frame}[fragile]
   \frametitle{The failure of confluece}
 
-  Let us consider the following quite simple example. In Haskell one has a function called \verb"seq". According to Hackage, ``The value of \verb"seq a b" is bottom if a is bottom, and otherwise equal to b.'' The listing below demostrates the failure of confluence:
+  Let us consider the following quite simple example. In Haskell one has a function called \verb"seq". According to Hackage, ``The value of \verb"seq a b" is bottom if a is bottom, and otherwise equal to b.'' This function is a sort of instrument to introduce the restricted strictness to Haskell. The listing below demostrates the failure of confluence:
 
   \begin{lstlisting}[language=Haskell]
   seq :: a -> b -> b
@@ -635,12 +639,14 @@ From the one hand:
   \end{itemize}
 }
 
+\onslide<2->{
 On the next seminar, we
 \begin{itemize}
   \item start to learn polymorphism and its advantages
   \item introduce typeclasses
   \item study the first examples of crucially important examples of typeclasses
 \end{itemize}
+}
 \end{frame}
 
 \begin{frame}
