@@ -269,7 +269,7 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{The functions above in the GHCi session. The composition examples + list functions}
+    \frametitle{The composition examples + list functions}
     \begin{lstlisting}[language=Haskell]
     stringsTransform :: [String] -> [String]
     stringsTransform l = map (\s -> map toUpper s) (filter (\s -> length s == 5) l)
@@ -288,34 +288,153 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
 
 \begin{frame}
   \frametitle{Bounded polymorphism and type classes}
+
+\onslide<1->{
+  The idea of bounded (ad hoc) polymorphism is that one has a general interface with instances for each concrete data type.
+}
+
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.35]{Pics/NineAdHoc.png}
+\end{center}
+}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The notion of a type class}
+
+  \emph{A type class} is a collection of functions with type signatures with a common type parameter. The example given:
+
+  \begin{lstlisting}[language=Haskell]
+  class Eq a where
+    (==) :: a -> a -> Bool
+    (/=) :: a -> a -> Bool
+  \end{lstlisting}
+
+  \vspace{\baselineskip}
+
+  A type class name introduce a constraint called \emph{context}:
+
+  \begin{lstlisting}[language=Haskell]
+  elem :: Eq a => a -> [a] -> Bool
+  elem _ [] = False
+  elem x (y:ys) = x == y || elem x ys
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Instance declarations}
+
+  A given data type \verb"a" has the \emph{instance} of a type class if every function of that class is implemented for \verb"a". The example:
+
+  \begin{lstlisting}[language=Haskell]
+  instance Eq Bool where
+    True == True   = True
+    False == False = True
+    _ == _         = False
+
+    x =/= y        = neg (x == y)
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Polymorphism + instance declarations}
+
+  A type parameter in an instance declaration might be polymorphic itself:
+
+  \begin{lstlisting}[language=Haskell]
+  instance Eq a => Eq [a] where
+    []       == []       = True
+    (x : xs) == (y : ys) = x == y && xs == ys
+    _        == _        = False
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}
-  \frametitle{The \verb"Eq" type class}
+  \frametitle{The \verb"Eq" type class generally}
+
+  The \verb"Eq" type class is a type class that allows one to
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The \verb"Show" type class}
+
+  \begin{lstlisting}[language=Haskell]
+  class Show a where
+    showsPrec :: Int -> a -> ShowS
+    show :: a -> String
+    showList :: [a] -> ShowS
+    {-# MINIMAL showsPrec | show #-}
+  \end{lstlisting}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The \verb"Ord" type class}
+
+  \begin{lstlisting}[language=Haskell]
+  class Eq a => Ord a where
+    compare :: a -> a -> Ordering
+    (<) :: a -> a -> Bool
+    (<=) :: a -> a -> Bool
+    (>) :: a -> a -> Bool
+    (>=) :: a -> a -> Bool
+    max :: a -> a -> a
+    min :: a -> a -> a
+    {-# MINIMAL compare | (<=) #-}
+  \end{lstlisting}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The \verb"Num" type class}
+
+  \begin{lstlisting}[language=Haskell]
+  class Num a where
+    (+) :: a -> a -> a
+    (-) :: a -> a -> a
+    (*) :: a -> a -> a
+    negate :: a -> a
+    abs :: a -> a
+    signum :: a -> a
+    fromInteger :: Integer -> a
+    {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
+  \end{lstlisting}
 \end{frame}
 
-\begin{frame}
-  \frametitle{The \verb"Enum" type class}
+\begin{frame}[fragile]
+  \frametitle{The \verb"Enum" and \verb"Bounded" type classes}
+
+\begin{lstlisting}[language=Haskell]
+  class Enum a where
+    succ :: a -> a
+    pred :: a -> a
+    toEnum :: Int -> a
+    fromEnum :: a -> Int
+
+    enumFrom :: a -> [a]
+    enumFromThen :: a -> a -> [a]
+    enumFromTo :: a -> a -> [a]
+    enumFromThenTo :: a -> a -> a -> [a]
+    {-# MINIMAL toEnum, fromEnum #-}
+  \end{lstlisting}
+
+\begin{lstlisting}[language=Haskell]
+  class Bounded a where
+    minBound :: a
+    maxBound :: a
+    {-# MINIMAL minBound, maxBound #-}
+  \end{lstlisting}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The \verb"Fractional" type class}
-\end{frame}
 
-\begin{frame}
-  \frametitle{The \verb"Bounded" type class}
+\begin{lstlisting}[language=Haskell]
+  class Num a => Fractional a where
+    (/) :: a -> a -> a
+    recip :: a -> a
+    fromRational :: Rational -> a
+    {-# MINIMAL fromRational, (recip | (/)) #-}
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}
