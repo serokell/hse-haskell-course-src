@@ -144,6 +144,28 @@ The key idea of parametric polymorphism that the same function might be called o
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{A brief clarification}
+
+\begin{itemize}
+  \item In such signatures as $a \to b \to a$, $a, b$ are type variables that range over arbitrary data types. In fact, $a$, $b$ are bounded by universal quantifier that hidden under the carpet.
+  \item In a matter of fact, the functions from the previous slide have the following signatures:
+  \begin{lstlisting}[language=Haskell]
+  id :: forall a. a -> a
+  id x = x
+
+  const :: forall a b. a -> b -> a
+  const a b = a
+
+  fst :: forall a b. (a, b) -> a
+  fst (a, b) = a
+
+  swap :: forall a b. (a, b) -> (b, a)
+  swap (a, b) = (b, a)
+  \end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{Higher order functions and parametric polymorpism}
 
   \begin{lstlisting}[language=Haskell]
@@ -248,10 +270,6 @@ incNegate   = negate . (+1)
 
   zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
 
-  foldl :: (b -> a -> b) -> b -> [a] -> b
-
-  foldr :: (a -> b -> b) -> b -> [a] -> b
-
   length :: [a] -> Int
   \end{lstlisting}
 
@@ -266,8 +284,13 @@ incNegate   = negate . (+1)
     \frametitle{The composition examples + list functions}
 \begin{lstlisting}[language=Haskell]
 foo, bar :: [Int] -> Int
-foo patak = length $ filter odd $ map (div 2) $ filter even $ map (div 7) patak
-bar       = length . filter odd . map (div 2) . filter even . map (div 7)
+foo patak =
+  length $ filter odd $
+  map (div 2) $ filter even $ map (div 7) patak
+
+bar       =
+  length . filter odd .
+  map (div 2) . filter even . map (div 7)
 \end{lstlisting}
 \end{frame}
 
@@ -314,6 +337,18 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
 \onslide<2->{
   \item Is a type \verb"a" arbitrary?} \onslide<3->{Yes and no. \verb"a" is an arbitrary type for which equality is defined.}
 \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type classes. Motivation}
+  As we observed, type variables in polymorphic function are bounded via universal quantifier. In ad hoc polymorphism, type variables are also bounded via $\forall$ but with the additional condition. Such a quantification is called bounded.
+
+  \begin{lstlisting}[language=Haskell]
+  elem :: forall a. Eq a => a -> [a] -> Bool
+  elem _ [] = False
+  elem x (y:ys) = x == y || elem x ys
+  \end{lstlisting}
+
 \end{frame}
 
 \begin{frame}[fragile]
@@ -540,7 +575,7 @@ The examples of \verb"Num" instances are:
   \frametitle{Some of the \verb"Enum" instances}
 
 \begin{itemize}
-  \item
+  \item The instances are the following ones:
 \begin{lstlisting}[language=Haskell]
   instance Enum Word
   instance Enum Integer
@@ -556,7 +591,7 @@ The examples of \verb"Num" instances are:
 \begin{frame}[fragile]
   \frametitle{Some of the \verb"Bounded" instances}
 \begin{itemize}
-  \item
+  \item The examples of bounded data types
 \begin{lstlisting}[language=Haskell]
   instance Bounded Word
   instance Bounded Int
@@ -569,6 +604,8 @@ The examples of \verb"Num" instances are:
 \begin{frame}[fragile]
   \frametitle{The \verb"Fractional" type class}
 
+\begin{itemize}
+  \item The \verb"Fractional" type class is a general interface for numerical division
 \begin{lstlisting}[language=Haskell]
   class Num a => Fractional a where
     (/) :: a -> a -> a
@@ -576,6 +613,8 @@ The examples of \verb"Num" instances are:
     fromRational :: Rational -> a
     {-# MINIMAL fromRational, (recip | (/)) #-}
   \end{lstlisting}
+  \item It is clear that such a type should be a numerical one. Thus, we require the \verb"Num a" restriction.
+\end{itemize}
 \end{frame}
 
 \begin{frame}
