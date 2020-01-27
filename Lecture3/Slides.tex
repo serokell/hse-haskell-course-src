@@ -107,7 +107,7 @@ Today we
 \begin{frame}[fragile]
   \frametitle{Parametric polymorphism}
 
-  The key idea of parametric polymorphism that the same function might be called on distinct data types. Here are the initial polymorphic examples:
+The key idea of parametric polymorphism that the same function might be called on distinct data types. Here are the first polymorphic examples:
 
   \begin{lstlisting}[language=Haskell]
   id :: a -> a
@@ -248,8 +248,11 @@ incNegate   = negate . (+1)
 
   zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
 
-  length :: [a] -> Int
+  foldl :: (b -> a -> b) -> b -> [a] -> b
 
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+
+  length :: [a] -> Int
   \end{lstlisting}
 
 \vspace{\baselineskip}
@@ -283,10 +286,6 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
 \end{frame}
 
 \begin{frame}
-  \frametitle{Restricted strictness}
-\end{frame}
-
-\begin{frame}
   \frametitle{Bounded polymorphism and type classes}
 
 \onslide<1->{
@@ -301,9 +300,27 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{Type classes. Motivation}
+
+\begin{itemize}
+  \item Let us take a look a the following function
+
+  \begin{lstlisting}[language=Haskell]
+  elem :: a -> [a] -> Bool
+  elem _ [] = False
+  elem x (y:ys) = x == y || elem x ys
+  \end{lstlisting}
+
+\onslide<2->{
+  \item Is a type \verb"a" arbitrary?} \onslide<3->{Yes and no. \verb"a" is an arbitrary type for which equality is defined.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{The notion of a type class}
 
-  \emph{A type class} is a collection of functions with type signatures with a common type parameter. The example given:
+\begin{itemize}
+  \item \emph{A type class} is a collection of functions with type signatures with a common type parameter. The example given:
 
   \begin{lstlisting}[language=Haskell]
   class Eq a where
@@ -311,15 +328,19 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
     (/=) :: a -> a -> Bool
   \end{lstlisting}
 
-  \vspace{\baselineskip}
-
-  A type class name introduce a constraint called \emph{context}:
+  \item A type class name introduce a constraint called \emph{context}:
 
   \begin{lstlisting}[language=Haskell]
   elem :: Eq a => a -> [a] -> Bool
   elem _ [] = False
   elem x (y:ys) = x == y || elem x ys
   \end{lstlisting}
+
+  \item The definition above without a context yields a type error:
+  \begin{center}
+  \includegraphics[scale=0.24]{Pics/EqError.png}
+  \end{center}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -333,14 +354,15 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
     False == False = True
     _ == _         = False
 
-    x =/= y        = neg (x == y)
+    x /= y        = neg (x == y)
   \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Polymorphism + instance declarations}
 
-  A type parameter in an instance declaration might be polymorphic itself:
+\begin{itemize}
+  \item A type parameter in an instance declaration might be polymorphic itself:
 
   \begin{lstlisting}[language=Haskell]
   instance Eq a => Eq [a] where
@@ -348,17 +370,36 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
     (x : xs) == (y : ys) = x == y && xs == ys
     _        == _        = False
   \end{lstlisting}
+  \item Without the context \verb"Eq a =>", this definition yields type error since we don't know how to perform
+  equality comparison of element from \verb"a"
+\end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{The \verb"Eq" type class generally}
+\begin{frame}[fragile]
+  \frametitle{Some the \verb"Eq" instances}
 
-  The \verb"Eq" type class is a type class that allows one to
+\begin{itemize}
+\item The \verb"Eq" type class has the following instances (some of them)
+
+  \begin{lstlisting}[language=Haskell]
+  instance Eq a => Eq [a]
+  instance Eq Word
+  instance Eq Ordering
+  instance Eq Int
+  instance Eq Float
+  instance Eq Double
+  instance Eq Char
+  instance Eq Bool
+  \end{lstlisting}
+\item See the standard library source code to take a look at the instances implementation.
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The \verb"Show" type class}
 
+\begin{itemize}
+  \item The \verb"Show" type class allows one to represent a value as a string:
   \begin{lstlisting}[language=Haskell]
   class Show a where
     showsPrec :: Int -> a -> ShowS
@@ -366,63 +407,163 @@ bar       = length . filter odd . map (div 2) . filter even . map (div 7)
     showList :: [a] -> ShowS
     {-# MINIMAL showsPrec | show #-}
   \end{lstlisting}
+  \item One needs to have a \verb"Show" instance to display a value of a given type on a console.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some of the \verb"Show" instances}
+
+Here are some of the \verb"Show" instances:
+\begin{lstlisting}[language=Haskell]
+  instance Show Integer
+  instance Show Int
+  instance Show Char
+  instance Show Bool
+  instance (Show a, Show b) => Show (a, b)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ordering. Motivation}
+  \begin{itemize}
+  \item Let us take a look at the following quicksort function:
+
+  \begin{lstlisting}[language=Haskell]
+  quicksort :: [a] -> [a]
+  quicksort [] = []
+  quicksort (x:xs) = quicksort small ++ (x : quicksort large)
+    where
+      small = [y | y <- xs, y <= x]
+      large = [y | y <- xs, y > x]
+  \end{lstlisting}
+  \item Here we have the same story as in the case of equality. A type \verb"a" is an arbitrary type for which comparison is defined. The definition of quicksort as above is wrong. There exists a type element of which are incomparable, complex numbers, e.g.
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The \verb"Ord" type class}
 
+The full definition of \verb"Ord" is the following one:
+
   \begin{lstlisting}[language=Haskell]
   class Eq a => Ord a where
     compare :: a -> a -> Ordering
-    (<) :: a -> a -> Bool
-    (<=) :: a -> a -> Bool
-    (>) :: a -> a -> Bool
-    (>=) :: a -> a -> Bool
-    max :: a -> a -> a
-    min :: a -> a -> a
+    (<), (<=), (>), (>=) :: a -> a -> Bool
+    max, min :: a -> a -> a
+
+    compare x y = if x == y then EQ
+              else if x <= y then LT
+              else GT
+
+    x <= y = case compare x y of { GT -> False; _ -> True }
+
+    max x y = if x <= y then y else x
+
     {-# MINIMAL compare | (<=) #-}
   \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{Some of the \verb"Ord" instances}
+
+\begin{lstlisting}[language=Haskell]
+  instance Ord Word
+  instance Ord Int
+  instance Ord Float
+  instance Ord Double
+  instance Ord Char
+  instance Ord Bool
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{The \verb"Num" type class}
 
+\begin{itemize}
+  \item \verb"Num" is a type class with the general interface of usual arithmetical operations.
   \begin{lstlisting}[language=Haskell]
   class Num a where
-    (+) :: a -> a -> a
-    (-) :: a -> a -> a
-    (*) :: a -> a -> a
-    negate :: a -> a
-    abs :: a -> a
-    signum :: a -> a
+    (+), (-), (*) :: a -> a -> a
+    negate, abs, signum :: a -> a
     fromInteger :: Integer -> a
     {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
   \end{lstlisting}
+  \item The instances of \verb"Num" form a collection of numerical data types in Haskell
+  \item Note that we don't require the context \verb"Ord a" since the set complex numbers is an instance of \verb"Num", but we don't have the instance \verb"Ord Complex", as you know.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some of the \verb"Num" instances}
+
+The examples of \verb"Num" instances are:
+
+\begin{lstlisting}[language=Haskell]
+  instance Num Word
+  instance Num Integer
+  instance Num Int
+  instance Num Float
+  instance Num Double
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The \verb"Enum" and \verb"Bounded" type classes}
 
+\begin{itemize}
+  \item The \verb"Enum" is type class for type for which one may define an explicit enumeration.
 \begin{lstlisting}[language=Haskell]
   class Enum a where
-    succ :: a -> a
-    pred :: a -> a
-    toEnum :: Int -> a
-    fromEnum :: a -> Int
+    succ, pred :: a -> a
+    toEnum     :: Int -> a
+    fromEnum   :: a -> Int
 
-    enumFrom :: a -> [a]
-    enumFromThen :: a -> a -> [a]
-    enumFromTo :: a -> a -> [a]
-    enumFromThenTo :: a -> a -> a -> [a]
+    enumFrom       :: a -> [a]            -- [n..]
+    enumFromThen   :: a -> a -> [a]       -- [n,m..]
+    enumFromTo     :: a -> a -> [a]       -- [n..m]
+    enumFromThenTo :: a -> a -> a -> [a]  -- [n,m..p]
     {-# MINIMAL toEnum, fromEnum #-}
   \end{lstlisting}
 
+\item The \verb"Bounded" type class is a type class for bounded types, i.e., types with minimal and maximal bounds
 \begin{lstlisting}[language=Haskell]
   class Bounded a where
     minBound :: a
     maxBound :: a
     {-# MINIMAL minBound, maxBound #-}
   \end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some of the \verb"Enum" instances}
+
+\begin{itemize}
+  \item
+\begin{lstlisting}[language=Haskell]
+  instance Enum Word
+  instance Enum Integer
+  instance Enum Int
+  instance Enum Char
+  instance Enum Bool
+  instance Enum Float
+  instance Enum Double
+\end{lstlisting}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some of the \verb"Bounded" instances}
+\begin{itemize}
+  \item
+\begin{lstlisting}[language=Haskell]
+  instance Bounded Word
+  instance Bounded Int
+  instance Bounded Char
+  instance Bounded Bool
+\end{lstlisting}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
