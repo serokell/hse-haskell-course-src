@@ -252,7 +252,7 @@ instance Show a => Show (Tree a) where
 
 8.2. Реализовать представителя класса типов `Eq` для типа деревьев
 ```haskell
-instance Eq a => Show (Eq a) where
+instance Eq a => Eq (Tree a) where
   x == y = undefined
 ```
 
