@@ -370,11 +370,12 @@ bar       =
   elem _ [] = False
   elem x (y:ys) = x == y || elem x ys
   \end{lstlisting}
-
+\onslide<2->{
   \item The definition above without a context yields a type error:
   \begin{center}
   \includegraphics[scale=0.24]{Pics/EqError.png}
   \end{center}
+}
 \end{itemize}
 \end{frame}
 
@@ -472,7 +473,9 @@ Here are some of the \verb"Show" instances:
       small = [y | y <- xs, y <= x]
       large = [y | y <- xs, y > x]
   \end{lstlisting}
+  \onslide<2->{
   \item Here we have the same story as in the case of equality. A type \verb"a" is an arbitrary type for which comparison is defined. The definition of quicksort as above is wrong. There exists a type element of which are incomparable, complex numbers, e.g.
+  }
 \end{itemize}
 \end{frame}
 
@@ -502,6 +505,8 @@ The full definition of \verb"Ord" is the following one:
 \begin{frame}[fragile]
   \frametitle{Some of the \verb"Ord" instances}
 
+\begin{itemize}
+  \item The \verb"Ord" instances
 \begin{lstlisting}[language=Haskell]
   instance Ord Word
   instance Ord Int
@@ -510,6 +515,7 @@ The full definition of \verb"Ord" is the following one:
   instance Ord Char
   instance Ord Bool
 \end{lstlisting}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -524,15 +530,19 @@ The full definition of \verb"Ord" is the following one:
     fromInteger :: Integer -> a
     {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
   \end{lstlisting}
+  \onslide<2->{
   \item The instances of \verb"Num" form a collection of numerical data types in Haskell
+  } \onslide<3->{
   \item Note that we don't require the context \verb"Ord a" since the set complex numbers is an instance of \verb"Num", but we don't have the instance \verb"Ord Complex", as you know.
+  }
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Some of the \verb"Num" instances}
 
-The examples of \verb"Num" instances are:
+\begin{itemize}
+\item The examples of \verb"Num" instances are:
 
 \begin{lstlisting}[language=Haskell]
   instance Num Word
@@ -541,6 +551,7 @@ The examples of \verb"Num" instances are:
   instance Num Float
   instance Num Double
 \end{lstlisting}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -614,11 +625,36 @@ The examples of \verb"Num" instances are:
     {-# MINIMAL fromRational, (recip | (/)) #-}
   \end{lstlisting}
   \item It is clear that such a type should be a numerical one. Thus, we require the \verb"Num a" restriction.
+  \item The \verb"Fractional" instances:
+  \begin{lstlisting}[language=Haskell]
+  instance Fractional Float
+  instance Fractional Double
+  \end{lstlisting}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Summary}
+
+\onslide<1->{
+  On this seminar, we
+  \begin{itemize}
+    \item took a look at parametric polymorphism to see how to avoid boilerplate
+    \item discussed type classes and ad hoc polymorphism
+    \item studied such basic type classes as \verb"Eq", \verb"Show", etc
+  \end{itemize}
+}
+
+\onslide<2->{
+On the next seminar, we
+  \begin{itemize}
+    \item delve into the variety of Haskell data types: algebraic data types, newtypes,
+    type synonyms, etc
+    \item feel the power of pattern matching
+    \item discuss folds
+    \item see how to enforce lazy evaluation in Haskell
+  \end{itemize}
+}
 \end{frame}
 
 
