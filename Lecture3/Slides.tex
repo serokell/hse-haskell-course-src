@@ -177,7 +177,7 @@ The key idea of parametric polymorphism that the same function might be called o
   flip f b a = f a b
 
   fix :: (a -> a) -> a
-  fix = error "this is your homework"
+  fix f = f (fix f)
 
   curry :: ((a, b) -> c) -> a -> b -> c
   curry f x y = f (x, y)
@@ -291,6 +291,9 @@ foo patak =
 bar       =
   length . filter odd .
   map (div 2) . filter even . map (div 7)
+
+zip :: [a] -> [b] -> [(a, b)]
+zip = zipWith (,)
 \end{lstlisting}
 \end{frame}
 
@@ -419,7 +422,6 @@ bar       =
 
   \begin{lstlisting}[language=Haskell]
   instance Eq a => Eq [a]
-  instance Eq Word
   instance Eq Ordering
   instance Eq Int
   instance Eq Float
@@ -508,7 +510,6 @@ The full definition of \verb"Ord" is the following one:
 \begin{itemize}
   \item The \verb"Ord" instances
 \begin{lstlisting}[language=Haskell]
-  instance Ord Word
   instance Ord Int
   instance Ord Float
   instance Ord Double
@@ -545,7 +546,6 @@ The full definition of \verb"Ord" is the following one:
 \item The examples of \verb"Num" instances are:
 
 \begin{lstlisting}[language=Haskell]
-  instance Num Word
   instance Num Integer
   instance Num Int
   instance Num Float
@@ -588,7 +588,6 @@ The full definition of \verb"Ord" is the following one:
 \begin{itemize}
   \item The instances are the following ones:
 \begin{lstlisting}[language=Haskell]
-  instance Enum Word
   instance Enum Integer
   instance Enum Int
   instance Enum Char
@@ -604,7 +603,6 @@ The full definition of \verb"Ord" is the following one:
 \begin{itemize}
   \item The examples of bounded data types
 \begin{lstlisting}[language=Haskell]
-  instance Bounded Word
   instance Bounded Int
   instance Bounded Char
   instance Bounded Bool
