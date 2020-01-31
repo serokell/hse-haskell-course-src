@@ -23,6 +23,9 @@
 \usepackage{color}
 \usepackage{tikz}
 \usepackage{listings}
+\makeatletter
+\newcommand{\xRightarrow}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
+\makeatother
 \pgfplotsset{compat=1.16}
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
@@ -91,7 +94,7 @@
 
 \onslide<2->{
   \begin{itemize}
-    \item Expressions like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are ofteb called patterns
+    \item Expressions like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are often called patterns
     \item In such calls as \verb"swap (45, True)" or \verb"lenght [1,2,3]", we deal with \emph{pattern matching}}
 \onslide<3->{
     \item One needs to check that constructors \verb"(,)" and \verb"( : )" are relevant.
@@ -160,7 +163,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Polymorphic data types}
 
 \begin{itemize}
-  \item The point data type might parametrised with a polymorphic type:
+  \item The point data type might parametrised with a type parameter:
   \begin{lstlisting}[language=Haskell]
   data Point a = Point a a
     deriving Show
@@ -219,7 +222,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
   data List a = Nil | Cons a (List a)
     deriving Show
   \end{lstlisting}
-  \item Data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
+  \item The data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
   \item The processing of such data types: pattern matching and recursion
   \begin{lstlisting}[language=Haskell]
   concat :: List a -> List a -> List a
@@ -328,7 +331,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
     \item The example of a lazy pattern:
     \begin{lstlisting}[language=Haskell]
     > (***) f g (a,b) = (f a, g b)
-    > (const 2 *** const 1) undefined
+    > const 2 *** const 1 $ undefined
     *** Exception: Prelude.undefined
     > (***) f g ~(a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
@@ -382,7 +385,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
      \end{lstlisting}
      \item Such a data type is a record with accessors, e.g.
      \verb"firstName :: Person -> String"
-     \item In fact, this data type is a product with accessor function
+     \item In fact, this data type is a product data type with accessor function
   \end{itemize}
 \end{frame}
 
@@ -401,6 +404,12 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
     isZero :: Int -> Bool
     isZero x = if x == y then True else False
+
+    eqFunction :: Eq a => a -> a -> Int
+    eqFunction x y =
+      case x == y of
+        True -> 42
+        False -> 0
     \end{lstlisting}
     \item In fact, type classes are syntax sugar for records defined with field labels
     \item The constraint \verb"Eq a" is an additional argument
@@ -423,6 +432,12 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
     isZero :: Int -> Bool
     isZero x = if (eq eqInstance) x 0 then True else False
+
+    eqFunction :: Eq a -> a -> a -> Int
+    eqFunction eqInst x y =
+      case ((eq eqInst) x y) of
+        True -> 42
+        False -> 0
     \end{lstlisting}
   \end{itemize}
 \end{frame}
@@ -482,8 +497,132 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Folds and lists. Motivation}
+
+\begin{itemize}
+  \item Suppose we have these functions
+  \begin{lstlisting}[language=Haskell]
+  sum :: [Integer] -> Integer
+  sum [] = 0
+  sum (x : xs) = x + sum xs
+
+  product :: [Integer] -> Integer
+  product [] = 1
+  product (x : xs) = x * product xs
+
+  concat :: [[a]] -> [a]
+  concat [] = []
+  concat (x : xs) = x ++ concat xs
+  \end{lstlisting}
+  \item It is clear that one has a common recursion pattern
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The definition of a right fold}
+\begin{itemize}
+  \item The definition of a right is the following one
+  \begin{lstlisting}[language=Haskell]
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+  foldr _ ini [] = []
+  foldr f ini (x : xs) = f x (foldr f ini xs)
+  \end{lstlisting}
+  \item Informally, this function behaves as follows:
+  \begin{lstlisting}[language=Haskell]
+  foldr f z [x1, x2, ..., xn] == x1 `f` (x2 `f` ... (xn `f` z)...)
+  \end{lstlisting}
+\end{itemize}
+\end{frame}
+
 \begin{frame}
-  \frametitle{}
+  \frametitle{The definition of a right fold}
+One may visualise the story above for some list \verb"[a,b,c]". The list from the left and its right fold from the right:
+
+\begin{small}
+\xymatrix{
+ & \verb":" \ar[dl] \ar[dr] &&&&& \verb"f" \ar[dl] \ar[dr] \\
+ \verb"a" && \verb":" \ar[dl] \ar[dr] &&& \verb"a" && \verb"f" \ar[dl] \ar[dr] \\
+ & \verb"b" && \verb":" \ar[dl] \ar[dr] &&& \verb"b" && \verb"f"  \ar[dl] \ar[dr] \\
+ && \verb"c" && \verb"[]" &&& \verb"c" && \verb"ini"
+}
+\end{small}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Functions \verb"sum", \verb"product", and \verb"concat" via \verb"foldr"}
+  \begin{itemize}
+    \item Let us rewrite those functions with \verb"foldr"
+    \begin{lstlisting}[language=Haskell]
+    sum :: [Integer] -> Integer
+    sum = foldr (+) 0
+
+    product :: [Integer] -> Integer
+    product = foldr (*) 1
+
+    concat :: [[a]] -> [a]
+    concat = foldr (++) []
+    \end{lstlisting}
+    \item What about \verb"foldr (:) []"?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The universal property of a right fold}
+\begin{block}{The universal property}
+  Let \verb"f" be a function defined by the following equations:
+  \begin{lstlisting}[language=Haskell]
+  g [] = v
+  g (x : xs) = f x (g xs)
+  \end{lstlisting}
+
+  then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" = \verb"foldr f v xs")$
+\end{block}
+\begin{itemize}
+  \item The universal property is proved by induction on \verb"xs"
+  \item The converse implication is quite trivial
+  \item The meaning of this fact: \verb"foldr f v" and \verb"g" are interchangeable in this case
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The definition of a left fold}
+  \begin{itemize}
+    \item In addition to a right fold, one also has a left one
+    \begin{lstlisting}[language=Haskell]
+    foldl :: (b -> a -> b) -> b -> [a] -> b
+    foldl _ ini [] = ini
+    foldl f ini (x : xs) = foldl f (f ini x) xs
+    \end{lstlisting}
+    \item Informally:
+    \begin{lstlisting}[language=Haskell]
+    foldl f ini [x1, x2, ..., xn] == (...((z `f` x1) `f` x2) `f`...) `f` xn
+    \end{lstlisting}
+    \onslide<2->{
+    \item The implementation of the left fold function might be optimised. Here we have an increasing thunk
+    \item We take a look at the strict version of \verb"foldl"
+    \item \verb"foldl" is the most optimal function, but we are not capable of processing infinite lists using the left fold function.
+    }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The definition of a left fold}
+  One may visualise left fold in the same manner:
+  \xymatrix{
+  & \verb":" \ar[dl] \ar[dr] &&&&&&&& \verb"f" \ar[dl] \ar[dr] \\
+  \verb"a" && \verb":" \ar[dl] \ar[dr] &&&&&& \verb"f" \ar[dl] \ar[dr]  && \verb"c" \\
+  & \verb"b" && \verb":" \ar[dl] \ar[dr] &&&& \verb"f" \ar[dl] \ar[dr] && \verb"b" \\
+  && \verb"c" && \verb"[]" && \verb"f" && \verb"a"
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{The right scan}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The left scan}
 \end{frame}
 
 \begin{frame}
