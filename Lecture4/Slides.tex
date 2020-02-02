@@ -169,10 +169,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
     deriving Show
   \end{lstlisting}
 
-  \begin{lstlisting}[language=Haskell]
-  data Point a = Pt a a
-    deriving Show
-  \end{lstlisting}
   \item The type of the \verb"Point" constructor
   \begin{lstlisting}[language=Haskell]
   > :type Point
@@ -223,7 +219,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
     deriving Show
   \end{lstlisting}
   \item The data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
-  \item The processing of such data types: pattern matching and recursion
+  \item Here come pattern matching and recursion
   \begin{lstlisting}[language=Haskell]
   concat :: List a -> List a -> List a
   concat Nil ys = ys
@@ -349,7 +345,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
   type String = [Char]
   \end{lstlisting}
   \item In Haskell, the string data type type is merely a type synonym for the list of characters
-  \item The keyword \verb"newtype" defined a new type with the single constructor that packs an existing types
+  \item The keyword \verb"newtype" defines a new type with the single constructor that packs an existing types
   \begin{lstlisting}[language=Haskell]
   newtype Age = Age Int
   \end{lstlisting}
@@ -576,7 +572,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   g (x : xs) = f x (g xs)
   \end{lstlisting}
 
-  then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" = \verb"foldr f v xs")$
+  then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" \equiv \verb"foldr f v xs")$
 \end{block}
 \begin{itemize}
   \item The universal property is proved by induction on \verb"xs"
@@ -613,28 +609,210 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   & \verb":" \ar[dl] \ar[dr] &&&&&&&& \verb"f" \ar[dl] \ar[dr] \\
   \verb"a" && \verb":" \ar[dl] \ar[dr] &&&&&& \verb"f" \ar[dl] \ar[dr]  && \verb"c" \\
   & \verb"b" && \verb":" \ar[dl] \ar[dr] &&&& \verb"f" \ar[dl] \ar[dr] && \verb"b" \\
-  && \verb"c" && \verb"[]" && \verb"f" && \verb"a"
+  && \verb"c" && \verb"[]" && \verb"ini" && \verb"a"
   }
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
+  \frametitle{Are \verb"foldr" and \verb"foldl" equivalent?}
+
+\begin{itemize}
+  \item Note that \verb"foldr" and \verb"foldl" are not equivalent to each other
+  \begin{lstlisting}[language=Haskell]
+  > foldl (/) 64 [4,2,4]
+  2.0
+  > foldr (/) 64 [4,2,4]
+  0.125
+  > foldl (\x y -> 2*x + y) 4 [1,2,3]
+  43
+  > foldr (\x y -> 2*x + y) 4 [1,2,3]
+  16
+  \end{lstlisting}
+  \item \verb"foldr" and \verb"foldl" are equivalent if the folding operation is commutative
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{The right scan}
+  \begin{itemize}
+    \item The right scan is the foldr that yields a list that contains all intermediate values
+    \begin{lstlisting}[language=Haskell]
+    scanr :: (a -> b -> b) -> b -> [a] -> [b]
+    scanr _ ini [] = [ini]
+    scanr f ini (x:xs) = f x q : qs
+      where qs@(q:_) = scanr f ini xs
+    \end{lstlisting}
+    \item \verb"foldr" and \verb"scanr" are connected with each other as follows
+    \begin{center}
+      $\verb"head (scanr f z xs)" \equiv \verb"foldr f z xs"$
+    \end{center}
+    \item The examples are
+    \begin{lstlisting}[language=Haskell]
+    >  scanr (++) "!" ["aa","bb","cc"]
+    ["aabbcc!","bbcc!","cc!","!"]
+    > scanr (:) [] [1,2,3]
+    [[1,2,3],[2,3],[3],[]]
+    > scanr (+) 0 [1..10]
+    [55,54,52,49,45,40,34,27,19,10,0]
+    > scanr (*) 1 [1..10]
+    [3628800,3628800,1814400,604800,151200,30240,5040,720,90,10,1]
+    \end{lstlisting}
+  \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{The left scan}
+  \begin{itemize}
+  \item One also has a scan function for the \verb"foldl" function:
+  \begin{lstlisting}[language=Haskell]
+  scanl :: (b -> a -> b) -> b -> [a] -> [b]
+  scanl f q ls = q : (case ls of
+                        []   -> []
+                        x:xs -> scanl f (f q x) xs)
+  \end{lstlisting}
+  \item \verb"foldl" and \verb"scanl" are connected with each other as follows:
+  \begin{center}
+   $\verb"last (scanl f z xs)" \equiv \verb"foldl f z xs"$
+  \end{center}
+  \item The examples:
+  \begin{lstlisting}[language=Haskell]
+  > scanl (++) "!" ["a","b","c"]
+  ["!","!a","!ab","!abc"]
+  > scanl (*) 1 [1..] !! 5
+  120
+  \end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The presence of a bottom}
+
+  \begin{itemize}
+    \item Any well-written expression in Haskell has a type
+    \item Prima facie, the Bool data type has two values: \verb"False" and \verb"True" according to its definition:
+    \begin{lstlisting}[language=Haskell]
+    data Bool = False | True
+    \end{lstlisting}
+    \item One may define an expession \verb"dno :: Bool" which is recursively defined as \verb"dno = not dno"
+    \item \verb"dno" is neither \verb"False" nor \verb"True", but it's a Boolean value!
+    \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a". Such errors as \verb"undefined" have this type.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
+  \frametitle{Strict function}
+  \begin{itemize}
+    \item Haskell has the call-by name semantics. That's the reason according to which \verb"const 42 undefined" yields \verb"42"
+    \item Lazy functions are non-strict ones
+    \onslide<2->{
+    \item In constrast to lazy functions, strict functions satisfy this equivation
+    \begin{center}
+      $\verb"f" \: \bot = \bot$
+    \end{center}
+    \item That is, the strict \verb"const" should yield \verb"undefined" in the call \verb"const 42 undefined"
+    }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{Strictness in Haskell. The \verb"seq" function}
+\begin{itemize}
+  \item We took a look at the \verb"seq" function. Let us recall it.
+  \item \verb"seq" is a combinator that enforce a computation.
+  \item This combinator has a type $a \to b \to b$.
+  \item It seems that the body of \verb"seq" looks like $\setminus\verb"x y -> y"$, but \verb"seq" satisfies the following equations:
+  \begin{center}
+    $\verb"seq" \: \bot \: x = \bot$
+
+    $\verb"seq" \: value \: x = x$
+  \end{center}
+  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching. Data constructors and lambdas put a barrier for the $\bot$ expansion:
+  \begin{lstlisting}[language=Haskell]
+  > seq (4,undefined) 5
+  5
+  > seq (\x -> undefined) 5
+  5
+  > seq (id . undefined) 5
+  5
+  \end{lstlisting}
+\end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Strictness in Haskell. The strict application}
+  \begin{itemize}
+    \item One may implement the strict appication using \verb"seq"
+    \begin{lstlisting}[language=Haskell]
+    infixr 0 $!
+    ($!) :: (a -> b) -> a -> b
+    f $! x = x `seq` f x
+    \end{lstlisting}
+    \item That is, this application behaves as usual if the second argument is not bottom.
+  \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
+  \frametitle{Strictness in Haskell. The strict application}
+  \begin{itemize}
+    \item Let us recall the tail-recursive factorial:
+    \begin{lstlisting}[language=Haskell]
+      tailFactorial n = helper 1 n
+        where
+        helper acc x =
+          if x > 1
+          then helper (acc * x) (x - 1)
+          else acc
+    \end{lstlisting}
+    \item The optimal version of the tail-recursive factorial is the following one:
+    \begin{lstlisting}[language=Haskell]
+    tailFactorial n = helper 1 n
+      where
+      helper acc x =
+        if x > 1
+        then (helper $! (acc * x)) (x - 1)
+        else acc
+      \end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The strict \verb"foldl"}
+
+  \begin{itemize}
+    \item A strict version of \verb"foldl"
+    \begin{lstlisting}[language=Haskell]
+    foldl' :: (a -> b -> a) -> a -> [b] -> a
+    foldl' f ini [] = ini
+    foldl' f ini (x:xs) = foldl' f arg xs
+      where arg = (f ini) $! x
+    \end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{Strictness in Haskell. Bang patterns}
+  \begin{itemize}
+    \item A data type might contain strict values with the strictness flag \verb"!", e.g.
+    \begin{lstlisting}[language=Haskell]
+    data Complex a = !a :+ !a
+      deriving Show
+    infix 6 :+
+
+    im :: Complex a -> a
+    im (x :+ y) = y
+    \end{lstlisting}
+    > im (undefined :+ 5)
+    *** Exception: Prelude.undefined
+    \begin{lstlisting}[language=Haskell]
+    \end{lstlisting}
+
+  \item The \verb"BangPatterns" allows one to make pattern a strict one
+  \begin{lstlisting}[language=Haskell]
+  > foo !x = True
+  > foo undefined
+  *** Exception: Prelude.undefined
+  \end{lstlisting}
+  \end{itemize}
 \end{frame}
 
 \end{document}
