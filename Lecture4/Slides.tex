@@ -219,7 +219,7 @@ taxCab (Point x1 y1) (Point x2 y2) =
     deriving Show
   \end{lstlisting}
   \item The data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
-  \item Here come pattern matching and recursion
+  \item Pattern matching and recursion
   \begin{lstlisting}[language=Haskell]
   concat :: List a -> List a -> List a
   concat Nil ys = ys
@@ -813,6 +813,24 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   *** Exception: Prelude.undefined
   \end{lstlisting}
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary}
+
+  Today we
+  \begin{itemize}
+    \item discussed the data type landscape and together with pattern matching
+    \item studied list folds
+    \item realised how one can enforce lazy evaluation
+  \end{itemize}
+
+  \onslide<2->{
+  On the next seminar, we
+  \begin{itemize}
+    \item study such type classes as \verb"Functor", \verb"Foldable", and \verb"Monoid"
+  \end{itemize}
+  }
 \end{frame}
 
 \end{document}
