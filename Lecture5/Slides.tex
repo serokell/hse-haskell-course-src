@@ -1,0 +1,431 @@
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
+\newtheorem{defin}{Definition}
+\newtheorem{theor}{Theorem}
+\newtheorem{prop}{Proposition}
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
+}
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+
+% ------------------------------------------------------------------------------
+% The Document
+% ------------------------------------------------------------------------------
+\title{Functional programming, Seminar No. 5}
+\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
+
+\vspace{\baselineskip}
+
+\date{Higher School of Economics \\ The Department of Computer Science}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+\frametitle{Intro}
+
+On the previous seminar, we
+\begin{itemize}
+\item introduced data types, new types, records, and type synonyms
+\item told about right and left folds
+\item discussed lazy evaluation enforcing
+\end{itemize}
+
+\onslide<2->{
+    Today we
+    \begin{itemize}
+    \item motivate and introduce functors
+    \item generalise left and right folds with the type class \verb"Foldable"
+    \end{itemize}
+}
+\end{frame}
+
+\section{Functor}
+
+\begin{frame}[fragile]
+\frametitle{Motivation}
+
+\begin{itemize}
+\item Let us take a look at these functions
+    \begin{minted}{haskell}
+    map :: (a -> b) -> [a] -> [b]
+    map _ [] = []
+    map f (x : xs) = f x : map f xs
+
+    mapMaybe :: (a -> b) -> Maybe a -> Maybe b
+    mapMaybe _ Nothing = Nothing
+    mapMaybe f (Just x) = Just (f x)
+    \end{minted}
+\item One has the same pattern, a unary function carries through a computational context 
+(lists and optional values)
+\item This idea has a generalisation introducing functor, a Haskell counterpart of categorical functor 
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Here comes the Functor}
+
+Instances of the type class \verb"Functor" are type constructors that has kind \verb"* -> *":
+
+\begin{minted}{haskell}
+class Functor (f :: * -> *) where
+  fmap :: (a -> b) -> f a -> f b
+
+instance Functor (Maybe a) where
+  fmap _ Nothing = Nothing
+  fmap f (Just x) = Just (f x)
+
+instance Functor [a] where
+  map _ [] = []
+  map f (x : xs) = f x : map f xs
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The full definition of a functor}
+
+\begin{minted}{haskell}
+class Functor (f :: * -> *) where
+  fmap        :: (a -> b) -> f a -> f b
+  (<$)        :: a -> f b -> f a
+  (<$)        =  fmap . const
+
+infixl 4 <$>, <$ 
+
+(<$>) :: Functor f => (a -> b) -> f a -> f b
+(<$>) = fmap
+
+void :: Functor f => f a -> f ()
+void x = () <$ x
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Functor" instances for two-parametric types}
+
+Let us take a look at the \verb"Functor" for type constructors that have 
+kind \verb"* -> * -> *"
+
+\begin{minted}{haskell}
+instance Functor ((,) a) where
+  fmap f (x,y) = (x, f y)
+
+instance Functor ((->) r) where
+  fmap = (.)
+
+instance Functor (Either a) where
+  fmap _ (Left x) = Left x
+  fmap f (Right y) = Right (f y)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Functor" laws}
+
+Functor has the following axioms:
+
+\begin{minted}{haskell}
+
+fmap id fx = fx
+
+fmap (f . g) fx = (fmap f . fmap g) fx
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Functor" laws. Example}
+Let us check that the list data type is a Functor. In other words, let us check that
+the \verb"Functor" instance satisfies required conditions.
+
+\begin{minted}{haskell}
+
+fmap id [] = map id [] = []
+fmap id (x : xs) =
+  id x : fmap id xs =
+  x : fmap id xs =      -- Induction hypothesis
+  x : xs
+
+fmap (f . g) [] = []
+fmap (f . g) (x : xs) =
+  (f . g) x : fmap (f . g) xs =   -- Induction hypothesis
+  (f . g) x : (fmap f . fmap g) xs = 
+  f (g x) : fmap f (fmap g xs)
+\end{minted}
+\end{frame}
+
+\section{Monoid}
+
+\section{Foldable}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Foldable" type class}
+\begin{minted}{haskell}
+class Foldable t where
+  {-# MINIMAL foldMap | foldr #-}
+  fold :: Monoid m => t m -> m
+  fold = foldMap id
+
+  foldMap :: Monoid m => (a -> m) -> t a -> m
+  foldMap f = foldr (mappend . f) mempty
+
+  foldr :: (a -> b -> b) -> b -> t a -> b
+  foldr f z t = appEndo (foldMap (Endo . f) t) z
+
+  foldl :: (b -> a -> b) -> b -> t a -> b
+    foldl f z t = 
+      appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Useful functions for foldable data types}
+Here we provide type signatures only:
+\begin{minted}{haskell}
+toList :: Foldable t => t a -> [a]
+
+null :: Foldable => t a -> Bool
+
+length :: Foldable t => t a -> Int
+
+elem :: (Eq a, Foldable t) => a -> t a -> Bool
+
+maximum :: (Ord a, Foldable t) => t a -> a
+
+sum, product :: (Num a, Foldable t) => t a -> a
+\end{minted}
+\end{frame}
+
+
+\section{Applicative functors}
+
+\begin{frame}[fragile]
+\frametitle{Motivation}
+
+\begin{itemize}
+\item It is clear that we would like to have something like \verb"fmap" for functions that
+have an arbitrary arity:
+
+\begin{minted}{haskell}
+fmap2 
+  :: (a -> b -> c) 
+  -> f a -> f b -> f c
+fmap3 
+  :: (a -> b -> c -> d) 
+  -> f a -> f b -> f c -> f d
+fmap4 
+  :: (a -> b -> c -> d -> e) 
+  -> f a -> f b -> f c -> f d -> e
+...
+\end{minted}
+\item That is, one needs to generalise a functor
+\item The solution is the \verb"Applicative" type class that extends \verb"Functor"
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" class}
+
+\begin{minted}{haskell}
+class Functor f => Applicative f where
+    {-# MINIMAL pure, ((<*>) | liftA2) #-}
+    pure :: a -> f a
+
+    (<*>) :: f (a -> b) -> f a -> f b
+    (<*>) = liftA2 id  -- the same as liftA2 ($)
+
+    liftA2 :: (a -> b -> c) -> f a -> f b -> f c
+    liftA2 f x = (<*>) (fmap f x)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" class. Example}
+\begin{minted}{haskell}
+instance Applicative (Maybe a) where
+  pure = Just
+  Nothing <*> _ = Nothing
+  _ <*> Nothing = Nothing
+  Just f <*> Just x = Just (f x)
+
+instance Applicative [a] where
+  pure x = [x]
+  fs <*> fx = [ f x | f <- fs, x <- xs] 
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" laws}
+\begin{minted}{haskell}
+fmap f x = pure f <*> x
+
+pure id <*> v = v  -- identity
+
+pure (.) <*> u <*> v <*> w = u <*> (v <*> w) -- haskell
+
+pure f <*> pure x = pure (f x) -- homomorphism
+
+u <*> pure y = pure ($ y) <*> u -- interchange
+\end{minted}
+Let us check some of these laws for the \verb"Maybe" data type
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" laws}
+\begin{minted}{haskell}
+Nothing <*> _ = Nothing
+_ <*> Nothing = Nothing
+Just f <*> Just x = Just (f x)
+
+fmap f Nothing = Nothing = Just f <*> Nothing
+fmap f (Just x) = Just (f x) = Just f <*> Just x
+
+pure id <*> v = fmap id v = v
+
+Nothing <*> Just y = Nothing = Just ($ y) <*> Nothing
+Just f <*> Just y = Just (f y) = Just ($ y) <*> Just f
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" class. The list problem}
+\begin{itemize}
+\item The list data type might have an alternative \verb"Applicative" instance
+\item One has the function called \verb"zipWith":
+\begin{minted}{haskell}
+zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWith _ [] _ = []
+zipWith _ _ [] = []
+zipWith f (x:xs) (y:ys) = f x y : zipWith f xs ys
+\end{minted}
+\item The signature of \verb"zipWith" corresponds to the signature of \verb"liftA2"
+\item On the other hand, we cannot have two instances for the same data type
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Applicative" class. The list problem}
+
+Let us introduce the following data type:
+\begin{minted}{haskell}
+newtype ZipList a = ZipList { getZipList :: [a]}
+\end{minted}
+
+\vspace{\baselineskip}
+
+The instance is implemented via \verb"zipWith":
+\begin{minted}{haskell}
+instance Applicative (ZipList a) where
+  liftA2 f (ZipList xs) (ZipList ys) = 
+    ZipList (zipWith f xs ys)
+  zipF <*> zipX = liftA2 ($)
+  pure = ???
+\end{minted}
+
+\vspace{\baselineskip}
+
+How to implement \verb"pure" to preverse the identity law? 
+
+\end{frame}
+
+\section{Traversable}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Traversable" definition}
+
+\begin{minted}{haskell}
+class (Functor t, Foldable t) => Traversable t where
+  traverse :: Applicative f => (a -> f b) -> t a -> f (t b)
+  sequenceA :: Applicative f => t (f a) -> f (t a)
+  {-# MINIMAL traverse | sequenceA #-}
+\end{minted}
+\end{frame}
+
+\section{Summary}
+
+\end{document}
