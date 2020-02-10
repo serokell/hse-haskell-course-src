@@ -144,7 +144,8 @@ On the previous seminar, we
     \end{minted}
 \item One has the same pattern, a unary function carries through a computational context 
 (lists and optional values)
-\item This idea has a generalisation introducing functor, a Haskell counterpart of categorical functor 
+\item This idea has a generalisation with the type class \verb"Functor", 
+a Haskell counterpart of categorical functor 
 \end{itemize}
 \end{frame}
 
@@ -240,6 +241,68 @@ fmap (f . g) (x : xs) =
 \end{frame}
 
 \section{Monoid}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Monoid" definition}
+
+\begin{minted}{haskell}
+class Semigroup a where
+  (<>) :: a -> a -> a
+
+class Semigroup a => Monoid a where
+  mempty :: a
+  mappend :: a -> a -> a
+  mappend = (<>)
+  mconcat :: [a] -> a
+  mconcat = foldr mappend mempty
+\end{minted}
+
+\vspace{\baselineskip}
+
+The operation in a semigroup should associative and \verb"mempty" is a neutral element
+\begin{minted}{haskell}
+a <> (b <> c) = (a <> b) <> c
+a <> mempty = a = mempty <> a
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"Monoid" instances}
+\begin{minted}{haskell}
+instance Semigroup [a] where
+  (<>) = (++)
+
+instance Monoid [a] where
+  mempty = []
+\end{minted}
+
+It is clear that \verb"(++)" is an associative operation and \verb"[]" is neutral.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Numbers and Booleans as monoids}
+
+\begin{minted}{haskell}
+newtype Sum a = Sum { getSum :: a }
+  deriving (Show, Eq, Show)
+
+newtype All = All { getAll :: Bool }
+  deriving (Show, Eq, Show)
+
+instance Num a => Semigroup (Sum a) where
+  Sum a <> Sum b = Sum (a + b)
+
+instance Semigroup All where
+  All a <> All b = All (a && b)
+
+instance Num a => Monoid (Sum a) where
+  mempty = Sum 0
+
+instance Monoid All where
+  mempty = All True
+\end{minted}
+\end{frame}
 
 \section{Foldable}
 
@@ -352,24 +415,7 @@ pure f <*> pure x = pure (f x) -- homomorphism
 
 u <*> pure y = pure ($ y) <*> u -- interchange
 \end{minted}
-Let us check some of these laws for the \verb"Maybe" data type
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{The \verb"Applicative" laws}
-\begin{minted}{haskell}
-Nothing <*> _ = Nothing
-_ <*> Nothing = Nothing
-Just f <*> Just x = Just (f x)
-
-fmap f Nothing = Nothing = Just f <*> Nothing
-fmap f (Just x) = Just (f x) = Just f <*> Just x
-
-pure id <*> v = fmap id v = v
-
-Nothing <*> Just y = Nothing = Just ($ y) <*> Nothing
-Just f <*> Just y = Just (f y) = Just ($ y) <*> Just f
-\end{minted}
+Let us check some of these laws for the \verb"Maybe" data type on a whiteboard
 \end{frame}
 
 \begin{frame}[fragile]
