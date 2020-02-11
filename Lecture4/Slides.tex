@@ -566,7 +566,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 \begin{frame}[fragile]
   \frametitle{The universal property of a right fold}
 \begin{block}{The universal property}
-  Let \verb"f" be a function defined by the following equations:
+  Let \verb"g" be a function defined by the following equations:
   \begin{lstlisting}[language=Haskell]
   g [] = v
   g (x : xs) = f x (g xs)
@@ -688,21 +688,23 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{The presence of a bottom}
 
   \begin{itemize}
-    \item Any well-written expression in Haskell has a type
+    \item Any well-formed expression in Haskell has a type
     \item Prima facie, the Bool data type has two values: \verb"False" and \verb"True" according to its definition:
     \begin{lstlisting}[language=Haskell]
     data Bool = False | True
     \end{lstlisting}
     \item One may define an expession \verb"dno :: Bool" which is recursively defined as \verb"dno = not dno"
     \item \verb"dno" is neither \verb"False" nor \verb"True", but it's a Boolean value!
-    \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a". Such errors as \verb"undefined" have this type.
+    \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a". 
+    Such errors as \verb"undefined" have this type.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Strict function}
   \begin{itemize}
-    \item Haskell has the call-by name semantics. That's the reason according to which \verb"const 42 undefined" yields \verb"42"
+    \item An evaluation in Haskell is lazy. 
+    That's the reason according to which \verb"const 42 undefined" yields \verb"42"
     \item Lazy functions are non-strict ones
     \onslide<2->{
     \item In constrast to lazy functions, strict functions satisfy this equivation
@@ -726,7 +728,8 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 
     $\verb"seq" \: value \: x = x$
   \end{center}
-  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching. Data constructors and lambdas put a barrier for the $\bot$ expansion:
+  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching. 
+  Data constructors and lambdas put a barrier for the $\bot$ expansion:
   \begin{lstlisting}[language=Haskell]
   > seq (4,undefined) 5
   5
@@ -756,6 +759,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \begin{itemize}
     \item Let us recall the tail-recursive factorial:
     \begin{lstlisting}[language=Haskell]
+      tailFactorial :: Integer -> Integer
       tailFactorial n = helper 1 n
         where
         helper acc x =
@@ -764,8 +768,9 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
           else acc
     \end{lstlisting}
     \item The optimal version of the tail-recursive factorial is the following one:
-    \begin{lstlisting}[language=Haskell]
-    tailFactorial n = helper 1 n
+    \begin{lstlisting}[language=Haskell] 
+    tailFactorialStrict :: Integer -> Integer
+    tailFactorialStrict n = helper 1 n
       where
       helper acc x =
         if x > 1
@@ -806,8 +811,9 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
     \begin{lstlisting}[language=Haskell]
     \end{lstlisting}
 
-  \item The \verb"BangPatterns" allows one to make pattern a strict one
+  \item The \verb"BangPatterns" extension allows one to make pattern a strict one
   \begin{lstlisting}[language=Haskell]
+  > :set -XBangPatterns
   > foo !x = True
   > foo undefined
   *** Exception: Prelude.undefined
