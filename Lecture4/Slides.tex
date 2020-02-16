@@ -703,13 +703,13 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 \begin{frame}
   \frametitle{Strict function}
   \begin{itemize}
-    \item An evaluation in Haskell is lazy. 
+    \item An evaluation process in Haskell is lazy. 
     That's the reason according to which \verb"const 42 undefined" yields \verb"42"
     \item Lazy functions are non-strict ones
     \onslide<2->{
-    \item In constrast to lazy functions, strict functions satisfy this equivation
+    \item In constrast to lazy functions, strict functions satisfy this equation
     \begin{center}
-      $\verb"f" \: \bot = \bot$
+      $\verb"f" \: x_1 \: x_2 \: \dots \: \bot \: \dots \: x_n = \bot$
     \end{center}
     \item That is, the strict \verb"const" should yield \verb"undefined" in the call \verb"const 42 undefined"
     }
@@ -726,7 +726,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \begin{center}
     $\verb"seq" \: \bot \: x = \bot$
 
-    $\verb"seq" \: value \: x = x$
+    $\verb"seq" \: v \: x = x, v \neq \bot $
   \end{center}
   \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching. 
   Data constructors and lambdas put a barrier for the $\bot$ expansion:
