@@ -145,8 +145,9 @@ On the previous seminar, we
     \end{minted}
 \item One has the same pattern, a unary function carries through a computational context 
 (lists and optional values)
-\item This idea has a generalisation with the type class \verb"Functor", 
-a Haskell counterpart of categorical functor 
+\item This idea has a generalisation with the type class \verb"Functor". This type class is a uniform
+interface for carrying an arbitrary unary function through a computational context preserving 
+its structure.
 \end{itemize}
 \end{frame}
 
@@ -383,14 +384,13 @@ zipWith f (x:xs) (y:ys) = f x y : zipWith f xs ys
 \begin{frame}[fragile]
 \frametitle{The \verb"Applicative" class. The list problem}
 
-Let us introduce the following data type:
+\begin{itemize}
+\item Let us introduce the following data type:
 \begin{minted}{haskell}
 newtype ZipList a = ZipList { getZipList :: [a] }
 \end{minted}
 
-\vspace{\baselineskip}
-
-The instance is implemented via \verb"zipWith":
+\item The instance is implemented via \verb"zipWith" as follows:
 \begin{minted}{haskell}
 instance Functor ZipList where
   fmap f = ZipList . getZipList . fmap f
@@ -402,23 +402,20 @@ instance Applicative ZipList where
   pure = ???
 \end{minted}
 
-\vspace{\baselineskip}
-
-How to implement \verb"pure" to preverse the identity law? 
+\item How to implement \verb"pure" to preverse the applicative laws? 
+If we define \verb"pure" as below, then all those laws will break
+\begin{minted}{haskell}
+  pure x = ZipList [x] 
+\end{minted}
+\end{itemize}
 
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{The \verb"Applicative" class. The list problem}
 
-Let us introduce the following data type:
-\begin{minted}{haskell}
-newtype ZipList a = ZipList { getZipList :: [a] }
-\end{minted}
-
-\vspace{\baselineskip}
-
-The instance is implemented via \verb"zipWith":
+\begin{itemize}
+\item Here is the proper instance:
 \begin{minted}{haskell}
 instance Applicative ZipList where
   liftA2 f (ZipList xs) (ZipList ys) = 
@@ -427,6 +424,7 @@ instance Applicative ZipList where
   pure a = ZipList $ iterate x
     where iterate x = x : iterate x
 \end{minted}
+\end{itemize}
 
 \end{frame}
 
