@@ -1,0 +1,225 @@
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
+\newtheorem{defin}{Definition}
+\newtheorem{theor}{Theorem}
+\newtheorem{prop}{Proposition}
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
+}
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+
+% ------------------------------------------------------------------------------
+% The Document
+% ------------------------------------------------------------------------------
+\title{Functional programming, Seminar No. 7}
+\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
+
+\vspace{\baselineskip}
+
+\date{Higher School of Economics \\ The Department of Computer Science}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+  \frametitle{Introduction}
+
+  On the previous seminar, we
+  \begin{itemize}
+    \item got acquainted with the notion of a monad as a uniform interface for pipelines of actions
+  \end{itemize}
+
+Today we
+  \onslide<2->{
+  \begin{itemize}
+    \item study such monads as \verb"IO", \verb"Reader", \verb"Writer", and \verb"State"
+  \end{itemize}
+  }
+\end{frame}
+
+\section{The Input/Output Monad}
+
+\begin{frame}[fragile]
+  \frametitle{The problem of purity}
+
+  \begin{itemize}
+    \item The purity of functions is rather a problem than advantage if we deal with input and output
+    \item If input/output functions were pure, then they would yield the same value at the same point, since their behaviour is fully determined by the referential transparency principle.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The problem of purity}
+  \begin{itemize}
+\item Input/output functions are clearly impure. Here are some example of such functions
+\begin{minted}{haskell}
+getChar :: IO Char
+getLine :: IO String
+\end{minted}
+\item In fact, these functions have types:
+\begin{minted}{haskell}
+getChar :: RealWorld -> (RealWorld, Char)
+getLine :: RealWorld -> (RealWorld, String)
+\end{minted}
+\onslide<2->{\item The philosophical question: what is \verb"RealWorld"?}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The approximate definition of \verb"IO"}
+  \begin{itemize}
+    \item The value of the \verb"IO a" type is such value that can perform input/output actions
+    \item The approximate Haskell implementation:
+    \begin{minted}{haskell}
+    newtype IO a = IO (RealWorld -> (RealWorld, a))
+    \end{minted}
+    \item According to Hoogle, ``RealWorld is deeply magical. It is primitive... We never manipulate values of type RealWorld... it's only used in the type system''
+    \item That is, an engineer has no access to the \verb"RealWorld" and we cannot use the same \verb"RealWorld" twice!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The \verb"IO" as a Monad}
+
+\begin{itemize}
+\item The rough \verb"Monad" instance
+\begin{minted}{haskell}
+instance Monad IO where
+   return x = IO $ \w -> (w, x)
+   m >>= k = IO $ \w ->
+     case m w of
+       (w', a) -> k a w'
+\end{minted}
+\item A side effect of every action occurs only onces
+\item The order of side effects is strictly determined
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The basic console input/output function}
+
+  \begin{itemize}
+    \item Input:
+    \begin{minted}{haskell}
+    getChar :: IO Char
+    getLine :: IO String
+    getContents :: IO String
+    \end{minted}
+    \item Output:
+    \begin{minted}{haskell}
+    putStrLn :: String -> IO ()
+    print :: Show a => a -> IO ()
+    \end{minted}
+    \item Input/output:
+    \begin{minted}{haskell}
+    interact :: (String -> String) -> IO ()
+    \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The example of \verb"IO"}
+
+  \begin{minted}{haskell}
+  main :: IO ()
+  main = do
+    putStrLn "Hello, what is your name?"
+    name <- getLine
+    putStrLn $ "Hi, " ++ name
+    putStrLn $ "Now leave me alone, " ++ name ++ ", I'm tired of you"
+  \end{minted}
+\end{frame}
+
+\section{The Reader Monad}
+
+\section{The Writer Monad}
+
+\section{The State Monad}
+
+\end{document}
