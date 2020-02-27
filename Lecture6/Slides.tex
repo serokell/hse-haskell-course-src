@@ -1,0 +1,626 @@
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
+\newtheorem{defin}{Definition}
+\newtheorem{theor}{Theorem}
+\newtheorem{prop}{Proposition}
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
+}
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+
+% ------------------------------------------------------------------------------
+% The Document
+% ------------------------------------------------------------------------------
+\title{Functional programming, Seminar No. 6}
+\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
+
+\vspace{\baselineskip}
+
+\date{Higher School of Economics \\ The Department of Computer Science}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+  \frametitle{Intro}
+
+On the previous seminar
+  \begin{itemize}
+    \item we worked with computational contexts using such type classes
+    as \verb"Functor", \verb"Foldable", and \verb"Traversable"
+  \end{itemize}
+
+\onslide<2->{
+Today we
+\begin{itemize}
+  \item dive into monads deeply}
+\end{itemize}
+\end{frame}
+
+\section{Monads}
+
+\begin{frame}
+  \frametitle{Motivation}
+
+  We are going to extend pure functions \verb"a -> b", we would like to extend them to computations with effects:
+  \begin{itemize}
+    \item A computation may fail: \verb"a -> Maybe b"
+    \item A computation yields more than one result: \verb"a -> [b]"
+    \item A computation either succeeds or yields an error: \verb"a -> Either e b"
+    \item A computation with log: \verb"a -> (s, b)"
+    \item A computation with reading from an external environment \verb"a -> (e -> b)"
+    \item A computation with a mutable state: \verb"a -> (State s) b"
+    \item An input/output computation: \verb"a -> IO b"
+    \item A generalised version of such a function is a Kleisli function that has type \verb"a -> m b"
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation}
+
+If one needs to provide a uniform interface to deal with Kreisli functions, then this interface should satisfy the following two requirements.
+
+  \begin{enumerate}
+    \item One needs to have an opportunity inject a pure value into the
+    computational context
+    \item Kleisli maps should composable:
+    \begin{minted}{haskell}
+    (>=>) :: (a -> m b) -> (b -> m c) -> a -> m c
+    \end{minted}
+    \item In general, we \alert{cannot} extract \verb"a" from \verb"m a"
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The definition of the \verb"Monad" class}
+
+Let us take a look the full definition of the \verb"Monad" class
+
+  \begin{minted}{haskell}
+  class Applicative m => Monad m where
+    -- | Sequentially compose two actions,
+    -- | passing any value produced
+    -- | by the first as an argument to the second.
+    (>>=) :: m a -> (a -> m b) -> m b
+
+    -- | Sequentially compose two actions,
+    -- |discarding any value produced by the first
+    (>>) :: m a -> m b -> m b
+    m >> k = m >>= \_ -> k
+
+    -- | Inject a value into the monadic type.
+    return :: a -> m a
+    return = pure
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The definition of the \verb"Monad" class}
+  The \verb"Monad" class has the equivalent definition, the following one:
+  \begin{minted}{haskell}
+  class Applicative m => Monad m where
+    join :: m (m a) -> m a
+  \end{minted}
+
+\onslide<2->{
+  Moreover, such a definition is much more closer to the original mathematical definition of a Monad.
+  }
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \verb"return" function}
+
+One may make any pure function a Kleisli one:
+\begin{minted}{haskell}
+toKleisli :: Monad m => (a -> b) -> a -> m b
+toKleisli f = return . f
+
+cosM :: (Monad m, Floating b) => b -> m b
+cosM = toKleisli cos
+\end{minted}
+
+It is clear that $\cos \pi = - 1$, but \verb"cosM pi" has the type \verb"(Monad m, Floating b) => m b" and we have several variants:
+\begin{minted}{haskell}
+> piM :: Maybe Double
+Just (-1.0)
+> piM :: [Double]
+[-1.0]
+> piM :: IO (Double)
+-1.0
+> piM :: Either String Double
+Right (-1.0)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The monadic bind operator}
+
+Take a look at the monadic type signature closely:
+  \begin{minted}{haskell}
+  (>>=) :: Monad m => m a -> (a -> m b) -> m b
+  \end{minted}
+
+\vspace{\baselineskip}
+
+If we erase all \verb"m" we get a type of this reverse application operator:
+  \begin{minted}{haskell}
+  (&) :: a -> (a -> b) -> b
+  x & f = f x
+  \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The monadic bind operator}
+
+  One may observe this analogy, here are the direct \verb"fmap", \verb"(<*>)" and flipped monadic bind:
+  \begin{minted}{haskell}
+  fmap :: Functor f => (a -> b) -> f a -> f b
+  (<*>) :: Applicative f => f (a -> b) -> f a -> f b
+  flip (>>=) :: Monad m => (a -> m b) -> m a -> m b
+  \end{minted}
+
+  \vspace{\baselineskip}
+
+  Flipped \verb"fmap", flipped \verb"(<*>)" and \verb"(>>=)":
+  \begin{minted}{haskell}
+  flip fmap :: Functor f => f a -> (a -> b) -> f b
+  flip (<*>) :: Applicative f => f a -> f (a -> b) -> f b
+  (>>=) :: Monad m => m a -> (a -> m b) -> m b
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The very first monad. The \verb"Identity" type}
+
+  Let us define the following new type
+  \begin{minted}{haskell}
+  {-# LANGUAGE DeriveFunctor #-}
+
+  newtype Identity a = Identity { runIdentity :: a }
+    deriving (Show, Functor)
+
+  instance Applicative Identity where
+    pure = Identity
+    Identity f <*> Identity x = Identity (f x)
+
+  instance Monad Identity where
+    Identity x >>= k = k x
+  \end{minted}
+
+  This is the trivial example of a monad.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Playing with the \verb"Identity" monad}
+
+Let us consider a quite trivial example of a Kleisli function
+
+\begin{minted}{haskell}
+cosId, acosId, sinM
+  :: Double -> Identity Double
+cosId = Identity . cos
+acosId = Identity . acos
+sinM = Identity . sin
+\end{minted}
+
+\vspace{\baselineskip}
+
+The example of composed action within a monad:
+
+\begin{minted}{haskell}
+> runIdentity $ cosId pi >>= acosId
+-1.0
+> runIdentity $ cosId pi >>= acosId
+3.141592653589793
+> runIdentity $ cosId (pi/2) >>= acosId >>= sinM
+1.0
+\end{minted}
+
+In fact, \verb">>=" works here similarly to \verb"(&)".
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some of useful monadic functions}
+
+Let us take a look at some widely used and common monadic operations:
+
+\begin{minted}{haskell}
+(>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
+f >=> g = \x -> f x >>= g
+
+join :: Monad m => m (m a) -> m a
+join x = x >>= id
+
+forever :: Applicative f => f a -> f b
+forever a = let a' = a *> a' in a'
+\end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Monad laws}
+
+  Any monad also has the following coherence conditions:
+
+\begin{enumerate}
+\item The left identity law:
+  \begin{minted}{haskell}
+  return a >>= k  = k a
+\end{minted}
+\item The right identity law:
+\begin{minted}{haskell}
+  m >>= return  = m
+\end{minted}
+\item The monadic bind operation is associative:
+\begin{minted}{haskell}
+  m >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
+\end{minted}
+\item There is the strong connection between the notions of monad and monoid, but we drop this connection.
+\item Let us illustrate these laws with the \verb"Identity" monad
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The identity laws}
+  According to the identity laws:
+  \begin{minted}{haskell}
+  return a >>= k = k a
+  m >>= return = m
+  \end{minted}
+  the \verb"return" function is a sort of a neutral element:
+
+  \begin{minted}{haskell}
+  > runIdentity $ cosId (pi / 4)
+  0.7071067811865476
+  > runIdentity $ return (pi / 4) >>= cosId
+  0.7071067811865476
+  > runIdentity $ cosId (pi / 4) >>= return
+  0.7071067811865476
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The associativity law}
+
+  The third monad law:
+  \begin{minted}{haskell}
+    m >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
+  \end{minted}
+
+  claims that the monadic bind is associative as follows:
+  \begin{minted}{haskell}
+  > runIdentity $ cosId (pi/2) >>= acosId >>= sinM
+  1.0
+  > runIdentity $ cosId (pi/2) >>= (\x -> acosId x >>= sinM)
+  1.0
+  \end{minted}
+\end{frame}
+
+  \begin{frame}[fragile]
+    \frametitle{The associativity law}
+    Let us take a look at these pipelines that are equivalent to each other:
+    \begin{minted}{haskell}
+    go = cosId (pi/2) >>=
+         acosId       >>=
+         sinM
+    \end{minted}
+
+    \begin{minted}{haskell}
+    go2 = cosId (pi/2) >>= (\x ->
+          acosId x     >>= (\y ->
+          sinM y       >>= \z ->
+          return z))
+    \end{minted}
+  \end{frame}
+
+  \begin{frame}[fragile]
+    \frametitle{Monads and pseudoimperative programming}
+    \begin{minted}{haskell}
+    go2 = cosId (pi/2) >>= (\x ->
+          acosId x     >>= (\y ->
+          sinM y       >>= \z ->
+          return z))
+    \end{minted}
+
+    \begin{minted}{haskell}
+    go2 = cosId (pi/2) >>= (\x ->
+          acosId x     >>= (\y ->
+          sinM y       >>= \z ->
+          return (x, y, z)))
+    \end{minted}
+
+    \alert{Wow, we invited imperative programming!}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Monads and pseudoimperative programming}
+  We may ignore one of results, if we are not interested in it:
+  \begin{minted}{haskell}
+  go2 = let alpha = pi/2 in
+        cosId alpha  >>= (\x ->
+        acosId x     >>= (\y ->
+        sinM y       >>
+        return (alpha, x, y)))
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{do-Notation}
+
+  In Haskell, one has a quite useful syntax sugar to write code
+  within a monad in the imperative fashion.
+
+\begin{columns}
+  \column{0.5\textwidth}
+  \metroset{block=fill}
+  \begin{exampleblock}{do-expression}
+  \begin{minted}{haskell}
+      do { e1; e2 }
+  \end{minted}
+  \end{exampleblock}
+
+  \begin{exampleblock}{do-expression}
+  \begin{minted}{haskell}
+      do { p <- e1; e2 }
+  \end{minted}
+  \end{exampleblock}
+
+  \begin{exampleblock}{do-expression}
+  \begin{minted}{haskell}
+      do { let v = e1; e2 }
+  \end{minted}
+  \end{exampleblock}
+  \column{0.5\textwidth}
+  \metroset{block=fill}
+  \begin{exampleblock}{Unsugared version}
+  \begin{minted}{haskell}
+    e1 >> e2
+  \end{minted}
+  \end{exampleblock}
+
+  \begin{exampleblock}{Unsugared version}
+  \begin{minted}{haskell}
+  e1 >>= \p -> e2
+  \end{minted}
+  \end{exampleblock}
+
+  \begin{exampleblock}{Unsugared version}
+  \begin{minted}{haskell}
+      let v = e1 in do e2
+  \end{minted}
+  \end{exampleblock}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{do-Notation. Example}
+  The example above:
+  \begin{minted}{haskell}
+  go2 = let alpha = pi/2 in
+        cosId alpha  >>= (\x ->
+        acosId x     >>= (\y ->
+        sinM y       >>
+        return (alpha, x, y)))
+  \end{minted}
+
+might be written as follows using the do-notation sugar:
+\begin{minted}{haskell}
+go2 = do
+  let alpha = pi/2
+  x <- cosId alpha
+  y <- acosId x
+  z <- sinM y
+  return (alpha, x, y)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{do-Notation. Example}
+  Let us consider an example of a monadic function:
+  \begin{minted}{haskell}
+  prodM :: Monad m => (a -> m b) -> (c -> m d)
+    -> m (a, c) -> m (b, d)
+  prodM f g mp =
+    mp >>= \(a,b) -> f a >>= \c -> g b >>= \d ->
+    return (c, d)
+  \end{minted}
+
+  \vspace{\baselineskip}
+  The function above might be implemented as follows via the do-notation sugar
+  \begin{minted}{haskell}
+  prodM :: Monad m => (a -> m b) -> (c -> m d)
+    -> m (a, c) -> m (b, d)
+  prodM f g mp = do
+    (a, b) <- mp
+    c <- f a
+    d <- g b
+    return (c, d)
+  \end{minted}
+\end{frame}
+
+\section{The Maybe monad}
+
+\begin{frame}[fragile]
+  \frametitle{The Maybe monad}
+
+  The \verb"Maybe" data type is one of the simplest non-trivial monads. This monad represents an the simplest error effect. An error is represented with the \verb"Nothing" flag
+  \begin{minted}{haskell}
+  instance Monad Maybe where
+    return = Just
+
+    Nothing  >>= _ = Nothing
+    (Just x) >>= f = f x
+
+    (Just _) >> a = a
+    Nothing >> _ = Nothing
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The Maybe monad. Example}
+  \begin{minted}{haskell}
+  type Author = String
+  type Book = String
+  type Library = [(Author, Book)]
+
+  books :: [Book]
+  books = ["Faust", "Alice in Wonderland", "The Idiot"]
+
+  authors :: [Author]
+  authors = ["Goethe", "Carroll", "Dostoevsky"]
+
+  library :: Library
+  library = zip authors books
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The Maybe monad. Example}
+  \begin{minted}{haskell}
+  library' :: Library
+  library' = ("Dostoevsky", "Demons") :
+    ("Dostoevsky", "White Nights") : library
+
+  getBook :: Author -> Library -> Maybe Book
+  getBook author library = lookup author library
+
+  getSecondbook, getLastBook :: Author -> Maybe Book
+  getFirstbook author = do
+    let lib' = filter (\p -> fst p == author) library'
+    book <- getBook author lib'
+    return book
+
+  getLastBook author = do
+    let lib' = filter (\p -> fst p == author) library'
+    book <- getBook author (reverse lib')
+    return book
+  \end{minted}
+\end{frame}
+
+\section{The list monad}
+
+\begin{frame}[fragile]
+  \frametitle{The list instance}
+
+\begin{itemize}
+\item The \verb"Monad" instance is the following one:
+
+  \begin{minted}{haskell}
+  instance Monad [] where
+    return x = [x]
+    xs >>= k = concat (map k xs)
+  \end{minted}
+\item The function \verb"k :: a -> [b]" maps to the function that has type \verb"[a] -> [b]".
+We apply \verb"k" to every element of \verb"[a]" and concat all results.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{List compeherension once more}
+
+The following functions are equivalent:
+  \begin{minted}{haskell}
+cartesianProduct :: [a] -> [b] -> [(a, b)]
+cartesianProduct xs ys =
+  xs >>= \x -> ys >>= \y -> return (x, y)
+
+cartesianProduct' :: [a] -> [b] -> [(a, b)]
+cartesianProduct' xs ys = do
+  x <- xs
+  y <- ys
+  return (x, y)
+
+cartesianProduct'' :: [a] -> [b] -> [(a, b)]
+cartesianProduct'' xs ys = [(x, y) | x <- xs, y <- ys]
+  \end{minted}
+\end{frame}
+
+
+\end{document}
