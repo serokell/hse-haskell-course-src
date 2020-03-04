@@ -115,8 +115,8 @@ keywordstyle=\color{myblue}\bfseries,
     \item got acquainted with the notion of a monad as a uniform interface for pipelines of actions
   \end{itemize}
 
+\onslide<2->{
 Today we
-  \onslide<2->{
   \begin{itemize}
     \item study such monads as \verb"IO", \verb"Reader", \verb"Writer", and \verb"State"
   \end{itemize}
@@ -212,14 +212,127 @@ instance Monad IO where
     putStrLn "Hello, what is your name?"
     name <- getLine
     putStrLn $ "Hi, " ++ name
-    putStrLn $ "Now leave me alone, " ++ name ++ ", I'm tired of you"
+    putStrLn $
+      "Now leave me alone, " ++ name ++
+      ", I'm tired of you"
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \verb"getLine" function closely}
+
+  Let us take a look at the approximate \verb"getLine" implementation:
+
+  \begin{minted}{haskell}
+  getLine' :: IO String
+  getLine' = do
+    c <- getChar
+    case c == '\n' of
+      True -> return []
+      False -> do
+        cs <- getLine'
+        return (c : cs)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \verb"putStr" functions closely}
+
+  \begin{minted}{haskell}
+  putStr' :: String -> IO ()
+  putStr' [] = return ()
+  putStr' (x : xs) = putChar x >> putStr' xs
+  \end{minted}
+
+  A more sophisticated version:
+
+  \begin{minted}{haskell}
+  sequence_ :: Monad m => [m a] -> m ()
+  sequence_ = foldr (>>) (return ())
+
+  putStr'' :: String -> IO ()
+  putStr'' = sequence_ . map putChar
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \verb"putStr" functions closely}
+
+  A more sophisticated version of a more sophisticated version:
+  \begin{minted}{haskell}
+  sequence_ :: Monad m => [m a] -> m ()
+  sequence_ = foldr (>>) (return ())
+
+  mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
+  mapM_ f = sequence_ . map f
+
+  putStr''' :: String -> IO ()
+  putStr''' = mapM_ putChar
   \end{minted}
 \end{frame}
 
 \section{The Reader Monad}
 
+\begin{frame}[fragile]
+  The \verb"Reader" monad allows to read values from an environment
+  \begin{minted}{haskell}
+  newtype Reader r a = Reader { runReader :: (r -> a) }
+
+  instance Monad (Reader r) where
+    return = error "This is your homework"
+    x >>= k = error "This is your homework"
+  \end{minted}
+
+  \begin{itemize}
+    \item \verb"return" yields an argument ingoring a given environment
+    \item \verb"(>>=)" passes a given environment to both computations
+    \item The useful combinators:
+    \begin{minted}{haskell}
+    ask :: Reader r r
+    local :: (r -> r) -> Reader r a -> Reader r a
+    \end{minted}
+  \end{itemize}
+\end{frame}
+
 \section{The Writer Monad}
 
+\begin{frame}[fragile]
+  \begin{itemize}
+  \item The \verb"Writer" monad with the logging features
+  \begin{minted}{haskell}
+  newtype Writer w a = Writer { runWriter :: (a, w) }
+
+  instance Monoid w => Monad (Writer w) where
+    return = error "This is your homework"
+    (>>=)  = error "This is your homework"
+  \end{minted}
+  \item The useful combinators:
+  \begin{minted}{haskell}
+  tell :: Monoid w => w -> Writer w ()
+  listen :: Monoid w => Writer w a -> Writer w (w, a)
+  pass :: Monoid w => Writer w (a, w -> w) -> Writer w a
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
 \section{The State Monad}
+
+\begin{frame}[fragile]
+  \begin{itemize}
+    \item The \verb"State" monad is a monad for a mutable state processing
+  \begin{minted}{haskell}
+  newtype State s a = State { runState :: s -> (a,s) }
+
+  instance Monad (State s) where
+    return = error "This is your homework"
+    (>>=)  = error "This is your homework"
+  \end{minted}
+  \item The useful combinators:
+  \begin{minted}{haskell}
+  get :: State s s
+  put :: s -> State s ()
+  \end{minted}
+\end{itemize}
+\end{frame}
 
 \end{document}
