@@ -1,5 +1,5 @@
 ## Дополнительное домашнее задание.
-#### Дедлайн: 28 марта
+#### Дедлайн: 6 апреля
 
 
 #### №1 Параллельный Фибоначчи
@@ -31,7 +31,7 @@ slowFib n = slowFib (n - 1) + slowFib (n - 2)
 test :: Bool
 test
   = let hugeNumber = 30
-    in  runEval (pmap slowFib [1, hugeNumber, 5]) !! 2 == 5
+    in  runEval (pmap slowFib [1, hugeNumber, 5]) !! 1 == 5
 ```
 
 
