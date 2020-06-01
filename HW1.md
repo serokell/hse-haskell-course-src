@@ -117,7 +117,7 @@ instance Num Nat where
   x * y       = undefined
   x - y       = undefined
   abs         = undefined
-  singum      = undefined
+  signum      = undefined
   fromInteger = undefined
 ```
 (ясно, что `fromInteger` не может быть тотальной функцией в реализации данного представителя. В случае отрицательного аргумента, переданного данной функции, можно возвращать что-то вроде `error "Natural numbers are nonnegative"`)
