@@ -1,39 +1,115 @@
-\documentclass[10pt,pdf,utf8,russian,aspectratio=169]{beamer}
-\usepackage[T2A]{fontenc}
-\usetheme{Singapore}
-\usepackage{setspace}
-\usepackage{amsmath}
-\usepackage{pgfplots}
-\usepackage[utf8]{inputenc}
-\usepackage{tikz-cd}
-\usepackage[all, 2cell]{xy}
-\usepackage{amssymb}
-\usepackage{verba tim}
-\usepackage[all]{xy}
-\usepackage{tikz}
-\usepackage{bussproofs}
-\usepackage{dsfont}
-\usepackage{mathabx}
-\usepackage{animate}
-\usetikzlibrary{graphs}
-\usetikzlibrary{arrows}
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
-\usepackage[english,russian]{babel}
-\usepackage{listings}
-\usepackage{color}
-\usepackage{tikz}
-\usepackage{listings}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
 \newtheorem{prop}{Proposition}
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
+}
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+
+% ------------------------------------------------------------------------------
+% The Document
+% ------------------------------------------------------------------------------
 \title{Functional programming, Seminar No. 1}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
-\date{Higher School of Economics \\ Faculty of Computer Science}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+
+\vspace{\baselineskip}
+
+\date{Higher School of Economics \\ The Department of Computer Science}
+
 \begin{document}
 \maketitle
 
+\section{General words on Haskell and History}
+
 \begin{frame}
-  \frametitle{General words on Haskell}
+  \frametitle{Intro}
 
   \begin{itemize}
     \item The language is named after Haskell Curry, an American logician
@@ -42,7 +118,7 @@
     \item Default compiler: Glasgow Haskell compiler
     \item Haskell is a strongly-typed, polymorphic, and purely functional programming language
     \onslide<2->{
-    \item This course is quite introductory. We partially piggyback the ITMO Haskell course.
+    \item This course is quite introductory.
     }
     \onslide<3->{
     \item Vox populi:
@@ -54,6 +130,106 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Lambda calculus and type theory. Incomplete and Utter History of Functional Programming}
+
+\onslide<1->{
+  \begin{itemize}
+    \item At the end of the 1920-s, Alonzo Church proposed an alternative approach to the foundations of mathematics where the notion of a function is the primitive one. The lambda calculus is a formal system that describes arbitrary abstract functions.
+    }
+\onslide<2->{
+    \item Moreover, Church used the lambda calculus to show that Peano arithmetic is undecidable.
+    }
+  \onslide<3->{
+    \item Kleene and Rosser showed that the initial version of the lambda calculus is inconsistent. Initially, the idea of typing was the instrument that would allow us to avoid paradoxes.
+  }
+  \onslide<4->{
+    \item The first system of typed the lambda calculus is a hybrid from the lambda calculus and type theory developed by Bertrand Russell and Alfred North Whitehead (1910-s).
+  }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Lambda calculus and type theory. Historical notes}
+
+\onslide<1->{
+  \begin{itemize}
+    \item After Church’s works, type theory as the branch of $\lambda$ calculus and combinatory logic was developed by Haskell Curry and William Howard within the context of proof theory (1950-1960-s)
+    }
+  \onslide<2->{
+    \item Polymorphic lambda calculus (John Reynolds and Jean-Yves Girard (1970-s))
+    }
+  \onslide<3->{
+    \item Polymorphic type inference (Roger Hindley, Robin Milner and Luis Damas (1970-1980-s))
+    }
+  \onslide<4->{
+    \item ML: the very first language with polymorphic inferred type system (Robin Milner, 1973)
+    }
+  \onslide<5->{
+    \item The language Haskell appeared at the beginning of 1990-s. Haskell desinged by Simon Peyton Jones, Philip Wadler, and others
+    }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Functional programming and its foundations}
+  \onslide<1->{
+  The lambda calculus establishes the foundations for functional programming in the same manner as the von Neumann principles are the root of imperative programming.
+  } \onslide<2->{
+  \begin{itemize}
+    \item We have no assignment in imperative languages.  Variables are nullary constant functions rather than so-called boxes.
+    \item Hence, we have no states
+    \item We use recursion instead of loops
+    \item Pattern-matching
+  \end{itemize}
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{What are types needed for?}
+
+\metroset{block=fill}
+\begin{exampleblock}{According to Benjamin Pierce}
+A type system is a tractable syntactic method for proving the absence of certain program behaviours by classifying phrases according to the kinds of values they compute.
+\end{exampleblock}
+
+\onslide<2->{
+It's about
+  \begin{itemize}
+    \item A partial specification
+    \item Type preserving
+    \item Type checking allows one to catch simple errors
+    \item Type inference
+    \item Etc
+  \end{itemize}
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{A landscape of typing from a bird's eye view}
+We may classify possible ways of typing as follows
+
+\begin{itemize}
+  \item Static and dynamic typing
+  \begin{itemize}
+    \item C, C++, Java, Haskell, etc
+    \item JavaScript, Ruby, PHP, etc
+  \end{itemize}
+  \item Implicit and explicit typing
+  \begin{itemize}
+    \item JavaScript, Ruby, PHP, etc
+    \item C++, Java, etc
+  \end{itemize}
+  \item Inferred typing
+  \begin{itemize}
+    \item Haskell, Standard ML, Ocaml, Idris, etc
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\section{Ecosystem}
+
+\begin{frame}
   \frametitle{The Haskell Platform installation}
 
   There are several ways to install the Haskell platform on Mac:
@@ -61,8 +237,12 @@
 \onslide<1->{
   \begin{itemize}
     \item Download the \verb".pkg" file and install the corresponding package}
-    \onslide<2->{\item Run the script \verb"curl -sSL https://get.haskellstack.org/ | sh"}
-    \onslide<3->{\item Install ghc, stack, and cabal via Homebrew
+    \onslide<2->{\item Run the script
+\begin{center}
+    \verb"curl -sSL https://get.haskellstack.org/ | sh"
+\end{center}
+    }
+    \onslide<3->{\item Install ghc, stack, and cabal using Homebrew
   \end{itemize}
   }
 
@@ -82,14 +262,17 @@
 
 \onslide<1->{
   \begin{itemize}
-    \item GHC is a default Haskell compiler as we told above
-    \item GHC is an open-source project. Don't hesistate to contribute!
-    \item GHC is mostly implemented on Haskell
+    \item GHC is a default Haskell compiler.
+    \item GHC is an open-source project. Don't hesitate to contribute!
+    \item GHC is mostly implemented on Haskell.
     }
-    \item GHC is developed under the GHC Steering committee control
+    \item GHC is developed under the GHC Steering committee control.
     \onslide<2->{
-    \item Very roughly, compiling pipeline is arranged as follows: \\ parsing $\Rightarrow$ compile-time (type-checking mostly)
+    \item Very roughly, compiling pipeline is arranged as follows:
+\begin{center}
+    parsing $\Rightarrow$ compile-time (type-checking mostly)
     $\Rightarrow$ runtime (program execution)
+\end{center}
     }
   \end{itemize}
 \end{frame}
@@ -98,14 +281,14 @@
   \frametitle{GHCi}
 
   \begin{itemize}
-    \item GHCi is a Haskell interpreter based on GHC
-    \item One may run GHCi with a quite simple command \verb"ghci" on a shell
-    \item You play with GHCi as a calculator, the ordinary arithmetical operators are written in a usual way
-    \item Take a look at the GHCi chapter in the GHC User's Guide to be familiar with GHCi closely
+    \item GHCi is a Haskell interpreter based on GHC.
+    \item One may run GHCi with the command \verb"ghci".
+    \item You may play with GHCi as a calculator, the ordinary arithmetic operators are usual
+    \item You may also have a look at the GHCi chapter in the GHC User's Guide to get familiar with GHCi closely.
   \end{itemize}
 
   \begin{center}
-  \includegraphics[scale=0.5]{Pics/GHCi.png}
+  \includegraphics[scale=0.46]{Pics/GHCi.png}
   \end{center}
 \end{frame}
 
@@ -117,16 +300,8 @@
     \item Cabal is a system of library and dependency management
     \item A \verb".cabal" file describes the version of a package and its dependencies
     \item Cabal is also a packaging tool
-    \item Keep in mind that Cabal is known as a reason of so-called dependency hell
+    \item Cabal used to cause dependency hell
   \end{itemize}}
-
-\onslide<2->{
-  That's how this dependency hell might look like:
-
-  \begin{center}
-  \includegraphics[scale=0.18]{Pics/Bosch.jpg}
-  \end{center}
-}
 \end{frame}
 
 \begin{frame}
@@ -134,21 +309,15 @@
 
 \onslide<1->{
   \begin{itemize}
-    \item Stack is a cross-platform build tool for Haskell projects
-    \item Stack allows one to
+    \item Stack is a \emph{mainstream} cross-platform build tool for Haskell projects
+    \item Stack is about
     }
   \onslide<2->{
     \begin{itemize}
-      \item install packages and version of GHC (and their concrete versions) you need
-      }
-  \onslide<3->{
-      \item build, execute, and test projects
-      }
-  \onslide<4->{
-      \item reproduce builds
-      }
-  \onslide<5->{
-      \item create an isolated location
+      \item installation of required packages and the latest GHC (and their more concrete versions),
+      \item building, execution, and testing
+      \item creating an isolated location.
+      \item Builds are reproducible
     \end{itemize}
   \end{itemize}
   }
@@ -159,14 +328,14 @@
 
   \begin{itemize}
     \onslide<1->{
-    \item Snapshot is a curated package set used by Stack
+    \item A \emph{snapshot} is a curated package set used by Stack
     }
     \onslide<2->{
     \item Stackage is a stable repository that stores snapshots}
-    \onslide<3->{\item Resolver is a reference to a required snapshot
+    \onslide<3->{\item A \emph{resolver} is a reference to a required snapshot
     }
     \onslide<4->{
-    \item Let us take a look at the screenshot from Stackage:
+    \item A screenshot from Stackage:
 
     \begin{center}
     \includegraphics[scale=0.4]{Pics/Snapshots.png}
@@ -178,7 +347,7 @@
 \begin{frame}
   \frametitle{Ecosystem encapsulation}
 
-  The Haskell ecosystem encapsulation might be described as the following sequence:
+  The Haskell ecosystem encapsulation might be described as the sequence of the following inclusions:
 
   \begin{center}
   \includegraphics[scale=0.15]{Pics/Eco.jpeg}
@@ -186,7 +355,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Creating a Haskell project via Stack}
+  \frametitle{Creating a Haskell project with Stack}
   \onslide<1->{
   \begin{itemize}
     \item Figure out how to call your project and run the script \verb"stack new <projectname>"
@@ -205,7 +374,7 @@
   \frametitle{\verb"stack.yaml"}
 
 \onslide<1->{
-  Let us discuss dependencies files in a Haskell project. First of all, we observe the \verb"stack.yaml" file:
+  Let us discuss on how dependency files look like. First of all, we observe the \verb"stack.yaml" file:
 }
 
 \onslide<2->{
@@ -219,11 +388,11 @@
   \frametitle{Cabal file}
 
 \onslide<1->{
-  As we told above, the \verb".cabal" file describe the relevant version of a project and its dependencies:
+  As we told above, the \verb".cabal" file describes the relevant version of a project and its dependencies:
 }
 \onslide<2->{
 \begin{center}
-\includegraphics[scale=0.35]{Pics/CabalFile.png}
+\includegraphics[scale=0.273]{Pics/CabalFile.png}
 \end{center}
   }
 \end{frame}
@@ -232,12 +401,11 @@
   \frametitle{\verb"package.yaml"}
 
 \onslide<1->{
-  The \verb"package.yaml" generates automatically from the \verb"stack.yaml" and \verb".cabal" files:
+  The \verb"package.yaml" is used to generate the \verb".cabal" file automatically:
 }
-
 \onslide<2->{
 \begin{center}
-\includegraphics[scale=0.34]{Pics/PackageYaml.png}
+\includegraphics[scale=0.25]{Pics/PackageYaml.png}
 \end{center}
 }
 \end{frame}
@@ -245,31 +413,23 @@
 \begin{frame}
   \frametitle{Building and running a project}
 
-\onslide<1->{
-The following commands are crucially important:
-}
-
-\onslide<2->{
+The basic commands:
   \begin{itemize}
-    \item \verb"stack build"}
-    \onslide<3->{\item \verb"stack run"}
-    \onslide<4->{\item \verb"stack exec"}
-    \onslide<5->{\item \verb"stack ghci"}
-    \onslide<6->{\item \verb"stack clean"}
-    \onslide<7->{\item \verb"stack test"
+    \item \verb"stack build"
+    \item \verb"stack run"
+    \item \verb"stack exec"
+    \item \verb"stack ghci"
+    \item \verb"stack clean"
+    \item \verb"stack test"
   \end{itemize}
-  }
-\onslide<8->{
-  The roles of these commands follow from their quite self-explanatory names.
+\onslide<2->{
+  The roles of all these commands follow from their quite self-explanatory names.
   }
 \end{frame}
 
 \begin{frame}
   \frametitle{Hackage}
-
-\onslide<1->{
   According to its description, 'Hackage is the Haskell community's central package archive of open source software`.
-}
 
 \onslide<2->{
   \begin{itemize}
@@ -281,7 +441,7 @@ The following commands are crucially important:
   }
 \onslide<4->{
 \begin{center}
-\includegraphics[scale=0.23]{Pics/HackageExample.png}
+\includegraphics[scale=0.3]{Pics/HackageExample.png}
 \end{center}
   }
 \end{frame}
@@ -295,30 +455,52 @@ The following commands are crucially important:
 
 \onslide<2->{
 \begin{center}
-\includegraphics[scale=0.3]{Pics/Hoogle.png}
+\includegraphics[scale=0.24]{Pics/Hoogle.png}
 \end{center}
 }
 \end{frame}
 
 \begin{frame}
-  \frametitle{Summary}
+  \frametitle{Hackage Search}
+
+  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is by Vlad Zavialov, my GHC teammate from Serokell.
+
+  \verb"https://hackage-search.serokell.io".
+
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.25]{Pics/HackageSearch1.png}
+\end{center}
+}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Hackage Search}
 
 \onslide<1->{
-  We observed today such topics as
+  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is made Vlad Zavialov, my GHC teammate from Serokell.
+
+  \verb"https://hackage-search.serokell.io".
+}
+\begin{center}
+\includegraphics[scale=0.24]{Pics/HackageSearch2.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary}
+  We had a look at such topics as
 
   \begin{enumerate}
     \item General aspects of GHC and GHCi
     \item The Haskell Platform installation
-    \item Dependency management via Stack and Cabal
-  }
-  \onslide<2->{
+    \item Dependency management using Stack and Cabal
     \item In other words, the Haskell ecosystem in a nutshell
   \end{enumerate}
-  }
 
   \vspace{\baselineskip}
 
-\onslide<3->{
+\onslide<2->{
   On the next seminar, we will discuss:
 
   \begin{enumerate}

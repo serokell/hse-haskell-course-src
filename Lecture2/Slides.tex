@@ -1,58 +1,102 @@
-\documentclass[10pt,pdf,utf8,russian,aspectratio=169]{beamer}
-\usepackage[T2A]{fontenc}
-\usetheme{Singapore}
-\usepackage{setspace}
-\usepackage{amsmath}
-\usepackage{pgfplots}
-\usepackage[utf8]{inputenc}
-\usepackage{tikz-cd}
-\usepackage[all, 2cell]{xy}
-\usepackage{amssymb}
-\usepackage{verba tim}
-\usepackage[all]{xy}
-\usepackage{tikz}
-\usepackage{bussproofs}
-\usepackage{dsfont}
-\usepackage{mathabx}
-\usepackage{animate}
-\usetikzlibrary{graphs}
-\usetikzlibrary{arrows}
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
-\usepackage[english,russian]{babel}
-\usepackage{listings}
-\usepackage{color}
-\usepackage{tikz}
-\usepackage{listings}
-\pgfplotsset{compat=1.16}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
 \newtheorem{prop}{Proposition}
-\title{Functional programming, Seminar No. 2}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
-\date{Higher School of Economics \\ Faculty of Computer Science}
-\begin{document}
-\lstset{
-  frame=none,
-  xleftmargin=2pt,
-  stepnumber=1,
-  numbers=left,
-  numbersep=5pt,
-  numberstyle=\ttfamily\tiny\color[gray]{0.3},
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={*'}{'*},
-  language=haskell,
-  tabsize=2,
-  emphstyle={\bf},
-  commentstyle=\it,
-  stringstyle=\mdseries\rmfamily,
-  showspaces=false,
-  keywordstyle=\bfseries\rmfamily,
-  columns=flexible,
-  basicstyle=\small\sffamily,
-  showstringspaces=false,
-  morecomment=[l]\%,
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
 }
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+\title{Functional programming, Seminar No. 2}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\date{Higher School of Economics \\ The Faculty of Computer Science}
+\begin{document}
+
 \maketitle
 
 \begin{frame}
@@ -74,7 +118,7 @@
 
   \begin{itemize}
     \item study the basic Haskell syntax
-    \item examine a list as one of the Haskell data structures
+    \item study the list data type as one of the Haskell data structures
     \item realise why Haskell is a lazy language
   \end{itemize}
   }
@@ -85,98 +129,114 @@
 
   The equality sign in Haskell denotes binding:
 
-    \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
       fortyTwo = 42
       coolString = "coolString"
-    \end{lstlisting}
-
-\vspace{\baselineskip}
+\end{minted}
+\end{exampleblock}
 
 Local binding with the \verb"let"-keyword:
-  \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     fortyTwo = let number = 43 in number - 1
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Function definitions}
 
-  Functions are also defined as bindings:
+  The following functions are also defined as bindings:
 
-  \begin{lstlisting}[language=Haskell]
-    add x y = x + y
-    userName name = "Username: " ++ name
-    id x = x
-  \end{lstlisting}
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+      add x y = x + y
+      userName name = "Username: " ++ name
+      id x = x
+  \end{minted}
+\end{exampleblock}
 
   \vspace{\baselineskip}
 
-  The same functions defined via lambda:
-  \begin{lstlisting}[language=Haskell]
+  The same functions defined with lambda:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     add = \x y -> x + y
     userName = \name -> "Username: " ++ name
     id = \x -> x
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Function application}
 
-  As in lambda calculus, function application is left associative by default
+  As in the lambda calculus, function application is left associative by default
 
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     {-
     foo x y z = f x y z = ((f x) y) z
     -}
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 
 \vspace{\baselineskip}
 
-  One may use the dollar infix operator in order to avoid the brackets overuse. For example, the following functions have exactly the same behaviour:
-
-  \begin{lstlisting}[language=Haskell]
+  One may use the dollar infix operator. That would allow us to avoid too many brackets.
+  For example, the following functions are equivalent:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     function f x y z = f ((x y) z)
     function1 f x y z = f $ x y $ z
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Prefix and infix notation}
   Any operator or function might be called in prefix and infix:
 
-  \begin{center}
-  \includegraphics[scale=0.41]{Pics/InfixPrefix.png}
-  \end{center}
-
-  \vspace{\baselineskip}
-
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+> map (\x -> x * pi * 100) [1..3]
+[314.1592653589793,628.3185307179587,942.4777960769379]
+> (\x -> x * pi * 100) `map` [1..3]
+[314.1592653589793,628.3185307179587,942.4777960769379]
+  \end{minted}
+  \end{exampleblock}
   One may declare an operator defining its priority and associativity explicitly. Here's an example:
-
-\begin{lstlisting}[language=Haskell]
-(&&) :: Bool -> Bool -> Bool
-infixr 3 &&
-\end{lstlisting}
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
+(^) :: (Num a, Integral b) => a -> b -> a
+infixr 8 ^
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Currying and partial application}
 
-Let us recall the function \verb"add" once more:
+Recall the function \verb"add" once more. Here is an example of partial application:
 
-\begin{lstlisting}[language=Haskell]
-  add x y = x + y
-\end{lstlisting}
-
-Here is an example of a partial application in the following GHCi session
-
-\vspace{\baselineskip}
-
-\begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
 add x y = x + y
 addFive = add 5
 twentyEight = addFive 23
   -- 28
-\end{lstlisting}
+\end{minted}
+\end{exampleblock}
 
 Partial application is well-defined since all many-argument functions in Haskell are curried by default.
 
@@ -185,45 +245,57 @@ Partial application is well-defined since all many-argument functions in Haskell
 \begin{frame}[fragile]
   \frametitle{Immutability and laziness}
 
-In Haskell, values are immutable. The GHCi example:
+In Haskell, values are immutable. A small example:
 
-\begin{center}
-\includegraphics[scale=0.41]{Pics/Imm.png}
-\end{center}
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
+  > list = [1,2,3,4]
+  > reverse list
+  [4,3,2,1]
+  > list
+  [1,2,3,4]
+  > 10 : list
+  [10,1,2,3,4]
+  > list
+  [1,2,3,4]
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Recursion}
 
-  The straightforward recursion:
-  \begin{lstlisting}[language=Haskell]
-    factorial n = if n == 0 then 1 else n * factorial (n - 1)
-  \end{lstlisting}
+  The straighforward factorial and the tail-recursive one:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+    factorial n
+      = if n == 0 then 1 else n * factorial (n - 1)
 
-  \vspace{\baselineskip}
-
-  The factorial function implemented via so-called tail recursion:
-  \begin{lstlisting}[language=Haskell]
     tailFactorial n = helper 1 n
       where
       helper acc x =
         if x > 1
         then helper (acc * x) (x - 1)
         else acc
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Guards}
 
   Let us take a look at the factorial implementation via guards:
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     tailFactorial n = helper 1 n
       where
       helper acc x | x > 1 = helper (acc * x) (x - 1)
                    | otherwise acc
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -242,39 +314,51 @@ In Haskell, values are immutable. The GHCi example:
 
   A type declaration has the following form:
 
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
     term :: type
-  \end{lstlisting}
+  \end{minted}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Datatypes and constructors}
  We take the list of basic data types and associate constructors with these types. A constructor is a term that allows one to obtain a value of the desired type.
 \begin{center}
 \begin{tabular}{ |c|c| }
 \hline
-\verb"Bool": Boolean values & \verb"True" and \verb"False" \\
-\verb"\verb"Int": Bounded integer datatype" & Integers from $-2^{29}$ to $2^{29} - 1$ \\
-\verb"Integer": Unbounded integer datatype & The set of integers \\
-\verb"Char": & Characters \verb"'0'", ..., \verb"'9'", \verb"'a'", ..., \verb"'z'", etc \\
-\verb"()": Unit value datatype: & Just \verb"()" \\
-\verb"a -> b": & $\lambda x \rightarrow m$ \\
-\verb"(a,b)": & if \verb"x :: a" and \verb"y :: b", then \verb"(x, y) :: (a,b)" \\
-\verb"[a]", the type of list of elements from \verb"a": & the empty list \verb"[]" \\
-\verb"[a]", the type of list of elements from \verb"a": & if \verb"x :: a" and \verb"xs :: [a]", then \verb"x : xs :: [a]" \\
+\verb"Bool" & \verb"True" and \verb"False" \\
+\verb"Int" & Integers from $-2^{29}$ to $2^{29} - 1$ \\
+\verb"Integer" & The set of integers \\
+\verb"Char" & Characters \verb"'0'", ..., \verb"'9'", \verb"'a'", ..., \verb"'z'", etc \\
+\verb"()" & \verb"()" only \\
+\verb"a -> b" & $\lambda x \rightarrow m$ \\
+\verb"(a,b)" & if \verb"x :: a" and \verb"y :: b", then \verb"(x, y) :: (a,b)" \\
+\verb"[a]" & the empty list \verb"[]" \\
+\verb"[a]" & if \verb"x :: a" and \verb"xs :: [a]", then \verb"x : xs :: [a]" \\
 \hline
 \end{tabular}
 \end{center}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Types in GHCi}
 
-  The command \verb":t" yields a type of a required expression:
+  Use the GHCi command \verb":t" to know a type of an expression:
 
-  \begin{center}
-  \includegraphics[scale=0.5]{Pics/TypesScreen.png}
-  \end{center}
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  > :t 5
+  5 :: Num p => p
+  > :t not
+  not :: Bool -> Bool
+  > :t [0.5, 0.6, 0.7]
+  [0.5, 0.6, 0.7] :: Fractional a => [a]
+  > :t (\x -> "dratuti, " ++ x)
+  (\x -> "dratuti, " ++ x) :: [Char] -> [Char]
+  > :t 'x'
+  'x' :: Char
+  \end{minted}
+  \end{exampleblock}
 
 \end{frame}
 
@@ -282,40 +366,36 @@ In Haskell, values are immutable. The GHCi example:
   \frametitle{Function declaration with datatypes}
 
   Let us recall the examples of function declarations:
-
-    \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
       add x y = x + y
       userName name = "Username: " ++ name
-      id x = x
-    \end{lstlisting}
+    \end{minted}
+  \end{exampleblock}
 
     \vspace{\baselineskip}
 
     One may annotate these functions with types as follows:
-
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
       add :: Int -> Int -> Int
       add x y = x + y
 
       userName :: String -> String
       userName name = "Username: " ++ name
-
-      id :: Char -> Char
-      id x = x
-    \end{lstlisting}
-
-\vspace{\baselineskip}
-
-  Note that such calls as \verb"userName 5" or \verb"id ''hello stewart''" cause type errors.
-
+    \end{minted}
+    \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Lists}
 
-  Let's talk about lists a slightly closely. In Haskell, a list is a homogeneous collection of elements.
-
-  \begin{lstlisting}[language=Haskell]
+  Let's talk about lists. In Haskell, a list is a homogeneous collection of elements.
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
     empty :: [Int]
     empty = []
 
@@ -328,14 +408,16 @@ In Haskell, values are immutable. The GHCi example:
     tenElevenTwelve :: [Int]
     tenElevenTwelve = 12 : tenEleven
     -- 12 : (11 : [])
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Lists. Ranges}
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   oneToFive :: [Int]
   oneToFive = [1..5]
 
@@ -347,87 +429,115 @@ In Haskell, values are immutable. The GHCi example:
 
   evens :: [Int]
   evens = [0,2,4..]
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Lists. Heads and Tails}
-  \begin{minipage}{0.5\textwidth}
-    \begin{flushleft}
-      \begin{center}
-      \includegraphics[scale=0.5]{Pics/HeadTail.png}
-      \end{center}
-    \end{flushleft}
-  \end{minipage}\hfill
-  \begin{minipage}{0.5\textwidth}
-    \begin{flushright}
-      \begin{center}
-      \includegraphics[scale=0.25]{Pics/Doge.png}
-      \end{center}
-    \end{flushright}
-  \end{minipage}
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  > tail [1..3]
+  [2,3]
+  > head [1..3]
+  1
+  > head []
+  *** Exception: Prelude.head: empty list
+  > tail []
+  *** Exception: Prelude.tail: empty list
+  \end{minted}
+    \end{exampleblock}
+\onslide<2->{
+\begin{center}
+\includegraphics[scale=0.2]{Pics/Doge.png}
+\end{center}}
 
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Other helpful list functions}
 
-  \begin{center}
-  \includegraphics[scale=0.5]{Pics/ListFunctions.png}
-  \end{center}
-
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  Prelude> drop 3 [1..7]
+  [4,5,6,7]
+  Prelude> take 4 ['a'..'h']
+  "abcd"
+  Prelude> replicate 3 "d"
+  ["d","d","d"]
+  Prelude> replicate 3 'd'
+  "ddd"
+  Prelude> zip [1,2,3] "this is a word"
+  [(1,'t'),(2,'h'),(3,'i')]
+  Prelude> unzip [(1,'t'),(2,'h'),(3,'i')]
+  ([1,2,3],"thi")
+  Prelude> ['a'..'h'] !! 3
+  'd'
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{List compeherension}
-
-  \begin{center}
-  \includegraphics[scale=0.47]{Pics/Compr.png}
-  \end{center}
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  > take 4 [(i, j) | i <- [1..10], j <- [1..10], i == j*j]
+  [(1,1),(4,2),(9,3),(16,4)]
+  > [ i | i <- "a cool sentence", i < 'h']
+  "a c eece"
+  > [ i | i <- "a cool sentence", fromEnum i < 100 ]
+  "a c c"
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Higher order functions}
 
   Function is a first-class object and one may pass any function as an argument:
-
-  \begin{lstlisting}[language=Haskell]
-  inc, dec :: Int -> Int
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  inc :: Int -> Int
   inc x = x + 1
-  dec x = x - 1
 
   changeTwiceBy :: (Int -> Int) -> Int -> Int
-  changeTwiceBy operation value = operation (operation value)
+  changeTwiceBy operation value
+    = operation (operation value)
 
   seven :: Int
   seven = changeTwiceBy inc 5
-
-  three :: Int
-  three = changeTwiceBy dec 5
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{\verb"Case"-expressions}
 
-\verb"Case"-expressions allows one to perform case analysis within an observed function.
+\verb"Case"-expressions allows one to perform case analysis within a function.
 
-  \begin{lstlisting}[language=Haskell]
-getFont :: Int -> String
-getFont n =
-  case n of
-    0 -> "PLAIN"
-    1 -> "BOLD"
-    2 -> "ITALIC"
-    _ -> "UNKNOWN"
-  \end{lstlisting}
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  getFont :: Int -> String
+  getFont n =
+    case n of
+      0 -> "PLAIN"
+      1 -> "BOLD"
+      2 -> "ITALIC"
+      _ -> "UNKNOWN"
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}
   \frametitle{Theoretical Flashback. Reduction strategies}
 
 \onslide<1->{
-  We recall some of relatable definitions from lambda calculus:
+  We recall a couple of definitions related to the lambda calculus:
 }
 \onslide<2->{
   \begin{enumerate}
@@ -481,14 +591,14 @@ From the one hand:
   \begin{itemize}
     \item In the first case, we have got a sensible result by several reduction steps. On the other hand, we have a loop in the second case.
     } \onslide<3->{
-    \item Also, in the first case, we started our reduction from the leftmost innermost redex. When we tried to start our reduction from the right redex $(\lambda x. x x) (\lambda x. x x)$, we have found ourselves in a spot of trouble. Something went wrong.
+    \item Also, in the first case, we start our reduction from the leftmost innermost redex. But when we were trying to reduce the term $(\lambda x. x x) (\lambda x. x x)$, we have seen that something went wrong.
     } \onslide<4->{
     \item Can we distinguish all possible ways of term reduction?
     }
   \end{itemize}
 
 \onslide<5->{
-  In a matter of fact, we need to distinguish all possible ways of application reduction, so far as we have no other options in the remaining cases:
+  In fact, we need to distinguish possible ways of application reduction, so far as we have no other options in the remaining cases:
 
   \begin{enumerate}
     \item If $x$ is a variable, then $x$ is already in normal form
@@ -509,10 +619,10 @@ From the one hand:
   \end{enumerate}
 } \onslide<3->{
 
-  The first way is called an \emph{applicative order}, the second one is a normal one. In the following sense, a normal order is much more better:
+  The first way is called \emph{applicative order reduction}, the second one is normal order reduction. In the following sense, the second is better:
 } \onslide<4->{
   \begin{theorem}
-    Let $M$ be a term such that $M$ has a normal form $M'$, then $M$ might be reduced to $M'$ via normal order
+    Let $M$ be a term such that $M$ has a normal form $M'$, then $M$ might be reduced to $M'$ with normal order reduction.
   \end{theorem}
   }
 \end{frame}
@@ -531,25 +641,24 @@ From the one hand:
 \begin{frame}[fragile]
   \frametitle{Haskell reduction}
 
-  Suppose we have such a trivial function:
-  \begin{lstlisting}[language=Haskell]
+  Suppose we have the following trivial function:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   square :: Int -> Int
   square x = x * x
-  \end{lstlisting}
-
-  \vspace{\baselineskip}
+  \end{minted}
+  \end{exampleblock}
 
 \onslide<2->{
   If we call this function on $(1 + 2)$, then we would have the following story:
 
   $\operatorname{square} \: (1 + 2) = (1 + 2) * (1 + 2) = 3 * (1 + 2) = 3 * 3 = 9$
 }
-  \vspace{\baselineskip}
-
 \onslide<3->{
-  We evalutate $(1 + 2)$ twice, even if we know that $1 + 2 = 3$ a priori.} \onslide<4->{I sincerely hope that you have no doubts about it.} \onslide<5->{The question of optimality is still relevant.
+  We evalutate $(1 + 2)$ twice, even if we know that $1 + 2 = 3$ a priori.} \onslide<4->{The question of performance is still relevant.
     \begin{center}
-    \includegraphics[scale=0.3]{Pics/WhatToDo.jpeg}
+    \includegraphics[scale=0.25]{Pics/WhatToDo.jpeg}
     \end{center}
   }
 \end{frame}
@@ -557,11 +666,11 @@ From the one hand:
 \begin{frame}[fragile]
   \frametitle{The notion of a weak head normal form}
 
-  In Haskell, reduction evalutates a term to a weak head normal form, where the outermost must be either constructor or lambda. Here are example: WHNFs from the left and non-WHNFs from the right
+  In Haskell, reduction evalutates a term to its weak head normal form, where the outermost must be either constructor or lambda. Here are examples: WHNFs from the left and non-WHNFs from the right
 
 \begin{minipage}{0.5\textwidth}
   \begin{flushleft}
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     78
 
     2 : [1,2]
@@ -573,22 +682,20 @@ From the one hand:
     ("hel" ++ "lo", "world")
 
     \x -> (x + 2) + 2
-
-    \xs -> zip xs [1, 3+2]
-    \end{lstlisting}
+    \end{minted}
   \end{flushleft}
 \end{minipage}\hfill
 \begin{minipage}{0.5\textwidth}
   \begin{flushright}
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     1 + 665
 
-    (\x -> x ++ "guten tag mein herr ") "Heinrich"
+    (\x -> x ++ "ab") "cd"
 
     length [1..145]
 
-    (\f g x -> f (g x)) $ (\x y -> y)
-    \end{lstlisting}
+    (\f g x -> f (g x)) id
+    \end{minted}
   \end{flushright}
 \end{minipage}
 \end{frame}
@@ -597,24 +704,22 @@ From the one hand:
   \frametitle{Pure functions and side-effects}
 
   \begin{itemize}
-    \onslide<1->{\item A function is called \emph{pure} if it yields the same value for the same argument each time
-    \item In other words, a pure function is a function that satisfies Church-Rosser property
-    }
+    \onslide<1->{\item A function is called \emph{pure} if it yields the same value for the same argument each time}
     \onslide<2->{\item It means that, such a function has the same behaviour at every point. This principle is also called \emph{referential transparency}
     }
-    \onslide<3->{\item A side-effect function is a function that may yield different value passing the same arguments. Mathematically, such a function is not function at all.
+    \onslide<3->{\item A side-effect function is a function that may yield different values passing the same arguments. Mathematically, such a function is not function at all.
     } \onslide<4->{
-    \item Haskell functions are (mostly) pure ones, but Haskell isn't confluent as a version of lambda calculus
+    \item Haskell functions are (mostly) pure ones, but Haskell isn't confluent as a version of the lambda calculus
     }
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The failure of confluece}
+  \frametitle{The failure of the Church-Rosser property}
 
-  Let us consider the following quite simple example. In Haskell one has a function called \verb"seq". According to Hackage, ``The value of \verb"seq a b" is bottom if a is bottom, and otherwise equal to b.'' This function is a sort of instrument to introduce the restricted strictness to Haskell. The listing below demostrates the failure of confluence:
+  Let us consider the following quite simple example. In Haskell one has a function called \verb"seq". According to Hackage, ``The value of \verb"seq a b" is bottom if a is bottom, and otherwise equal to b.'' This function is a sort of instrument to introduce the restricted strictness to Haskell. The listing below demostrates the failure of the CRP:
 
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   seq :: a -> b -> b
   seq _|_ _ = _|_
   seq _ b   = b
@@ -623,7 +728,7 @@ From the one hand:
 
   seq dno 14        == dno
   seq (dno . id) 14 == 14
-  \end{lstlisting}
+  \end{minted}
 
 \end{frame}
 
@@ -634,13 +739,12 @@ From the one hand:
   On this seminar, we
   \begin{itemize}
     \item got acquinted with the basic Haskell syntax and basic data types
-    \item learnt the underlying aspects of Haskell semantics
     \item discussed pure functions and the example of the confluence failure
   \end{itemize}
 }
 
 \onslide<2->{
-On the next seminar, we
+On the next seminar, we will
 \begin{itemize}
   \item start to learn polymorphism and its advantages
   \item introduce typeclasses
