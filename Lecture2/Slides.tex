@@ -190,7 +190,7 @@ Local binding with the \verb"let"-keyword:
 \vspace{\baselineskip}
 
   One may use the dollar infix operator. That would allow us to avoid too many brackets.
-  For example, the following functions are equivalent:
+  For example, the functions \verb"function" and \verb"function1" are equivalent:
   \metroset{block=fill}
   \begin{exampleblock}{Example}
   \begin{minted}{haskell}
@@ -302,11 +302,11 @@ In Haskell, values are immutable. A small example:
   \frametitle{Basic datatypes}
   The basic datatypes are:
   \begin{itemize}
-    \item \verb"Bool": Boolean values
-    \item \verb"Int": Bounded integer datatype
-    \item \verb"Integer": Unbounded integer datatype
-    \item \verb"Char": Unicode characters
-    \item \verb"()": Unit value datatype
+    \item \verb"Bool"
+    \item \verb"Int"
+    \item \verb"Integer"
+    \item \verb"Char"
+    \item \verb"()"
     \item If \verb"a" and \verb"b" are types, then \verb"a -> b" is a type
     \item If \verb"a" and \verb"b" are types, then \verb"(a,b)" is a type
     \item If \verb"a" is a type, then \verb"[a]" is a type
@@ -321,7 +321,7 @@ In Haskell, values are immutable. A small example:
 
 \begin{frame}[fragile]
   \frametitle{Datatypes and constructors}
- We take the list of basic data types and associate constructors with these types. A constructor is a term that allows one to obtain a value of the desired type.
+ We take the list of basic data types and associate constructors with these types. A constructor is a term that allows one to obtain a value of a given type.
 \begin{center}
 \begin{tabular}{ |c|c| }
 \hline
@@ -376,7 +376,7 @@ In Haskell, values are immutable. A small example:
 
     \vspace{\baselineskip}
 
-    One may annotate these functions with types as follows:
+    One may annotate these functions with type signatures as follows:
     \metroset{block=fill}
     \begin{exampleblock}{Example}
     \begin{minted}{haskell}
@@ -425,7 +425,7 @@ In Haskell, values are immutable. A small example:
   oneToSevenOdd = [1,3..7]
 
   nat :: [Int]
-  nat [0,1..]
+  nat = [0,1..]
 
   evens :: [Int]
   evens = [0,2,4..]
@@ -517,7 +517,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{\verb"Case"-expressions}
 
-\verb"Case"-expressions allows one to perform case analysis within a function.
+\verb"Case"-expressions allows one to perform case analysis within a function body.
 
 \metroset{block=fill}
 \begin{exampleblock}{Example}
@@ -633,7 +633,7 @@ From the one hand:
 \begin{itemize}
   \onslide<1->{\item The applicative (normal) order is often called call-by-value (call-by-name)}
   \onslide<2->{\item The most mainstream programming languages you know (Java, Python, Kotlin, etc) have call-by-value semantics}
-  \onslide<3->{\item The Haskell reduction has a call-by-name strategy. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell doesn't compute a value if it's not needed at the moment}
+  \onslide<3->{\item The Haskell reduction has a call-by-need strategy which is quite close to call-by-name. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell doesn't compute a value if it's not needed at the moment}
   \onslide<4->{\item Call-by-name reduction reduces reducible terms to the bitter end, but it's not always optimal, unfortunately}
 \end{itemize}
 \end{frame}
@@ -700,16 +700,18 @@ From the one hand:
 \end{minipage}
 \end{frame}
 
+\section{Pure functions and side-effects}
+
 \begin{frame}
   \frametitle{Pure functions and side-effects}
 
   \begin{itemize}
-    \onslide<1->{\item A function is called \emph{pure} if it yields the same value for the same argument each time}
-    \onslide<2->{\item It means that, such a function has the same behaviour at every point. This principle is also called \emph{referential transparency}
+    \onslide<1->{\item A function is called \emph{pure} if it has no side effects}
+    \onslide<2->{\item It means that such a function behaves 'in the same way' at every point. This principle is also called \emph{referential transparency}
     }
     \onslide<3->{\item A side-effect function is a function that may yield different values passing the same arguments. Mathematically, such a function is not function at all.
     } \onslide<4->{
-    \item Haskell functions are (mostly) pure ones, but Haskell isn't confluent as a version of the lambda calculus
+    \item Haskell functions are (mostly) pure ones, but Haskell is not confluent as a version of the lambda calculus
     }
   \end{itemize}
 \end{frame}
@@ -724,10 +726,10 @@ From the one hand:
   seq _|_ _ = _|_
   seq _ b   = b
 
-  dno = undefined
+  bottom = undefined
 
-  seq dno 14        == dno
-  seq (dno . id) 14 == 14
+  seq bottom 14         == bottom
+  seq (bottom  . id) 14 == 14
   \end{minted}
 
 \end{frame}
@@ -748,7 +750,7 @@ On the next seminar, we will
 \begin{itemize}
   \item start to learn polymorphism and its advantages
   \item introduce typeclasses
-  \item study the first examples of crucially important examples of typeclasses
+  \item study the very first examples of typeclasses
 \end{itemize}
 }
 \end{frame}

@@ -1,106 +1,136 @@
-\documentclass[10pt,pdf,utf8,russian,aspectratio=169]{beamer}
-\usepackage[T2A]{fontenc}
-\usetheme{Singapore}
-\usepackage{setspace}
-\usepackage{amsmath}
-\usepackage{pgfplots}
-\usepackage[utf8]{inputenc}
-\usepackage{tikz-cd}
-\usepackage[all, 2cell]{xy}
-\usepackage{amssymb}
-\usepackage{verba tim}
-\usepackage[all]{xy}
-\usepackage{tikz}
-\usepackage{bussproofs}
-\usepackage{dsfont}
-\usepackage{mathabx}
-\usepackage{animate}
-\usetikzlibrary{graphs}
-\usetikzlibrary{arrows}
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
-\usepackage[english,russian]{babel}
-\usepackage{listings}
-\usepackage{color}
-\usepackage{tikz}
-\usepackage{listings}
-\pgfplotsset{compat=1.16}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
 \newtheorem{prop}{Proposition}
-\title{Functional programming, Seminar No. 3}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
-\date{Higher School of Economics \\ Faculty of Computer Science}
-\begin{document}
-\lstset{
-  frame=none,
-  xleftmargin=2pt,
-  stepnumber=1,
-  numbers=left,
-  numbersep=5pt,
-  numberstyle=\ttfamily\tiny\color[gray]{0.3},
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={*'}{'*},
-  language=haskell,
-  tabsize=2,
-  emphstyle={\bf},
-  commentstyle=\it,
-  stringstyle=\mdseries\rmfamily,
-  showspaces=false,
-  keywordstyle=\bfseries\rmfamily,
-  columns=flexible,
-  basicstyle=\small\sffamily,
-  showstringspaces=false,
-  morecomment=[l]\%,
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
 }
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+\title{Functional programming, Seminar No. 3}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\date{Higher School of Economics \\ The Faculty of Computer Science}
+\begin{document}
+
 \maketitle
 
 \begin{frame}
   \frametitle{Intro}
 
-  On the previous seminar, we
-  \onslide<1->{
-  \begin{itemize}
-    \item studied the basic Haskell syntax
-    \item introduced the notion of a weak head normal form to describe the operatonal semantics of Haskell
-    \item analysed the regrettable cicrumstances according to which Haskell doesn't have the Church-Rosser property as a system of typed lambda calculus
-  \end{itemize}
-  }
-
-\vspace{\baselineskip}
-
-\onslide<2->{
-Today we
-  \begin{itemize}
-    \item investigate the Haskell type system more deeply and overview the advantages of parametric polymorphism
-    \item take a look at bounded polymorphism and discuss type classes
-  \end{itemize}
-  }
+  Today we study
+  \begin{center}
+  \includegraphics[scale=0.33]{Pics/doge.png}
+  \end{center}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Motivation}
   Let us recall the example of a higher order function from the previous seminar:
 
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   changeTwiceBy :: (Int -> Int) -> Int -> Int
   changeTwiceBy operation value = operation (operation value)
-  \end{lstlisting}
+  \end{minted}
 
-  \vspace{\baselineskip}
+  One may implement the function for Boolean values and strings that are the 'same' as the function above:
 
-  It is clear that one may implement the function for Boolean values and strings that have the same behaviour as the function above:
+  \begin{minted}{haskell}
+  changeTwiceBy :: (Bool -> Bool) -> Bool -> Bool
+  changeTwiceByBool operation value =
+    operation (operation value)
 
-  \begin{lstlisting}[language=Haskell]
-  changeTwiceByBool :: (Bool -> Bool) -> Bool -> Bool
-  changeTwiceByBool operation value = operation (operation value)
-
-  changeTwiceByString :: (String -> String) -> String -> String
-  changeTwiceByString operation value = operation (operation value)
-  \end{lstlisting}
+  changeTwiceBy :: (String -> String) -> String -> String
+  changeTwiceBy operation value =
+    operation (operation value)
+  \end{minted}
 
   \onslide<2->{
-  One needs to have a way to avoid such a boilerplate.
+  Too much boilerplate.
   }
 \end{frame}
 
@@ -108,8 +138,7 @@ Today we
   \frametitle{Parametric polymorphism}
 
 The key idea of parametric polymorphism that the same function might be called on distinct data types. Here are the first polymorphic examples:
-
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   id :: a -> a
   id x = x
 
@@ -124,32 +153,45 @@ The key idea of parametric polymorphism that the same function might be called o
 
   swap :: (a, b) -> (b, a)
   swap (a, b) = (b, a)
-  \end{lstlisting}
+  \end{minted}
 \end{frame}
 
 \begin{frame}
-  \frametitle{The meme time}
+  \frametitle{Meme time}
 
   \begin{center}
   \includegraphics[scale=0.3]{Pics/Ryan.png}
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{The functions above in the GHCi session}
-
-  \begin{center}
-  \includegraphics[scale=0.5]{Pics/Triv.png}
-  \end{center}
+\begin{frame}[fragile]
+  \frametitle{Example}
+\metroset{block=fill}
+\begin{exampleblock}{GHCi session}
+\begin{minted}{haskell}
+  > id 6
+  6
+  > id 6.0
+  6.0
+  > const True 6
+  True
+  > const 6 True
+  6
+  > fst ('5', 5)
+  '5'
+  > fst (5, '5')
+  5
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{A brief clarification}
 
 \begin{itemize}
-  \item In such signatures as $a \to b \to a$, $a, b$ are type variables that range over arbitrary data types. In fact, $a$, $b$ are bounded by universal quantifier that hidden under the carpet.
-  \item In a matter of fact, the functions from the previous slide have the following signatures:
-  \begin{lstlisting}[language=Haskell]
+  \item In such signatures as $a \to b \to a$, $a, b$ are type variables that range over arbitrary data types. In fact, $a$, $b$ are bounded by universal quantifier hidden under the carpet.
+  \item The functions from the previous slide have the following signatures:
+  \begin{minted}{haskell}
   id :: forall a. a -> a
   id x = x
 
@@ -161,14 +203,15 @@ The key idea of parametric polymorphism that the same function might be called o
 
   swap :: forall a b. (a, b) -> (b, a)
   swap (a, b) = (b, a)
-  \end{lstlisting}
+  \end{minted}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Higher order functions and parametric polymorpism}
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{More examples}
+  \begin{minted}{haskell}
   infixr 9 .
   (.) :: (b -> c) -> (a -> b) -> a -> c
   f . g = \x -> f (g x)
@@ -184,38 +227,54 @@ The key idea of parametric polymorphism that the same function might be called o
 
   uncurry :: (a -> b -> c) -> ((a, b) -> c)
   uncurry f p = f (fst p) (snd p)
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{The functions above in the GHCi session. The composition examples}
+    \frametitle{Examples with composition}
+\metroset{block=fill}
+\begin{exampleblock}{More examples}
+\begin{minted}{haskell}
+  incNegate :: Int -> Int
+  incNegate x = negate (x + 1)
 
-\begin{lstlisting}[language=Haskell]
-incNegate :: Int -> Int
-incNegate x = negate (x + 1)
+  incNegate x = negate $ x + 1
 
-incNegate x = negate $ x + 1
+  incNegate x = (negate . (+1)) x
 
-incNegate x = (negate . (+1)) x
+  incNegate x = negate . (+1) $ x
 
-incNegate x = negate . (+1) $ x
-
-incNegate   = negate . (+1)
-\end{lstlisting}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The functions above in the GHCi session. \verb"curry" and \verb"uncurry"}
-
-  \begin{center}
-  \includegraphics[scale=0.554]{Pics/Curry.png}
-  \end{center}
+  incNegate   = negate . (+1)
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The functions above in the GHCi session. The \verb"flip" example}
+  \frametitle{\verb"curry" and \verb"uncurry"}
 
-  \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+  \begin{exampleblock}{More examples}
+  \begin{minted}{haskell}
+    > uncurry (*) (3,4)
+    12
+    > curry fst 3 4
+    3
+    > curry id 3 4
+    (3,4)
+    > uncurry const (3,4)
+    3
+    > uncurry (flip const) (3,4)
+    4
+  \end{minted}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples with \verb"flip"}
+  \metroset{block=fill}
+  \begin{exampleblock}{More examples}
+  \begin{minted}{haskell}
   show2 :: Int -> Int -> String
   show2 x y = show x ++ " and " ++ show y
 
@@ -223,47 +282,51 @@ incNegate   = negate . (+1)
   showSnd  = show2 1
   showFst  = flip show2 2
   showFst' = (`show2` 2)
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
 
-\onslide<2->{
-  \begin{center}
-  \includegraphics[scale=0.47]{Pics/Flip.png}
-  \end{center}
-  }
+  \metroset{block=fill}
+  \begin{exampleblock}{GHCi session}
+    \begin{minted}{haskell}
+    > showSnd 10
+    "1 and 10"
+    > showFst 10
+    "10 and 2"
+    > showFst' 42
+    "42 and 2"
+    \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Bye-bye boilerplate!}
 
-  All these functions
-  \begin{lstlisting}[language=Haskell]
+  All those functions such as the following one
+  \metroset{block=fill}
+  \begin{exampleblock}{\verb"changeTwiceBy" with \verb"Int"}
+  \begin{minted}{haskell}
   changeTwiceBy :: (Int -> Int) -> Int -> Int
-  changeTwiceBy operation value = operation (operation value)
-
-  changeTwiceByBool :: (Bool -> Bool) -> Bool -> Bool
-  changeTwiceByBool operation value = operation (operation value)
-
-  changeTwiceByString :: (String -> String) -> String -> String
-  changeTwiceByString operation value = operation (operation value)
-  \end{lstlisting}
-
-  might be replaced to the following ones:
-  \begin{lstlisting}[language=Haskell]
+  changeTwiceBy operation value =
+    operation (operation value)
+  \end{minted}
+\end{exampleblock}
+  might be replaced by one of the following ones:
+  \metroset{block=fill}
+  \begin{exampleblock}{\verb"applyTwice"}
+  \begin{minted}{haskell}
   applyTwice :: (a -> a) -> a -> a
   applyTwice f a = f (f a)
-
-  applyTwice' :: (a -> a) -> a -> a
-  applyTwice' f a = f . f $ a
-
-  applyTwice'' :: (a -> a) -> a -> a
-  applyTwice'' f = f . f
-  \end{lstlisting}
+  applyTwice f a = f . f $ a
+  applyTwice f = f . f
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{HOF, polymorpism, and lists}
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Examples}
+  \begin{minted}{haskell}
   map     :: (a -> b)      -> [a] -> [b]
 
   filter  :: (a -> Bool)   -> [a] -> [a]
@@ -271,58 +334,75 @@ incNegate   = negate . (+1)
   zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
 
   length :: [a] -> Int
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 
 \vspace{\baselineskip}
 
-\onslide<2->{
-  We discuss their implementations closely on the next seminar. Here we just take a look at their behaviour.
-  }
+  We discuss their implementations closely on the next seminar. Here we just discuss them briefly.
 \end{frame}
 
 \begin{frame}[fragile]
     \frametitle{The composition examples + list functions}
-\begin{lstlisting}[language=Haskell]
-foo, bar :: [Int] -> Int
-foo patak =
-  length $ filter odd $
-  map (div 2) $ filter even $ map (div 7) patak
+    \metroset{block=fill}
+    \begin{exampleblock}{More examples}
+    \begin{minted}{haskell}
+    foo, bar :: [Int] -> Int
+    foo patak =
+      length $ filter odd $
+      map (div 2) $ filter even $ map (div 7) patak
+    bar =
+      length . filter odd .
+      map (div 2) . filter even . map (div 7)
 
-bar       =
-  length . filter odd .
-  map (div 2) . filter even . map (div 7)
-
-zip :: [a] -> [b] -> [(a, b)]
-zip = zipWith (,)
-\end{lstlisting}
+    zip :: [a] -> [b] -> [(a, b)]
+    zip = zipWith (,)
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
     \frametitle{The composition examples + list functions}
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{More examples}
+    \begin{minted}{haskell}
     stringsTransform :: [String] -> [String]
-    stringsTransform l = map (\s -> map toUpper s) (filter (\s -> length s == 5) l)
+    stringsTransform l =
+      map (\s -> map toUpper s)
+      (filter (\s -> length s == 5) l)
 
-    stringsTransform l = map (\s -> map toUpper s) $ filter (\s -> length s == 5) l
+    stringsTransform l =
+      map (\s -> map toUpper s) $
+      filter (\s -> length s == 5) l
 
-    stringsTransform l = map (map toUpper) $ filter ((== 5) . length) l
+    stringsTransform l =
+      map (map toUpper) $ filter ((== 5) . length) l
 
-    stringsTransform = map (map toUpper) . filter ((== 5) . length)
-    \end{lstlisting}
+    stringsTransform =
+      map (map toUpper) . filter ((== 5) . length)
+    \end{minted}
+    \end{exampleblock}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Bounded polymorphism and type classes}
-
-\onslide<1->{
   The idea of bounded (ad hoc) polymorphism is that one has a general interface with instances for each concrete data type.
-}
-
-\onslide<2->{
-\begin{center}
-\includegraphics[scale=0.35]{Pics/NineAdHoc.png}
-\end{center}
-}
+  \metroset{block=fill}
+  \begin{exampleblock}{More examples}
+  \begin{minted}{haskell}
+  > :t 9
+  9 :: Num p => p
+  > 9 :: Int
+  9
+  > 9 :: Double
+  9.0
+  > 9 :: Rational
+  9 % 1
+  > 9 :: Char
+  <interactive>:6:1: error:
+  * No instance for (Num Char) arising from the literal '9'
+  \end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -331,84 +411,84 @@ zip = zipWith (,)
 \begin{itemize}
   \item Let us take a look a the following function
 
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   elem :: a -> [a] -> Bool
   elem _ [] = False
   elem x (y:ys) = x == y || elem x ys
-  \end{lstlisting}
+  \end{minted}
 
-\onslide<2->{
-  \item Is a type \verb"a" arbitrary?} \onslide<3->{Yes and no. \verb"a" is an arbitrary type for which equality is defined.}
+  \item \verb"a" is an arbitrary type for which equality is defined as usual.
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Type classes. Motivation}
-  As we observed, type variables in polymorphic function are bounded via universal quantifier. In ad hoc polymorphism, type variables are also bounded via $\forall$ but with the additional condition. Such a quantification is called bounded.
+  Type variables in polymorphic function are bounded with universal quantifier. In ad hoc polymorphism, type variables are also bounded with $\forall$ but with the additional condition. This kind of quantification is called \emph{bounded}.
 
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   elem :: forall a. Eq a => a -> [a] -> Bool
   elem _ [] = False
   elem x (y:ys) = x == y || elem x ys
-  \end{lstlisting}
-
+  \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The notion of a type class}
 
 \begin{itemize}
-  \item \emph{A type class} is a collection of functions with type signatures with a common type parameter. The example given:
-
-  \begin{lstlisting}[language=Haskell]
+  \item \emph{A type class} is a collection of functions with type signatures with a common type parameter. An example given:
+  \begin{minted}{haskell}
   class Eq a where
     (==) :: a -> a -> Bool
     (/=) :: a -> a -> Bool
-  \end{lstlisting}
-
+  \end{minted}
   \item A type class name introduce a constraint called \emph{context}:
-
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   elem :: Eq a => a -> [a] -> Bool
-  elem _ [] = False
-  elem x (y:ys) = x == y || elem x ys
-  \end{lstlisting}
-\onslide<2->{
-  \item The definition above without a context yields a type error:
-  \begin{center}
-  \includegraphics[scale=0.24]{Pics/EqError.png}
-  \end{center}
-}
+  \end{minted}
+  \item The definition above without a context is not well-defineds:
+  \begin{minted}{haskell}
+<interactive>:4:19: error:
+* No instance for (Eq a) arising from a use of '=='
+Possible fix: add (Eq a) to the context of
+the type signature for: elem :: forall a. a -> [a] -> Bool
+  \end{minted}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Instance declarations}
 
-  A given data type \verb"a" has the \emph{instance} of a type class if every function of that class is implemented for \verb"a". The example:
+  A given data type \verb"a" has the \emph{instance} of a type class if every function of that class is implemented for \verb"a". An example:
 
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   instance Eq Bool where
     True == True   = True
     False == False = True
     _ == _         = False
 
     x /= y        = neg (x == y)
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Polymorphism + instance declarations}
 
 \begin{itemize}
-  \item A type parameter in an instance declaration might be polymorphic itself:
+  \item A type parameter in an instance declaration might be polymorphic as well:
 
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   instance Eq a => Eq [a] where
     []       == []       = True
     (x : xs) == (y : ys) = x == y && xs == ys
     _        == _        = False
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \item Without the context \verb"Eq a =>", this definition yields type error since we don't know how to perform
   equality comparison of element from \verb"a"
 \end{itemize}
@@ -419,8 +499,9 @@ zip = zipWith (,)
 
 \begin{itemize}
 \item The \verb"Eq" type class has the following instances (some of them)
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{\verb"Eq" instances}
+  \begin{minted}{haskell}
   instance Eq a => Eq [a]
   instance Eq Ordering
   instance Eq Int
@@ -428,8 +509,9 @@ zip = zipWith (,)
   instance Eq Double
   instance Eq Char
   instance Eq Bool
-  \end{lstlisting}
-\item See the standard library source code to take a look at the instances implementation.
+\end{minted}
+  \end{exampleblock}
+\item See the standard library source code to have a look at the implementation.
 \end{itemize}
 \end{frame}
 
@@ -438,14 +520,17 @@ zip = zipWith (,)
 
 \begin{itemize}
   \item The \verb"Show" type class allows one to represent a value as a string:
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Some \verb"Eq" instances}
+  \begin{minted}{haskell}
   class Show a where
     showsPrec :: Int -> a -> ShowS
     show :: a -> String
     showList :: [a] -> ShowS
     {-# MINIMAL showsPrec | show #-}
-  \end{lstlisting}
-  \item One needs to have a \verb"Show" instance to display a value of a given type on a console.
+  \end{minted}
+  \end{exampleblock}
+  \item One needs to have a \verb"Show" instance to show a value of a given type.
 \end{itemize}
 \end{frame}
 
@@ -453,13 +538,16 @@ zip = zipWith (,)
   \frametitle{Some of the \verb"Show" instances}
 
 Here are some of the \verb"Show" instances:
-\begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Some \verb"Show" instances}
+\begin{minted}{haskell}
   instance Show Integer
   instance Show Int
   instance Show Char
   instance Show Bool
   instance (Show a, Show b) => Show (a, b)
-\end{lstlisting}
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -467,16 +555,20 @@ Here are some of the \verb"Show" instances:
   \begin{itemize}
   \item Let us take a look at the following quicksort function:
 
-  \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Some \verb"Show" instances}
+\begin{minted}{haskell}
   quicksort :: [a] -> [a]
   quicksort [] = []
-  quicksort (x:xs) = quicksort small ++ (x : quicksort large)
+  quicksort (x:xs) =
+    quicksort small ++ (x : quicksort large)
     where
       small = [y | y <- xs, y <= x]
       large = [y | y <- xs, y > x]
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
   \onslide<2->{
-  \item Here we have the same story as in the case of equality. A type \verb"a" is an arbitrary type for which comparison is defined. The definition of quicksort as above is wrong. There exists a type element of which are incomparable, complex numbers, e.g.
+  \item Here we have the same situation. The definition of \verb"quicksort" as above is wrong. There exist types elements of which are incomparable, complex numbers, e.g.
   }
 \end{itemize}
 \end{frame}
@@ -486,7 +578,9 @@ Here are some of the \verb"Show" instances:
 
 The full definition of \verb"Ord" is the following one:
 
-  \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{\verb"Ord"}
+\begin{minted}{haskell}
   class Eq a => Ord a where
     compare :: a -> a -> Ordering
     (<), (<=), (>), (>=) :: a -> a -> Bool
@@ -496,70 +590,67 @@ The full definition of \verb"Ord" is the following one:
               else if x <= y then LT
               else GT
 
-    x <= y = case compare x y of { GT -> False; _ -> True }
-
-    max x y = if x <= y then y else x
+    x <= y = case compare x y of
+      { GT -> False; _ -> True }
 
     {-# MINIMAL compare | (<=) #-}
-  \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Some of the \verb"Ord" instances}
+  \frametitle{\verb"Ord" instances}
 
-\begin{itemize}
-  \item The \verb"Ord" instances
-\begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{\verb"Ord" instances}
+  \begin{minted}{haskell}
   instance Ord Int
   instance Ord Float
   instance Ord Double
   instance Ord Char
   instance Ord Bool
-\end{lstlisting}
-\end{itemize}
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The \verb"Num" type class}
 
-\begin{itemize}
-  \item \verb"Num" is a type class with the general interface of usual arithmetical operations.
-  \begin{lstlisting}[language=Haskell]
-  class Num a where
-    (+), (-), (*) :: a -> a -> a
-    negate, abs, signum :: a -> a
-    fromInteger :: Integer -> a
-    {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
-  \end{lstlisting}
-  \onslide<2->{
-  \item The instances of \verb"Num" form a collection of numerical data types in Haskell
-  } \onslide<3->{
-  \item Note that we don't require the context \verb"Ord a" since the set complex numbers is an instance of \verb"Num", but we don't have the instance \verb"Ord Complex", as you know.
-  }
-\end{itemize}
+\verb"Num" is a type class with the general interface of usual arithmetic operations.
+\metroset{block=fill}
+\begin{exampleblock}{\verb"Num"}
+\begin{minted}{haskell}
+class Num a where
+  (+), (-), (*) :: a -> a -> a
+  negate, abs, signum :: a -> a
+  fromInteger :: Integer -> a
+  {-# MINIMAL (+), (*), abs, signum,
+      fromInteger, (negate | (-)) #-}
+  \end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Some of the \verb"Num" instances}
+  \frametitle{\verb"Num" instances}
 
-\begin{itemize}
-\item The examples of \verb"Num" instances are:
-
-\begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Some \verb"Num" instances}
+\begin{minted}{haskell}
   instance Num Integer
   instance Num Int
   instance Num Float
   instance Num Double
-\end{lstlisting}
-\end{itemize}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The \verb"Enum" and \verb"Bounded" type classes}
+  \frametitle{The \verb"Enum" type class}
 
-\begin{itemize}
-  \item The \verb"Enum" is type class for type for which one may define an explicit enumeration.
-\begin{lstlisting}[language=Haskell]
+The \verb"Enum" is type class for types for which we can define an explicit enumeration.
+\metroset{block=fill}
+\begin{exampleblock}{Some \verb"Enum" instances}
+\begin{minted}{haskell}
   class Enum a where
     succ, pred :: a -> a
     toEnum     :: Int -> a
@@ -570,64 +661,43 @@ The full definition of \verb"Ord" is the following one:
     enumFromTo     :: a -> a -> [a]       -- [n..m]
     enumFromThenTo :: a -> a -> a -> [a]  -- [n,m..p]
     {-# MINIMAL toEnum, fromEnum #-}
-  \end{lstlisting}
-
-\item The \verb"Bounded" type class is a type class for bounded types, i.e., types with minimal and maximal bounds
-\begin{lstlisting}[language=Haskell]
-  class Bounded a where
-    minBound :: a
-    maxBound :: a
-    {-# MINIMAL minBound, maxBound #-}
-  \end{lstlisting}
-\end{itemize}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Some of the \verb"Enum" instances}
+  \frametitle{\verb"Enum" instances}
 
-\begin{itemize}
-  \item The instances are the following ones:
-\begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Some \verb"Num" instances}
+  \begin{minted}{haskell}
   instance Enum Integer
   instance Enum Int
   instance Enum Char
   instance Enum Bool
   instance Enum Float
   instance Enum Double
-\end{lstlisting}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Some of the \verb"Bounded" instances}
-\begin{itemize}
-  \item The examples of bounded data types
-\begin{lstlisting}[language=Haskell]
-  instance Bounded Int
-  instance Bounded Char
-  instance Bounded Bool
-\end{lstlisting}
-\end{itemize}
+  \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The \verb"Fractional" type class}
 
 \begin{itemize}
-  \item The \verb"Fractional" type class is a general interface for numerical division
-\begin{lstlisting}[language=Haskell]
+  \item The \verb"Fractional" type class is a general interface for division
+  \metroset{block=fill}
+  \begin{exampleblock}{Some \verb"Num" instances}
+  \begin{minted}{haskell}
   class Num a => Fractional a where
     (/) :: a -> a -> a
     recip :: a -> a
     fromRational :: Rational -> a
     {-# MINIMAL fromRational, (recip | (/)) #-}
-  \end{lstlisting}
-  \item It is clear that such a type should be a numerical one. Thus, we require the \verb"Num a" restriction.
-  \item The \verb"Fractional" instances:
-  \begin{lstlisting}[language=Haskell]
-  instance Fractional Float
-  instance Fractional Double
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
+  \item We require the \verb"Num a" restriction.
+  \item The \verb"Fractional" instances are \verb"Float" and \verb"Double".
 \end{itemize}
 \end{frame}
 
@@ -650,7 +720,7 @@ On the next seminar, we
     type synonyms, etc
     \item feel the power of pattern matching
     \item discuss folds
-    \item see how to enforce lazy evaluation in Haskell
+    \item see how to enforce evaluation in Haskell
   \end{itemize}
 }
 \end{frame}
