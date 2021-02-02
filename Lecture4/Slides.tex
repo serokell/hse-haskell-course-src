@@ -1,161 +1,190 @@
-\documentclass[10pt,pdf,utf8,russian,aspectratio=169]{beamer}
-\usepackage[T2A]{fontenc}
-\usetheme{Singapore}
-\usepackage{setspace}
-\usepackage{amsmath}
-\usepackage{pgfplots}
-\usepackage[utf8]{inputenc}
-\usepackage{tikz-cd}
-\usepackage[all, 2cell]{xy}
-\usepackage{amssymb}
-\usepackage{verba tim}
-\usepackage[all]{xy}
-\usepackage{tikz}
-\usepackage{bussproofs}
-\usepackage{dsfont}
-\usepackage{mathabx}
-\usepackage{animate}
-\usetikzlibrary{graphs}
-\usetikzlibrary{arrows}
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
-\usepackage[english,russian]{babel}
-\usepackage{listings}
-\usepackage{color}
-\usepackage{tikz}
-\usepackage{listings}
-\makeatletter
-\newcommand{\xRightarrow}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
-\makeatother
-\pgfplotsset{compat=1.16}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[all, 2cell]{xy}
+\usepackage[all]{xy}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
 \newtheorem{defin}{Definition}
 \newtheorem{theor}{Theorem}
 \newtheorem{prop}{Proposition}
-\title{Functional programming, Seminar No. 4}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
-\date{Higher School of Economics \\ Faculty of Computer Science}
-\begin{document}
-\lstset{
-  frame=none,
-  xleftmargin=2pt,
-  stepnumber=1,
-  numbers=left,
-  numbersep=5pt,
-  numberstyle=\ttfamily\tiny\color[gray]{0.3},
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={*'}{'*},
-  language=haskell,
-  tabsize=2,
-  emphstyle={\bf},
-  commentstyle=\it,
-  stringstyle=\mdseries\rmfamily,
-  showspaces=false,
-  keywordstyle=\bfseries\rmfamily,
-  columns=flexible,
-  basicstyle=\small\sffamily,
-  showstringspaces=false,
-  morecomment=[l]\%,
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
 }
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+\title{Functional programming, Seminar No. 4}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\date{Higher School of Economics \\ The Faculty of Computer Science}
+\begin{document}
+
 \maketitle
 
 \begin{frame}
-  \frametitle{Intro}
+  \frametitle{Today}
 
-  On the previous seminar, we
-  \begin{itemize}
-    \item introduced parametric polymorphism
-    \item discussed type classes and their examples (\verb"Show", \verb"Eq", \verb"Ord", etc)
-  \end{itemize}
-
-\vspace{\baselineskip}
-
-\onslide<2->{
-  Today, we
-  \begin{itemize}
-    \item study pattern matching and such type constructions as algebraic data types, new types, type synonyms, and records
-    \item learn folds
-    \item talk about lazy evalution enforcing more systematically
-  \end{itemize}
-}
-
+  We will study
+  \begin{center}
+  \includegraphics[scale=0.12]{mlem.jpeg}
+  \end{center}
 \end{frame}
+
+\section{Algebraic data types and pattern matching}
 
 \begin{frame}[fragile]
 \frametitle{Pattern matching}
   Let us take a look at the following functions:
-  \begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   swap :: (a, b) -> (b, a)
   swap (a, b) = (b, a)
 
   length :: [a] -> Int
   length [] = 0
   lenght (x : xs) = 1 + length xs
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
 
 \onslide<2->{
   \begin{itemize}
-    \item Expressions like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are often called patterns
-    \item In such calls as \verb"swap (45, True)" or \verb"lenght [1,2,3]", we deal with \emph{pattern matching}}
-\onslide<3->{
+    \item Expressions like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are called \emph{patterns}
     \item One needs to check that constructors \verb"(,)" and \verb"( : )" are relevant.
-    \item In the call \verb"swap (45, True)", variables \verb"a" and \verb"b" are binded with the values \verb"45" and \verb"True".
-    \item In the call \verb"lenght [1,2,3]", variables \verb"x" and \verb"xs" are binded with the values \verb"1" and \verb"[2,3]"
+    \item Consider \verb"swap (45, True)". Variables \verb"a" and \verb"b" are binded with the values \verb"45" and \verb"True".
+    \item Consider \verb"lenght [1,2,3]". Variables \verb"x" and \verb"xs" are binded with the values \verb"1" and \verb"[2,3]"
   \end{itemize}
   }
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Algebraic data types. Enumerations}
+\frametitle{Algebraic data types. Sums}
 
-\begin{itemize}
-\item The simplest example of an algebraic data type is a data type defined with an enumeration of constructors that stores no values.
+The simplest example of an algebraic data type is a data type defined with an enumeration of constructors that stores no values.
 
-\begin{lstlisting}[language=Haskell]
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
 data Colour = Red | Blue | Green | Purple | Yellow
   deriving (Show, Eq)
-\end{lstlisting}
 
-\item The example of pattern matching for this data type
-
-\begin{lstlisting}[language=Haskell]
 isRGB :: Colour -> Bool
 isRGB Red  = True
 isRGB Blue = True
 isRGB Green = True
 isRGB _     = False       -- Wild-card
-\end{lstlisting}
-\end{itemize}
+\end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Algebraic data types. Products}
 
 \begin{itemize}
-\item The example of a product data type:
-
-\begin{lstlisting}[language=Haskell]
+\item An example of a product data type:
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
 data Point = Point Double Double
   deriving Show
-\end{lstlisting}
-
-\begin{lstlisting}[language=Haskell]
+\end{minted}
+\end{exampleblock}
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
 > :type Point
 Point :: Double -> Double -> Point
-\end{lstlisting}
-\item The example of a function
-
-\begin{lstlisting}[language=Haskell]
+\end{minted}
+\end{exampleblock}
+\item An example of a function
+\metroset{block=fill}
+\begin{exampleblock}{Example}
+\begin{minted}{haskell}
 taxCab :: Point -> Point -> Double
 taxCab (Point x1 y1) (Point x2 y2) =
   abs (x1 - x2) + abs (y1 - y2)
-\end{lstlisting}
-
-\item The example in a GHCi session
-\begin{lstlisting}[language=Haskell]
-> taxCab (Point 3.0 5.0) (Point 7.0 9.0)
-8.0
-\end{lstlisting}
-
+\end{minted}
+\end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -163,22 +192,31 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Polymorphic data types}
 
 \begin{itemize}
-  \item The point data type might parametrised with a type parameter:
-  \begin{lstlisting}[language=Haskell]
+  \item That point data type might be parametrised with a type parameter:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   data Point a = Point a a
     deriving Show
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
 
-  \item The type of the \verb"Point" constructor
-  \begin{lstlisting}[language=Haskell]
+  \item The type of the \verb"Point" type constructor
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   > :type Point
   Point :: a -> a -> Point a
-  \end{lstlisting}
-  \item \verb"Point" is a type operator. One also has a type (kind) system for type operators:
-  \begin{lstlisting}[language=Haskell]
+  \end{minted}
+  \end{exampleblock}
+  \item \verb"Point" is a type operator. One also has a type (kind) system for types:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   > :k Point
   Point :: * -> *
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -187,24 +225,25 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item Suppose we have a function:
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
  midPoint :: Fractional a => Point a -> Point a -> Point a
  midPoint (Pt x1 y1) (Pt x2 y2) = Pt ((x1 + x2) / 2) ((y1 + y2) / 2)
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \item Playing with GHCi:
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   > :t midPoint (Pt 3 5) (Pt 6 4)
   midPoint (Pt 3 5) (Pt 6 4) :: Fractional a => Point a
   > midPoint (Pt 3 5) (Pt 6 4)
   Pt 4.5 4.5
   > :t it
   it :: Fractional a => Point a
-  \end{lstlisting}
-  \onslide<2->{
-  \item The type of point is a polymorphic itself. But one needs to use ad hoc polymorphism (the \verb"Fractional" context) to apply division.
-  \item On the other hand, polymorphism here is ambiguous. The fractional type is \verb"Double" by default. Haskell has a defaulting mechanism for numerical data types
-  }
+  \end{minted}
+  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -213,25 +252,23 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item The list is the first example of an inductive data type
-
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   data List a = Nil | Cons a (List a)
     deriving Show
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \item The data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
   \item Pattern matching and recursion
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   concat :: List a -> List a -> List a
   concat Nil ys = ys
   concat (Cons x xs) ys = Cons x (xs `concat` ys)
-  \end{lstlisting}
-  \item The GHCi session:
-  \begin{lstlisting}[language=Haskell]
-  > x = Cons 'a' (Cons 'b' Nil)
-  > y = Cons 'c' (Cons 'd' Nil)
-  > concat x y
-  Cons 'a' (Cons 'b' (Cons 'c' (Cons 'd' Nil)))
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -240,43 +277,52 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
   \begin{itemize}
     \item The list data type is a default one, but its approximate definition is the following one:
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     infixr 5 :
     data [] a = [] | a : ([] a)
       deriving Show
-    \end{lstlisting}
-    \item Some syntax sugar
-    \begin{lstlisting}[language=Haskell]
+    \end{minted}
+  \end{exampleblock}
+    \item Syntax sugar:
+    \begin{minted}{haskell}
     [1,2,3,4] == 1 : 2 : 3 : 4 : []
-    \end{lstlisting}
+    \end{minted}
     \item The example of a definition with built-in lists:
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     infixr 5  ++
     (++) :: [a] -> [a] -> [a]
     (++) []     ys = ys
     (++) (x:xs) ys = x : xs ++ ys
-    \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{\verb"case ... of ..." expressions}
   \begin{itemize}
-    \item \verb"case ... of ..." expressions allows one to perform pattern matching everywhere
-    \begin{lstlisting}[language=Haskell]
+    \item \verb"case ... of ..." expressions allows one to patternmatch everywhere
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     filter :: (a -> Bool) -> [a] -> [a]
     filter p [] = []
     filter p (x : xs) =
       case p x of
         True  -> x : filter p xs
         False -> filter p xs
-    \end{lstlisting}
+    \end{minted}
+  \end{exampleblock}
     \item The pattern matching from the previous slide is a syntax sugar for the corresponding \verb"case ... of ..." expression
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Semantical aspects of pattern matching}
+  \frametitle{Semantic aspects of pattern matching}
   \begin{itemize}
     \item Pattern matching is performed from up to down and from left to right after that.
     \item Pattern matching is either
@@ -286,10 +332,13 @@ taxCab (Point x1 y1) (Point x2 y2) =
       \item or diverged
     \end{itemize}
     \item Here is an example:
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     foo (1,4) = 7
     foo (0,_) = 8
-    \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
     \item \verb"(0, undefined)" fails in the first case and it's succeed in the second one
     \item \verb"(undefined, 0)" is diverged automatically
     \item \verb"(2,1)" is a diverged pattern
@@ -301,22 +350,30 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{As-patterns}
   \begin{itemize}
   \item Suppose we have the following function
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   dupHead :: [a] -> [a]
   dupHead (x : xs) = x : x : xs
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \item One may rewrite this function as follows:
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   dupHead :: [a] -> [a]
   dupHead s@(x : xs) = x : s
-  \end{lstlisting}
+  \end{minted}
+\end{exampleblock}
   \item Here, the name \verb"s" is assigned to the whole pattern \verb"x : xs"
-  \item In fact, such a construction is a syntax sugar for the following one. It is not so hard to ensure that both functions have the same behaviour
-  \begin{lstlisting}[language=Haskell]
+  \item In fact, this construction is a sugar for the following one:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   dupHead :: [a] -> [a]
-  dupHead (x : xs) =
-    let s = (x : xs) in x : s
-  \end{lstlisting}
+  dupHead (x : xs) = let s = (x : xs) in x : s
+  \end{minted}
+\end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -324,40 +381,46 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Irrefutable patterns}
   \begin{itemize}
     \item Irrefutable patterns are wild-cards, variables, and lazy patterns
-    \item The example of a lazy pattern:
-    \begin{lstlisting}[language=Haskell]
+    \item An example of a lazy pattern:
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     > (***) f g (a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
     *** Exception: Prelude.undefined
     > (***) f g ~(a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
     (2,1)
-    \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"newtype" and \verb"type" declarations}
+\frametitle{\verb"newtype" and \verb"type" declarations}
 
 \begin{itemize}
-  \item The keyword \verb"type" allows one to introduce type synonyms. The example given
-  \begin{lstlisting}[language=Haskell]
+  \item The keyword \verb"type" introduces type synonyms.
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   type String = [Char]
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
   \item In Haskell, the string data type type is merely a type synonym for the list of characters
-  \item The keyword \verb"newtype" defines a new type with the single constructor that packs an existing types
-  \begin{lstlisting}[language=Haskell]
+  \item The keyword \verb"newtype" defines a new type with the single constructor that packs a value of a given type
+  \begin{minted}{haskell}
   newtype Age = Age Int
-  \end{lstlisting}
-  \item The same type \verb"Age" defined with the equipped function \verb"runAge"
-  \begin{lstlisting}[language=Haskell]
+  \end{minted}
+
+  \item The same type \verb"Age" defined with the accessor \verb"runAge"
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   newtype Age = Age { runAge :: Int }
-  \end{lstlisting}
-  \item The type of \verb"runAge"
-  \begin{lstlisting}[language=Haskell]
-  > :t runAge
-  runAge :: Age -> Int
-  \end{lstlisting}
+  -- where runAge :: Age -> Int
+  \end{minted}
+  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -366,11 +429,16 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
   \begin{itemize}
     \item Sometimes product data types are too cumbersome:
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     data Person = Person String String Int Float String
-    \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
     \item As an alternative, one may define a data type with field labels
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     data Person =
       Person { firstName :: String
              , lastName :: String
@@ -378,19 +446,20 @@ taxCab (Point x1 y1) (Point x2 y2) =
              , height :: Float
              , phoneNumber :: String
              }
-     \end{lstlisting}
-     \item Such a data type is a record with accessors, e.g.
+     \end{minted}
+     \end{exampleblock}
+     \item Such a data type is a record with accessors such as
      \verb"firstName :: Person -> String"
-     \item In fact, this data type is a product data type with accessor function
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Field labels and type classes}
-
   \begin{itemize}
     \item Let us recall the \verb"Eq" type class once more
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     class Eq a where
       (==) :: a -> a -> Bool
       (/=) :: a -> a -> Bool
@@ -398,16 +467,14 @@ taxCab (Point x1 y1) (Point x2 y2) =
     instance Eq Int where
       x == y = x `eqInt` y
 
-    isZero :: Int -> Bool
-    isZero x = if x == y then True else False
-
     eqFunction :: Eq a => a -> a -> Int
     eqFunction x y =
       case x == y of
         True -> 42
         False -> 0
-    \end{lstlisting}
-    \item In fact, type classes are syntax sugar for records defined with field labels
+    \end{minted}
+    \end{exampleblock}
+    \item In fact, type classes are sugar for data types with field labels
     \item The constraint \verb"Eq a" is an additional argument
   \end{itemize}
 \end{frame}
@@ -416,8 +483,10 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Field labels and type classes}
 
   \begin{itemize}
-    \item The previous listing has the following meaning (very roughly):
-    \begin{lstlisting}[language=Haskell]
+    \item The previous listing a bit unsugared (very roughly):
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     data Eq a =
       Eq { eq :: a -> a -> Bool
          , neq :: a -> a -> Bool
@@ -426,115 +495,119 @@ taxCab (Point x1 y1) (Point x2 y2) =
     intInstance :: Eq Int
     intInstance = Eq eqInt (\x y -> not $ x `eqInt` y)
 
-    isZero :: Int -> Bool
-    isZero x = if (eq eqInstance) x 0 then True else False
-
     eqFunction :: Eq a -> a -> a -> Int
     eqFunction eqInst x y =
       case ((eq eqInst) x y) of
         True -> 42
         False -> 0
-    \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Some of standard algebraic data types}
+  \frametitle{Some standard algebraic data types}
   \begin{itemize}
     \item The \verb"Maybe a" data type allows one to define an optional value:
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     data Maybe a = Nothing | Just a
 
     maybe :: b -> (a -> b) -> Maybe a -> b
     maybe b _ Nothing = b
     maybe b f (Just x) = f x
-    \end{lstlisting}
-    \item The simple example given
-    \begin{lstlisting}[language=Haskell]
+    \end{minted}
+    \end{exampleblock}
+    \item A simple example
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     safeHead :: [a] -> Maybe a
     safeHead [] = Nothing
     safeHead (x : _) = Just x
-    \end{lstlisting}
-    \begin{lstlisting}[language=Haskell]
-    \item The GHCi session:
-    > maybe (maxBound :: Int) (+ 176) (safeHead [])
-    9223372036854775807
-    > maybe (maxBound :: Int) (+ 176) (safeHead [1..1500])
-    177
-    \end{lstlisting}
+    \end{minted}
+  \end{exampleblock}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Some of standard algebraic data types}
+  \frametitle{Some standard algebraic data types}
   \begin{itemize}
     \item The \verb"Either" data type describes one or the other value
 
-    \begin{lstlisting}[language=Haskell]
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     data Either e a = Left e | Right a
 
     either :: (a -> c) -> (b -> c) -> Either a b -> c
     either f _ (Left x) = f x
     either _ g (Right x) = g x
-    \end{lstlisting}
-    \item The example given:
-    \begin{lstlisting}[language=Haskell]
+    \end{minted}
+    \end{exampleblock}
+    \item An example:
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     safeTail :: [a] -> Either String [a]
     safeTail [] = Left "I have no tail, mate"
     safeTail (_ : xs) = Right xs
-    \end{lstlisting}
-    \item The GHCi example
-    \begin{lstlisting}[language=Haskell]
-    > either id (map succ) (safeTail [])
-    "I have no tail, mate"
-    > either id (map succ) (safeTail "\USdmbqxos\USld+\USokd`rd")
-    "encrypt me, please"
-    \end{lstlisting}
+    \end{minted}
+    \end{exampleblock}
   \end{itemize}
 \end{frame}
+
+\section{Folds}
 
 \begin{frame}[fragile]
   \frametitle{Folds and lists. Motivation}
 
-\begin{itemize}
-  \item Suppose we have these functions
-  \begin{lstlisting}[language=Haskell]
-  sum :: [Integer] -> Integer
+Suppose we have the following functions
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  sum :: Num a => [a] -> a
   sum [] = 0
   sum (x : xs) = x + sum xs
 
-  product :: [Integer] -> Integer
+  product :: Num a => [a] -> a
   product [] = 1
   product (x : xs) = x * product xs
 
   concat :: [[a]] -> [a]
   concat [] = []
   concat (x : xs) = x ++ concat xs
-  \end{lstlisting}
-  \item It is clear that one has a common recursion pattern
-\end{itemize}
+  \end{minted}
+\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{The definition of a right fold}
 \begin{itemize}
   \item The definition of a right is the following one
-  \begin{lstlisting}[language=Haskell]
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
   foldr :: (a -> b -> b) -> b -> [a] -> b
   foldr _ ini [] = []
   foldr f ini (x : xs) = f x (foldr f ini xs)
-  \end{lstlisting}
-  \item Informally, this function behaves as follows:
-  \begin{lstlisting}[language=Haskell]
-  foldr f z [x1, x2, ..., xn] == x1 `f` (x2 `f` ... (xn `f` z)...)
-  \end{lstlisting}
+  \end{minted}
+  \end{exampleblock}
+  \item An informal explanation:
+  \metroset{block=fill}
+  \begin{exampleblock}{Example}
+  \begin{minted}{haskell}
+  foldr f z [x1, x2, ..., xn] ==
+    x1 `f` (x2 `f` ... (xn `f` z)...)
+  \end{minted}
+  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{The definition of a right fold}
-One may visualise the story above for some list \verb"[a,b,c]". The list from the left and its right fold from the right:
-
+One may visualise that for some list \verb"[a,b,c]". The list from the left and its right fold from the right
 \begin{small}
 \xymatrix{
  & \verb":" \ar[dl] \ar[dr] &&&&& \verb"f" \ar[dl] \ar[dr] \\
@@ -546,37 +619,35 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Functions \verb"sum", \verb"product", and \verb"concat" via \verb"foldr"}
-  \begin{itemize}
-    \item Let us rewrite those functions with \verb"foldr"
-    \begin{lstlisting}[language=Haskell]
-    sum :: [Integer] -> Integer
+  \frametitle{Functions \verb"sum", \verb"product", and \verb"concat" with \verb"foldr"}
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
+    sum :: Num a => [a] -> a
     sum = foldr (+) 0
 
-    product :: [Integer] -> Integer
+    product :: Num a => [a] -> a
     product = foldr (*) 1
 
     concat :: [[a]] -> [a]
     concat = foldr (++) []
-    \end{lstlisting}
-    \item What about \verb"foldr (:) []"?
-  \end{itemize}
+    \end{minted}
+  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{The universal property of a right fold}
 \begin{block}{The universal property}
   Let \verb"g" be a function defined by the following equations:
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   g [] = v
   g (x : xs) = f x (g xs)
-  \end{lstlisting}
+  \end{minted}
 
   then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" \equiv \verb"foldr f v xs")$
 \end{block}
 \begin{itemize}
   \item The universal property is proved by induction on \verb"xs"
-  \item The converse implication is quite trivial
   \item The meaning of this fact: \verb"foldr f v" and \verb"g" are interchangeable in this case
 \end{itemize}
 \end{frame}
@@ -584,18 +655,22 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 \begin{frame}[fragile]
   \frametitle{The definition of a left fold}
   \begin{itemize}
-    \item In addition to a right fold, one also has a left one
-    \begin{lstlisting}[language=Haskell]
+    \item In addition to the right fold, one also has the left one
+    \metroset{block=fill}
+    \begin{exampleblock}{Example}
+    \begin{minted}{haskell}
     foldl :: (b -> a -> b) -> b -> [a] -> b
     foldl _ ini [] = ini
     foldl f ini (x : xs) = foldl f (f ini x) xs
-    \end{lstlisting}
+    \end{minted}
+  \end{exampleblock}
     \item Informally:
-    \begin{lstlisting}[language=Haskell]
-    foldl f ini [x1, x2, ..., xn] == (...((z `f` x1) `f` x2) `f`...) `f` xn
-    \end{lstlisting}
+    \begin{minted}{haskell}
+    foldl f ini [x1, x2, ..., xn]
+      == (...((z `f` x1) `f` x2) `f`...) `f` xn
+    \end{minted}
     \onslide<2->{
-    \item The implementation of the left fold function might be optimised. Here we have an increasing thunk
+    \item The implementation of the left fold function might be optimised. Here we have a thunk
     \item We take a look at the strict version of \verb"foldl"
     \item \verb"foldl" is the most optimal function, but we are not capable of processing infinite lists using the left fold function.
     }
@@ -604,7 +679,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 
 \begin{frame}
   \frametitle{The definition of a left fold}
-  One may visualise left fold in the same manner:
+  One may visualise \verb"foldl" in the same manner:
   \xymatrix{
   & \verb":" \ar[dl] \ar[dr] &&&&&&&& \verb"f" \ar[dl] \ar[dr] \\
   \verb"a" && \verb":" \ar[dl] \ar[dr] &&&&&& \verb"f" \ar[dl] \ar[dr]  && \verb"c" \\
@@ -618,7 +693,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 
 \begin{itemize}
   \item Note that \verb"foldr" and \verb"foldl" are not equivalent to each other
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   > foldl (/) 64 [4,2,4]
   2.0
   > foldr (/) 64 [4,2,4]
@@ -627,7 +702,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   43
   > foldr (\x y -> 2*x + y) 4 [1,2,3]
   16
-  \end{lstlisting}
+  \end{minted}
   \item \verb"foldr" and \verb"foldl" are equivalent if the folding operation is commutative
 \end{itemize}
 \end{frame}
@@ -636,18 +711,18 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{The right scan}
   \begin{itemize}
     \item The right scan is the foldr that yields a list that contains all intermediate values
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     scanr :: (a -> b -> b) -> b -> [a] -> [b]
     scanr _ ini [] = [ini]
     scanr f ini (x:xs) = f x q : qs
       where qs@(q:_) = scanr f ini xs
-    \end{lstlisting}
+    \end{minted}
     \item \verb"foldr" and \verb"scanr" are connected with each other as follows
     \begin{center}
       $\verb"head (scanr f z xs)" \equiv \verb"foldr f z xs"$
     \end{center}
     \item The examples are
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     >  scanr (++) "!" ["aa","bb","cc"]
     ["aabbcc!","bbcc!","cc!","!"]
     > scanr (:) [] [1,2,3]
@@ -656,7 +731,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
     [55,54,52,49,45,40,34,27,19,10,0]
     > scanr (*) 1 [1..10]
     [3628800,3628800,1814400,604800,151200,30240,5040,720,90,10,1]
-    \end{lstlisting}
+    \end{minted}
   \end{itemize}
 \end{frame}
 
@@ -664,25 +739,27 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{The left scan}
   \begin{itemize}
   \item One also has a scan function for the \verb"foldl" function:
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   scanl :: (b -> a -> b) -> b -> [a] -> [b]
   scanl f q ls = q : (case ls of
                         []   -> []
                         x:xs -> scanl f (f q x) xs)
-  \end{lstlisting}
+  \end{minted}
   \item \verb"foldl" and \verb"scanl" are connected with each other as follows:
   \begin{center}
    $\verb"last (scanl f z xs)" \equiv \verb"foldl f z xs"$
   \end{center}
   \item The examples:
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   > scanl (++) "!" ["a","b","c"]
   ["!","!a","!ab","!abc"]
   > scanl (*) 1 [1..] !! 5
   120
-  \end{lstlisting}
+  \end{minted}
   \end{itemize}
 \end{frame}
+
+\section{Strictness in Haskell}
 
 \begin{frame}[fragile]
   \frametitle{The presence of a bottom}
@@ -690,20 +767,20 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \begin{itemize}
     \item Any well-formed expression in Haskell has a type
     \item Prima facie, the Bool data type has two values: \verb"False" and \verb"True" according to its definition:
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     data Bool = False | True
-    \end{lstlisting}
+    \end{minted}
     \item One may define an expession \verb"dno :: Bool" which is recursively defined as \verb"dno = not dno"
     \item \verb"dno" is neither \verb"False" nor \verb"True", but it's a Boolean value!
-    \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a". 
+    \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a".
     Such errors as \verb"undefined" have this type.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Strict function}
+  \frametitle{Strict functions}
   \begin{itemize}
-    \item An evaluation process in Haskell is lazy. 
+    \item Evaluation process in Haskell is lazy.
     That's the reason according to which \verb"const 42 undefined" yields \verb"42"
     \item Lazy functions are non-strict ones
     \onslide<2->{
@@ -728,16 +805,16 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
 
     $\verb"seq" \: v \: x = x, v \neq \bot $
   \end{center}
-  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching. 
+  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching.
   Data constructors and lambdas put a barrier for the $\bot$ expansion:
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   > seq (4,undefined) 5
   5
   > seq (\x -> undefined) 5
   5
   > seq (id . undefined) 5
   5
-  \end{lstlisting}
+  \end{minted}
 \end{itemize}
 \end{frame}
 
@@ -745,11 +822,11 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{Strictness in Haskell. The strict application}
   \begin{itemize}
     \item One may implement the strict appication using \verb"seq"
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     infixr 0 $!
     ($!) :: (a -> b) -> a -> b
     f $! x = x `seq` f x
-    \end{lstlisting}
+    \end{minted}
     \item That is, this application behaves as usual if the second argument is not bottom.
   \end{itemize}
 \end{frame}
@@ -758,7 +835,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{Strictness in Haskell. The strict application}
   \begin{itemize}
     \item Let us recall the tail-recursive factorial:
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
       tailFactorial :: Integer -> Integer
       tailFactorial n = helper 1 n
         where
@@ -766,9 +843,9 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
           if x > 1
           then helper (acc * x) (x - 1)
           else acc
-    \end{lstlisting}
+    \end{minted}
     \item The optimal version of the tail-recursive factorial is the following one:
-    \begin{lstlisting}[language=Haskell] 
+    \begin{minted}{haskell}
     tailFactorialStrict :: Integer -> Integer
     tailFactorialStrict n = helper 1 n
       where
@@ -776,7 +853,7 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
         if x > 1
         then (helper $! (acc * x)) (x - 1)
         else acc
-      \end{lstlisting}
+      \end{minted}
   \end{itemize}
 \end{frame}
 
@@ -784,13 +861,13 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{The strict \verb"foldl"}
 
   \begin{itemize}
-    \item A strict version of \verb"foldl"
-    \begin{lstlisting}[language=Haskell]
+    \item The strict version of \verb"foldl"
+    \begin{minted}{haskell}
     foldl' :: (a -> b -> a) -> a -> [b] -> a
     foldl' f ini [] = ini
     foldl' f ini (x:xs) = foldl' f arg xs
       where arg = (f ini) $! x
-    \end{lstlisting}
+    \end{minted}
   \end{itemize}
 \end{frame}
 
@@ -798,26 +875,26 @@ One may visualise the story above for some list \verb"[a,b,c]". The list from th
   \frametitle{Strictness in Haskell. Bang patterns}
   \begin{itemize}
     \item A data type might contain strict values with the strictness flag \verb"!", e.g.
-    \begin{lstlisting}[language=Haskell]
+    \begin{minted}{haskell}
     data Complex a = !a :+ !a
       deriving Show
     infix 6 :+
 
     im :: Complex a -> a
     im (x :+ y) = y
-    \end{lstlisting}
+    \end{minted}
     > im (undefined :+ 5)
     *** Exception: Prelude.undefined
     \begin{lstlisting}[language=Haskell]
     \end{lstlisting}
 
   \item The \verb"BangPatterns" extension allows one to make pattern a strict one
-  \begin{lstlisting}[language=Haskell]
+  \begin{minted}{haskell}
   > :set -XBangPatterns
   > foo !x = True
   > foo undefined
   *** Exception: Prelude.undefined
-  \end{lstlisting}
+  \end{minted}
   \end{itemize}
 \end{frame}
 

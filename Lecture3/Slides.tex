@@ -100,9 +100,9 @@ keywordstyle=\color{myblue}\bfseries,
 \maketitle
 
 \begin{frame}
-  \frametitle{Intro}
+  \frametitle{Today}
 
-  Today we study
+  We will study
   \begin{center}
   \includegraphics[scale=0.33]{Pics/doge.png}
   \end{center}
@@ -117,7 +117,7 @@ keywordstyle=\color{myblue}\bfseries,
   changeTwiceBy operation value = operation (operation value)
   \end{minted}
 
-  One may implement the function for Boolean values and strings that are the 'same' as the function above:
+  One may implement the 'same' functions for Boolean values and strings:
 
   \begin{minted}{haskell}
   changeTwiceBy :: (Bool -> Bool) -> Bool -> Bool
@@ -147,9 +147,6 @@ The key idea of parametric polymorphism that the same function might be called o
 
   fst :: (a, b) -> a
   fst (a, b) = a
-
-  snd :: (a, b) -> b
-  snd = "guess what"
 
   swap :: (a, b) -> (b, a)
   swap (a, b) = (b, a)
@@ -190,7 +187,7 @@ The key idea of parametric polymorphism that the same function might be called o
 
 \begin{itemize}
   \item In such signatures as $a \to b \to a$, $a, b$ are type variables that range over arbitrary data types. In fact, $a$, $b$ are bounded by universal quantifier hidden under the carpet.
-  \item The functions from the previous slide have the following signatures:
+  \item In fact, the functions from the previous slide have the following signatures:
   \begin{minted}{haskell}
   id :: forall a. a -> a
   id x = x
@@ -238,13 +235,9 @@ The key idea of parametric polymorphism that the same function might be called o
 \begin{minted}{haskell}
   incNegate :: Int -> Int
   incNegate x = negate (x + 1)
-
   incNegate x = negate $ x + 1
-
   incNegate x = (negate . (+1)) x
-
   incNegate x = negate . (+1) $ x
-
   incNegate   = negate . (+1)
 \end{minted}
 \end{exampleblock}
@@ -384,6 +377,8 @@ The key idea of parametric polymorphism that the same function might be called o
     \end{exampleblock}
 \end{frame}
 
+\section{Bounded polymorphism and type classes}
+
 \begin{frame}[fragile]
   \frametitle{Bounded polymorphism and type classes}
   The idea of bounded (ad hoc) polymorphism is that one has a general interface with instances for each concrete data type.
@@ -412,9 +407,9 @@ The key idea of parametric polymorphism that the same function might be called o
   \item Let us take a look a the following function
 
   \begin{minted}{haskell}
-  elem :: a -> [a] -> Bool
-  elem _ [] = False
-  elem x (y:ys) = x == y || elem x ys
+  elem' :: a -> [a] -> Bool
+  elem' _ [] = False
+  elem' x (y:ys) = x == y || elem' x ys
   \end{minted}
 
   \item \verb"a" is an arbitrary type for which equality is defined as usual.
@@ -441,17 +436,18 @@ The key idea of parametric polymorphism that the same function might be called o
   class Eq a where
     (==) :: a -> a -> Bool
     (/=) :: a -> a -> Bool
+    x /= y = neg (x == y)
   \end{minted}
   \item A type class name introduce a constraint called \emph{context}:
   \begin{minted}{haskell}
   elem :: Eq a => a -> [a] -> Bool
   \end{minted}
-  \item The definition above without a context is not well-defineds:
+  \item The definition above without a context is not well-defined:
   \begin{minted}{haskell}
 <interactive>:4:19: error:
 * No instance for (Eq a) arising from a use of '=='
 Possible fix: add (Eq a) to the context of
-the type signature for: elem :: forall a. a -> [a] -> Bool
+the type signature for: elem' :: forall a. a -> [a] -> Bool
   \end{minted}
 \end{itemize}
 \end{frame}
@@ -460,7 +456,6 @@ the type signature for: elem :: forall a. a -> [a] -> Bool
   \frametitle{Instance declarations}
 
   A given data type \verb"a" has the \emph{instance} of a type class if every function of that class is implemented for \verb"a". An example:
-
   \metroset{block=fill}
   \begin{exampleblock}{Example}
   \begin{minted}{haskell}
@@ -468,8 +463,6 @@ the type signature for: elem :: forall a. a -> [a] -> Bool
     True == True   = True
     False == False = True
     _ == _         = False
-
-    x /= y        = neg (x == y)
   \end{minted}
   \end{exampleblock}
 \end{frame}
@@ -489,8 +482,7 @@ the type signature for: elem :: forall a. a -> [a] -> Bool
     _        == _        = False
   \end{minted}
 \end{exampleblock}
-  \item Without the context \verb"Eq a =>", this definition yields type error since we don't know how to perform
-  equality comparison of element from \verb"a"
+  \item Without the context \verb"Eq a =>", this definition yields type error.
 \end{itemize}
 \end{frame}
 
@@ -524,10 +516,7 @@ the type signature for: elem :: forall a. a -> [a] -> Bool
   \begin{exampleblock}{Some \verb"Eq" instances}
   \begin{minted}{haskell}
   class Show a where
-    showsPrec :: Int -> a -> ShowS
     show :: a -> String
-    showList :: [a] -> ShowS
-    {-# MINIMAL showsPrec | show #-}
   \end{minted}
   \end{exampleblock}
   \item One needs to have a \verb"Show" instance to show a value of a given type.
@@ -553,10 +542,10 @@ Here are some of the \verb"Show" instances:
 \begin{frame}[fragile]
   \frametitle{Ordering. Motivation}
   \begin{itemize}
-  \item Let us take a look at the following quicksort function:
+  \item Let us take a look at the \verb"quicksort" function:
 
 \metroset{block=fill}
-\begin{exampleblock}{Some \verb"Show" instances}
+\begin{exampleblock}{Some \verb"quicksort" instances}
 \begin{minted}{haskell}
   quicksort :: [a] -> [a]
   quicksort [] = []
@@ -581,18 +570,18 @@ The full definition of \verb"Ord" is the following one:
 \metroset{block=fill}
 \begin{exampleblock}{\verb"Ord"}
 \begin{minted}{haskell}
+  data Ordering = LT | EQ | GT
   class Eq a => Ord a where
     compare :: a -> a -> Ordering
     (<), (<=), (>), (>=) :: a -> a -> Bool
     max, min :: a -> a -> a
-
     compare x y = if x == y then EQ
               else if x <= y then LT
               else GT
-
-    x <= y = case compare x y of
-      { GT -> False; _ -> True }
-
+    x <= y =
+      case compare x y of
+             GT -> False
+             _ -> True
     {-# MINIMAL compare | (<=) #-}
     \end{minted}
     \end{exampleblock}
@@ -647,7 +636,7 @@ class Num a where
 \begin{frame}[fragile]
   \frametitle{The \verb"Enum" type class}
 
-The \verb"Enum" is type class for types for which we can define an explicit enumeration.
+\verb"Enum" is a type class for sequentially ordered types.
 \metroset{block=fill}
 \begin{exampleblock}{Some \verb"Enum" instances}
 \begin{minted}{haskell}
@@ -685,7 +674,7 @@ The \verb"Enum" is type class for types for which we can define an explicit enum
   \frametitle{The \verb"Fractional" type class}
 
 \begin{itemize}
-  \item The \verb"Fractional" type class is a general interface for division
+  \item The \verb"Fractional" type class is a general interface for numeric division
   \metroset{block=fill}
   \begin{exampleblock}{Some \verb"Num" instances}
   \begin{minted}{haskell}
@@ -714,7 +703,7 @@ The \verb"Enum" is type class for types for which we can define an explicit enum
 }
 
 \onslide<2->{
-On the next seminar, we
+On the next seminar, we will
   \begin{itemize}
     \item delve into the variety of Haskell data types: algebraic data types, newtypes,
     type synonyms, etc
