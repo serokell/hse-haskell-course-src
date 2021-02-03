@@ -126,10 +126,10 @@ keywordstyle=\color{myblue}\bfseries,
 
 \onslide<2->{
   \begin{itemize}
-    \item Expressions like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are called \emph{patterns}
-    \item One needs to check that constructors \verb"(,)" and \verb"( : )" are relevant.
-    \item Consider \verb"swap (45, True)". Variables \verb"a" and \verb"b" are binded with the values \verb"45" and \verb"True".
-    \item Consider \verb"lenght [1,2,3]". Variables \verb"x" and \verb"xs" are binded with the values \verb"1" and \verb"[2,3]"
+    \item Terms like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are called \emph{patterns}
+    \item One needs to check whether the constructors \verb"(,)" and \verb"( : )" are relevant.
+    \item Consider \verb"swap (45, True)". Variables \verb"a" and \verb"b" are bound with the values \verb"45" and \verb"True".
+    \item Consider \verb"lenght [1,2,3]". Variables \verb"x" and \verb"xs" are bound with the values \verb"1" and \verb"[2,3]"
   \end{itemize}
   }
 \end{frame}
@@ -164,8 +164,8 @@ Point :: Double -> Double -> Point
 \end{minted}
 \item An example of a function
 \begin{minted}{haskell}
-taxCab :: Point -> Point -> Double
-taxCab (Point x1 y1) (Point x2 y2) =
+taxiCab :: Point -> Point -> Double
+taxiCab (Point x1 y1) (Point x2 y2) =
   abs (x1 - x2) + abs (y1 - y2)
 \end{minted}
 \end{itemize}
@@ -181,11 +181,11 @@ taxCab (Point x1 y1) (Point x2 y2) =
     deriving Show
   \end{minted}
 
-  \item The type of the \verb"Point" data constructor. The \verb"Point" from the left is a type constructor that has its type (kind).
+  \item The \verb"Point" data constructor has the following type. The \verb"Point" from the left (see the definition above) is a type function that has its type (kind).
   \begin{minted}{haskell}
   > :type Point
   Point :: a -> a -> Point a
-  > :k Point
+  > :kind Point
   Point :: * -> *
   \end{minted}
 \end{itemize}
@@ -317,10 +317,10 @@ taxCab (Point x1 y1) (Point x2 y2) =
     \item Irrefutable patterns are wild-cards, variables, and lazy patterns
     \item An example of a lazy pattern:
     \begin{minted}{haskell}
-    > (***) f g (a,b) = (f a, g b)
+    > f *** g (a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
     *** Exception: Prelude.undefined
-    > (***) f g ~(a,b) = (f a, g b)
+    > f *** g ~(a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
     (2,1)
     \end{minted}
