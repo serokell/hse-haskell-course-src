@@ -240,12 +240,12 @@ taxiCab (Point x1 y1) (Point x2 y2) =
     \item The list data type is already in the standard library, but its approximate definition is the following one:
     \begin{minted}{haskell}
     infixr 5 :
-    data [] a = [] | a : ([] a)
+    data [a] = [] | a : [a]
       deriving Show
     \end{minted}
     \item Syntax sugar:
     \begin{minted}{haskell}
-    [1,2,3,4] == 1 : 2 : 3 : 4 : []
+    [1, 2, 3, 4] == 1 : 2 : 3 : 4 : []
     \end{minted}
     \item The example of a definition with built-in lists:
     \begin{minted}{haskell}
@@ -258,7 +258,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\verb"case ... of ..." expressions}
+  \frametitle{\verb"case-of" expressions}
   \begin{itemize}
     \item \verb"case ... of ..." expressions allows one to patternmatch everywhere
     \begin{minted}{haskell}
@@ -279,9 +279,13 @@ taxiCab (Point x1 y1) (Point x2 y2) =
     \item Pattern matching is performed from up to down and from left to right after that.
     \item A pattern match is either
     \begin{itemize}
-      \item succeed
-      \item or failed
-      \item or diverged
+      \item successfully matches, or
+      \item fails.
+    \end{itemize}
+    \item Block of patterns is either
+    \begin{itemize}
+      \item exhaustive (a successful match always exists), or
+      \item inexhaustive (all matches can fail).
     \end{itemize}
     \item Here is an example:
     \begin{minted}{haskell}
@@ -377,8 +381,8 @@ taxiCab (Point x1 y1) (Point x2 y2) =
     \item Let us recall the \verb"Eq" type class once more
     \begin{minted}{haskell}
     class Eq a where
-      (==) :: a -> a -> Bool
-      (/=) :: a -> a -> Bool
+      (==)  :: a -> a -> Bool
+      (/=)  :: a -> a -> Bool
 
     instance Eq Int where
       x == y = x `eqInt` y
@@ -386,7 +390,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
     eqFunction :: Eq a => a -> a -> Int
     eqFunction x y =
       case x == y of
-        True -> 42
+        True  -> 42
         False -> 0
     \end{minted}
     \item In fact, type classes are sugar for data types with field labels
