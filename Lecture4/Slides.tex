@@ -115,8 +115,6 @@ keywordstyle=\color{myblue}\bfseries,
 \begin{frame}[fragile]
 \frametitle{Pattern matching}
   Let us take a look at the following functions:
-\metroset{block=fill}
-\begin{exampleblock}{Example}
   \begin{minted}{haskell}
   swap :: (a, b) -> (b, a)
   swap (a, b) = (b, a)
@@ -125,7 +123,6 @@ keywordstyle=\color{myblue}\bfseries,
   length [] = 0
   lenght (x : xs) = 1 + length xs
   \end{minted}
-\end{exampleblock}
 
 \onslide<2->{
   \begin{itemize}
@@ -141,9 +138,6 @@ keywordstyle=\color{myblue}\bfseries,
 \frametitle{Algebraic data types. Sums}
 
 The simplest example of an algebraic data type is a data type defined with an enumeration of constructors that stores no values.
-
-\metroset{block=fill}
-\begin{exampleblock}{Example}
 \begin{minted}{haskell}
 data Colour = Red | Blue | Green | Purple | Yellow
   deriving (Show, Eq)
@@ -154,7 +148,6 @@ isRGB Blue = True
 isRGB Green = True
 isRGB _     = False       -- Wild-card
 \end{minted}
-\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -162,29 +155,19 @@ isRGB _     = False       -- Wild-card
 
 \begin{itemize}
 \item An example of a product data type:
-\metroset{block=fill}
-\begin{exampleblock}{Example}
 \begin{minted}{haskell}
 data Point = Point Double Double
   deriving Show
-\end{minted}
-\end{exampleblock}
-\metroset{block=fill}
-\begin{exampleblock}{Example}
-\begin{minted}{haskell}
+
 > :type Point
 Point :: Double -> Double -> Point
 \end{minted}
-\end{exampleblock}
 \item An example of a function
-\metroset{block=fill}
-\begin{exampleblock}{Example}
 \begin{minted}{haskell}
 taxCab :: Point -> Point -> Double
 taxCab (Point x1 y1) (Point x2 y2) =
   abs (x1 - x2) + abs (y1 - y2)
 \end{minted}
-\end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -193,30 +176,18 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item That point data type might be parametrised with a type parameter:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   data Point a = Point a a
     deriving Show
   \end{minted}
-\end{exampleblock}
 
-  \item The type of the \verb"Point" type constructor
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
+  \item The type of the \verb"Point" data constructor. The \verb"Point" from the left is a type constructor that has its type (kind).
   \begin{minted}{haskell}
   > :type Point
   Point :: a -> a -> Point a
-  \end{minted}
-  \end{exampleblock}
-  \item \verb"Point" is a type operator. One also has a type (kind) system for types:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
-  \begin{minted}{haskell}
   > :k Point
   Point :: * -> *
   \end{minted}
-  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -225,16 +196,13 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item Suppose we have a function:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
- midPoint :: Fractional a => Point a -> Point a -> Point a
- midPoint (Pt x1 y1) (Pt x2 y2) = Pt ((x1 + x2) / 2) ((y1 + y2) / 2)
+ midPoint
+   :: Fractional a => Point a -> Point a -> Point a
+ midPoint (Pt x1 y1) (Pt x2 y2) =
+   Pt ((x1 + x2) / 2) ((y1 + y2) / 2)
   \end{minted}
-\end{exampleblock}
   \item Playing with GHCi:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   > :t midPoint (Pt 3 5) (Pt 6 4)
   midPoint (Pt 3 5) (Pt 6 4) :: Fractional a => Point a
@@ -243,7 +211,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   > :t it
   it :: Fractional a => Point a
   \end{minted}
-  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -252,23 +219,17 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item The list is the first example of an inductive data type
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   data List a = Nil | Cons a (List a)
     deriving Show
   \end{minted}
-\end{exampleblock}
   \item The data constructors are \verb"Nil :: List a" and \verb"Cons :: a -> List a -> List a"
   \item Pattern matching and recursion
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   concat :: List a -> List a -> List a
   concat Nil ys = ys
   concat (Cons x xs) ys = Cons x (xs `concat` ys)
   \end{minted}
-  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -276,29 +237,23 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Standard lists}
 
   \begin{itemize}
-    \item The list data type is a default one, but its approximate definition is the following one:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
+    \item The list data type is already in the standard library, but its approximate definition is the following one:
     \begin{minted}{haskell}
     infixr 5 :
     data [] a = [] | a : ([] a)
       deriving Show
     \end{minted}
-  \end{exampleblock}
     \item Syntax sugar:
     \begin{minted}{haskell}
     [1,2,3,4] == 1 : 2 : 3 : 4 : []
     \end{minted}
     \item The example of a definition with built-in lists:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     infixr 5  ++
     (++) :: [a] -> [a] -> [a]
     (++) []     ys = ys
     (++) (x:xs) ys = x : xs ++ ys
   \end{minted}
-\end{exampleblock}
   \end{itemize}
 \end{frame}
 
@@ -306,8 +261,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{\verb"case ... of ..." expressions}
   \begin{itemize}
     \item \verb"case ... of ..." expressions allows one to patternmatch everywhere
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     filter :: (a -> Bool) -> [a] -> [a]
     filter p [] = []
@@ -316,7 +269,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
         True  -> x : filter p xs
         False -> filter p xs
     \end{minted}
-  \end{exampleblock}
     \item The pattern matching from the previous slide is a syntax sugar for the corresponding \verb"case ... of ..." expression
   \end{itemize}
 \end{frame}
@@ -325,23 +277,19 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Semantic aspects of pattern matching}
   \begin{itemize}
     \item Pattern matching is performed from up to down and from left to right after that.
-    \item Pattern matching is either
+    \item A pattern match is either
     \begin{itemize}
       \item succeed
       \item or failed
       \item or diverged
     \end{itemize}
     \item Here is an example:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     foo (1,4) = 7
     foo (0,_) = 8
     \end{minted}
-    \end{exampleblock}
-    \item \verb"(0, undefined)" fails in the first case and it's succeed in the second one
-    \item \verb"(undefined, 0)" is diverged automatically
-    \item \verb"(2,1)" is a diverged pattern
+    \item \verb"(0, undefined)" fails in the first case and it succeeds in the second one
+    \item \verb"(undefined, 0)" diverges during a match
     \item What about \verb"(1,7-3)"?
   \end{itemize}
 \end{frame}
@@ -350,30 +298,16 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{As-patterns}
   \begin{itemize}
   \item Suppose we have the following function
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   dupHead :: [a] -> [a]
   dupHead (x : xs) = x : x : xs
   \end{minted}
-\end{exampleblock}
   \item One may rewrite this function as follows:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   dupHead :: [a] -> [a]
   dupHead s@(x : xs) = x : s
   \end{minted}
-\end{exampleblock}
   \item Here, the name \verb"s" is assigned to the whole pattern \verb"x : xs"
-  \item In fact, this construction is a sugar for the following one:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
-  \begin{minted}{haskell}
-  dupHead :: [a] -> [a]
-  dupHead (x : xs) = let s = (x : xs) in x : s
-  \end{minted}
-\end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -382,8 +316,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \begin{itemize}
     \item Irrefutable patterns are wild-cards, variables, and lazy patterns
     \item An example of a lazy pattern:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     > (***) f g (a,b) = (f a, g b)
     > const 2 *** const 1 $ undefined
@@ -392,7 +324,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
     > const 2 *** const 1 $ undefined
     (2,1)
     \end{minted}
-    \end{exampleblock}
   \end{itemize}
 \end{frame}
 
@@ -401,12 +332,9 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
 \begin{itemize}
   \item The keyword \verb"type" introduces type synonyms.
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   type String = [Char]
   \end{minted}
-  \end{exampleblock}
   \item In Haskell, the string data type type is merely a type synonym for the list of characters
   \item The keyword \verb"newtype" defines a new type with the single constructor that packs a value of a given type
   \begin{minted}{haskell}
@@ -414,30 +342,21 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \end{minted}
 
   \item The same type \verb"Age" defined with the accessor \verb"runAge"
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   newtype Age = Age { runAge :: Int }
   -- where runAge :: Age -> Int
   \end{minted}
-  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Field labels}
-
   \begin{itemize}
     \item Sometimes product data types are too cumbersome:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     data Person = Person String String Int Float String
     \end{minted}
-    \end{exampleblock}
     \item As an alternative, one may define a data type with field labels
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     data Person =
       Person { firstName :: String
@@ -447,7 +366,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
              , phoneNumber :: String
              }
      \end{minted}
-     \end{exampleblock}
      \item Such a data type is a record with accessors such as
      \verb"firstName :: Person -> String"
   \end{itemize}
@@ -457,8 +375,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Field labels and type classes}
   \begin{itemize}
     \item Let us recall the \verb"Eq" type class once more
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     class Eq a where
       (==) :: a -> a -> Bool
@@ -473,7 +389,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
         True -> 42
         False -> 0
     \end{minted}
-    \end{exampleblock}
     \item In fact, type classes are sugar for data types with field labels
     \item The constraint \verb"Eq a" is an additional argument
   \end{itemize}
@@ -484,8 +399,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
 
   \begin{itemize}
     \item The previous listing a bit unsugared (very roughly):
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     data Eq a =
       Eq { eq :: a -> a -> Bool
@@ -501,7 +414,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
         True -> 42
         False -> 0
     \end{minted}
-    \end{exampleblock}
   \end{itemize}
 \end{frame}
 
@@ -509,8 +421,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Some standard algebraic data types}
   \begin{itemize}
     \item The \verb"Maybe a" data type allows one to define an optional value:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     data Maybe a = Nothing | Just a
 
@@ -518,16 +428,12 @@ taxCab (Point x1 y1) (Point x2 y2) =
     maybe b _ Nothing = b
     maybe b f (Just x) = f x
     \end{minted}
-    \end{exampleblock}
     \item A simple example
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     safeHead :: [a] -> Maybe a
     safeHead [] = Nothing
     safeHead (x : _) = Just x
     \end{minted}
-  \end{exampleblock}
   \end{itemize}
 \end{frame}
 
@@ -535,9 +441,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Some standard algebraic data types}
   \begin{itemize}
     \item The \verb"Either" data type describes one or the other value
-
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     data Either e a = Left e | Right a
 
@@ -545,16 +448,12 @@ taxCab (Point x1 y1) (Point x2 y2) =
     either f _ (Left x) = f x
     either _ g (Right x) = g x
     \end{minted}
-    \end{exampleblock}
     \item An example:
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     safeTail :: [a] -> Either String [a]
     safeTail [] = Left "I have no tail, mate"
     safeTail (_ : xs) = Right xs
     \end{minted}
-    \end{exampleblock}
   \end{itemize}
 \end{frame}
 
@@ -564,8 +463,6 @@ taxCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Folds and lists. Motivation}
 
 Suppose we have the following functions
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   sum :: Num a => [a] -> a
   sum [] = 0
@@ -579,29 +476,22 @@ Suppose we have the following functions
   concat [] = []
   concat (x : xs) = x ++ concat xs
   \end{minted}
-\end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{The definition of a right fold}
 \begin{itemize}
   \item The definition of a right is the following one
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   foldr :: (a -> b -> b) -> b -> [a] -> b
   foldr _ ini [] = []
   foldr f ini (x : xs) = f x (foldr f ini xs)
   \end{minted}
-  \end{exampleblock}
   \item An informal explanation:
-  \metroset{block=fill}
-  \begin{exampleblock}{Example}
   \begin{minted}{haskell}
   foldr f z [x1, x2, ..., xn] ==
     x1 `f` (x2 `f` ... (xn `f` z)...)
   \end{minted}
-  \end{exampleblock}
 \end{itemize}
 \end{frame}
 
@@ -620,8 +510,6 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 
 \begin{frame}[fragile]
   \frametitle{Functions \verb"sum", \verb"product", and \verb"concat" with \verb"foldr"}
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     sum :: Num a => [a] -> a
     sum = foldr (+) 0
@@ -632,7 +520,6 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
     concat :: [[a]] -> [a]
     concat = foldr (++) []
     \end{minted}
-  \end{exampleblock}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -647,7 +534,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" \equiv \verb"foldr f v xs")$
 \end{block}
 \begin{itemize}
-  \item The universal property is proved by induction on \verb"xs"
+  \item The universal property is inductively
   \item The meaning of this fact: \verb"foldr f v" and \verb"g" are interchangeable in this case
 \end{itemize}
 \end{frame}
@@ -656,14 +543,11 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   \frametitle{The definition of a left fold}
   \begin{itemize}
     \item In addition to the right fold, one also has the left one
-    \metroset{block=fill}
-    \begin{exampleblock}{Example}
     \begin{minted}{haskell}
     foldl :: (b -> a -> b) -> b -> [a] -> b
     foldl _ ini [] = ini
     foldl f ini (x : xs) = foldl f (f ini x) xs
     \end{minted}
-  \end{exampleblock}
     \item Informally:
     \begin{minted}{haskell}
     foldl f ini [x1, x2, ..., xn]
@@ -671,21 +555,9 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
     \end{minted}
     \onslide<2->{
     \item The implementation of the left fold function might be optimised. Here we have a thunk
-    \item We take a look at the strict version of \verb"foldl"
     \item \verb"foldl" is the most optimal function, but we are not capable of processing infinite lists using the left fold function.
     }
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The definition of a left fold}
-  One may visualise \verb"foldl" in the same manner:
-  \xymatrix{
-  & \verb":" \ar[dl] \ar[dr] &&&&&&&& \verb"f" \ar[dl] \ar[dr] \\
-  \verb"a" && \verb":" \ar[dl] \ar[dr] &&&&&& \verb"f" \ar[dl] \ar[dr]  && \verb"c" \\
-  & \verb"b" && \verb":" \ar[dl] \ar[dr] &&&& \verb"f" \ar[dl] \ar[dr] && \verb"b" \\
-  && \verb"c" && \verb"[]" && \verb"ini" && \verb"a"
-  }
 \end{frame}
 
 \begin{frame}[fragile]
@@ -723,14 +595,12 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
     \end{center}
     \item The examples are
     \begin{minted}{haskell}
-    >  scanr (++) "!" ["aa","bb","cc"]
-    ["aabbcc!","bbcc!","cc!","!"]
     > scanr (:) [] [1,2,3]
     [[1,2,3],[2,3],[3],[]]
     > scanr (+) 0 [1..10]
     [55,54,52,49,45,40,34,27,19,10,0]
-    > scanr (*) 1 [1..10]
-    [3628800,3628800,1814400,604800,151200,30240,5040,720,90,10,1]
+    > scanr (*) 1 [1..5]
+    [120,120,60,20,5,1]
     \end{minted}
   \end{itemize}
 \end{frame}
@@ -762,15 +632,15 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 \section{Strictness in Haskell}
 
 \begin{frame}[fragile]
-  \frametitle{The presence of a bottom}
+  \frametitle{Bottom}
 
   \begin{itemize}
     \item Any well-formed expression in Haskell has a type
-    \item Prima facie, the Bool data type has two values: \verb"False" and \verb"True" according to its definition:
+    \item Prima facie, the \verb"Bool" data type has two values: \verb"False" and \verb"True" according to its definition:
     \begin{minted}{haskell}
     data Bool = False | True
     \end{minted}
-    \item One may define an expession \verb"dno :: Bool" which is recursively defined as \verb"dno = not dno"
+    \item One may define an expession \verb"dno :: Bool" which is defined recursively as \verb"dno = not dno"
     \item \verb"dno" is neither \verb"False" nor \verb"True", but it's a Boolean value!
     \item This value is a bottom ($\bot$). In Haskell, $\bot$ is a value that has a type \verb"forall a. a".
     Such errors as \verb"undefined" have this type.
@@ -780,15 +650,14 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 \begin{frame}
   \frametitle{Strict functions}
   \begin{itemize}
-    \item Evaluation process in Haskell is lazy.
-    That's the reason according to which \verb"const 42 undefined" yields \verb"42"
+    \item Haskell is lazy. That's why \verb"const 42 undefined == 42"
     \item Lazy functions are non-strict ones
     \onslide<2->{
     \item In constrast to lazy functions, strict functions satisfy this equation
     \begin{center}
       $\verb"f" \: x_1 \: x_2 \: \dots \: \bot \: \dots \: x_n = \bot$
     \end{center}
-    \item That is, the strict \verb"const" should yield \verb"undefined" in the call \verb"const 42 undefined"
+    \item For this reason \verb"constStrict 42 undefined = undefined"
     }
   \end{itemize}
 \end{frame}
@@ -796,8 +665,8 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 \begin{frame}[fragile]
   \frametitle{Strictness in Haskell. The \verb"seq" function}
 \begin{itemize}
-  \item We took a look at the \verb"seq" function. Let us recall it.
-  \item \verb"seq" is a combinator that enforce a computation.
+  \item We've already had a look at the \verb"seq" function.
+  \item \verb"seq" is a combinator that enforce computation.
   \item This combinator has a type $a \to b \to b$.
   \item It seems that the body of \verb"seq" looks like $\setminus\verb"x y -> y"$, but \verb"seq" satisfies the following equations:
   \begin{center}
@@ -834,7 +703,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 \begin{frame}[fragile]
   \frametitle{Strictness in Haskell. The strict application}
   \begin{itemize}
-    \item Let us recall the tail-recursive factorial:
+    \item Let us recall the tail-recursive factorial. The second version is strict:
     \begin{minted}{haskell}
       tailFactorial :: Integer -> Integer
       tailFactorial n = helper 1 n
@@ -843,16 +712,14 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
           if x > 1
           then helper (acc * x) (x - 1)
           else acc
-    \end{minted}
-    \item The optimal version of the tail-recursive factorial is the following one:
-    \begin{minted}{haskell}
-    tailFactorialStrict :: Integer -> Integer
-    tailFactorialStrict n = helper 1 n
-      where
-      helper acc x =
-        if x > 1
-        then (helper $! (acc * x)) (x - 1)
-        else acc
+
+      tailFactorialStrict :: Integer -> Integer
+      tailFactorialStrict n = helper 1 n
+        where
+          helper acc x =
+            if x > 1
+            then (helper $! (acc * x)) (x - 1)
+            else acc
       \end{minted}
   \end{itemize}
 \end{frame}
@@ -904,12 +771,12 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   Today we
   \begin{itemize}
     \item discussed the data type landscape and together with pattern matching
-    \item studied list folds
+    \item studied folds
     \item realised how one can enforce lazy evaluation
   \end{itemize}
 
   \onslide<2->{
-  On the next seminar, we
+  On the next seminar, we will
   \begin{itemize}
     \item study such type classes as \verb"Functor", \verb"Foldable", and \verb"Monoid"
   \end{itemize}
