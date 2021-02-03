@@ -534,8 +534,8 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   then one has $\forall \: \verb"xs :: [a]" \:\: (\verb"g xs" \equiv \verb"foldr f v xs")$
 \end{block}
 \begin{itemize}
-  \item The universal property is inductively
-  \item The meaning of this fact: \verb"foldr f v" and \verb"g" are interchangeable in this case
+  \item The universal property is proved inductively
+  \item This property implies \verb"foldr f v" and \verb"g" are interchangeable in this case
 \end{itemize}
 \end{frame}
 
@@ -551,10 +551,10 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
     \item Informally:
     \begin{minted}{haskell}
     foldl f ini [x1, x2, ..., xn]
-      == (...((z `f` x1) `f` x2) `f`...) `f` xn
+      == (...((ini `f` x1) `f` x2) `f`...) `f` xn
     \end{minted}
     \onslide<2->{
-    \item The implementation of the left fold function might be optimised. Here we have a thunk
+    \item The implementation of the left fold function might be optimised.
     \item \verb"foldl" is the most optimal function, but we are not capable of processing infinite lists using the left fold function.
     }
   \end{itemize}
