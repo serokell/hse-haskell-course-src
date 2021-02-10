@@ -97,34 +97,19 @@ keywordstyle=\color{myblue}\bfseries,
 % The Document
 % ------------------------------------------------------------------------------
 \title{Functional programming, Seminar No. 5}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
-
-\vspace{\baselineskip}
-
-\date{Higher School of Economics \\ The Department of Computer Science}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\date{Higher School of Economics \\ The Faculty of Computer Science}
 
 \begin{document}
 
 \maketitle
 
 \begin{frame}
-\frametitle{Intro}
-
-On the previous seminar, we
-\begin{itemize}
-\item introduced data types, new types, records, and type synonyms
-\item told about right and left folds
-\item discussed lazy evaluation enforcing
-\end{itemize}
-
-\onslide<2->{
-    Today we
-    \begin{itemize}
-    \item motivate and introduce functors
-    \item generalise left and right folds with the type class \verb"Foldable"
-    \item study such functor extensions as applicative functors and the \verb"Travesable" class
-    \end{itemize}
-}
+\frametitle{Today}
+We will study
+\begin{center}
+\includegraphics[scale=0.12]{retriever.jpeg}
+\end{center}
 \end{frame}
 
 \section{Functor}
@@ -133,7 +118,7 @@ On the previous seminar, we
 \frametitle{Motivation}
 
 \begin{itemize}
-\item Let us take a look at these functions
+\item Let us have a look at the following functions:
     \begin{minted}{haskell}
     map :: (a -> b) -> [a] -> [b]
     map _ [] = []
@@ -143,19 +128,13 @@ On the previous seminar, we
     mapMaybe _ Nothing = Nothing
     mapMaybe f (Just x) = Just (f x)
     \end{minted}
-\item One has the same pattern, a unary function carries through a computational context 
-(lists and optional values)
-\item This idea has a generalisation with the type class \verb"Functor". This type class is a uniform
-interface for carrying an arbitrary unary function through a computational context preserving 
-its structure.
+\item These function are similar. Here we have a unary function that we carry through a parametrised type.
+\item We generalise that with the type class \verb"Functor".
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Here comes the Functor}
-
-Instances of the type class \verb"Functor" are type constructors that has kind \verb"* -> *":
-
+\frametitle{Functor: the definition and instances}
 \begin{minted}{haskell}
 class Functor (f :: * -> *) where
   fmap :: (a -> b) -> (f a -> f b)
@@ -171,7 +150,7 @@ instance Functor [] where
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The full definition of a functor}
+\frametitle{The full definition of \verb"Functor"}
 
 \begin{minted}{haskell}
 class Functor (f :: * -> *) where
@@ -179,7 +158,7 @@ class Functor (f :: * -> *) where
   (<$)        :: a -> f b -> f a
   (<$)        =  fmap . const
 
-infixl 4 <$>, <$ 
+infixl 4 <$>, <$
 
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) = fmap
@@ -190,7 +169,7 @@ void x = () <$ x
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The example of a \verb"Functor" instance}
+\frametitle{An example of a \verb"Functor" instance}
 
 \begin{minted}{haskell}
 import Data.Functor
@@ -216,8 +195,7 @@ constTree = "Anna" <$ treeWord
 \begin{frame}[fragile]
 \frametitle{The example of a \verb"Functor" instance. The \verb"DeriveFunctor"}
 
-One may derive the \verb"Functor" automatically, if one has a permission to the structure
-of an observed data type.
+One may derive the \verb"Functor" instance automatically for some data types.
 
 \begin{minted}{haskell}
 {-# LANGUAGE DeriveFunctor #-}
@@ -230,7 +208,7 @@ data Tree a = Leaf a | Node (Tree a) a (Tree a)
 
 \vspace{\baselineskip}
 
-One may ensure that the calls from the previous slide yield the same output:
+The derived instance in this example is equivalent to our version.
 
 \begin{minted}{haskell}
 treeWord = (\x -> show x ++ show x) <$> tree
@@ -240,9 +218,9 @@ constTree = "Anna" <$ treeWord
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"Functor" instances for two-parametric data types}
+\frametitle{\verb"Functor" instances for two-parametric data types}
 
-Let us take a look at the \verb"Functor" for type constructors that have 
+Let us take a look at the \verb"Functor" for type constructors that have
 kind \verb"* -> * -> *"
 
 \begin{minted}{haskell}
@@ -261,7 +239,7 @@ instance Functor (Either a) where
 \begin{frame}[fragile]
 \frametitle{The \verb"Functor" laws}
 
-Functor has the following axioms:
+Any \verb"Functor" instance has to obey the following axioms:
 
 \begin{minted}{haskell}
 
@@ -273,21 +251,20 @@ fmap (f . g) fx = (fmap f . fmap g) fx
 
 \begin{frame}[fragile]
 \frametitle{The \verb"Functor" laws. Example}
-Let us check that the list data type is a Functor. In other words, let us check that
-the \verb"Functor" instance satisfies required conditions.
+Let us check that the list data type is really a functor.
 
 \begin{minted}{haskell}
 
 fmap id [] = map id [] = []
 fmap id (x : xs) =
   id x : fmap id xs =
-  x : fmap id xs =      -- Induction hypothesis
+  x : fmap id xs =      -- IH
   x : xs
 
 fmap (f . g) [] = []
 fmap (f . g) (x : xs) =
-  (f . g) x : fmap (f . g) xs =   -- Induction hypothesis
-  (f . g) x : (fmap f . fmap g) xs = 
+  (f . g) x : fmap (f . g) xs =   -- IH
+  (f . g) x : (fmap f . fmap g) xs =
   f (g x) : fmap f (fmap g xs)
 \end{minted}
 \end{frame}
@@ -297,25 +274,19 @@ fmap (f . g) (x : xs) =
 \begin{frame}[fragile]
 \frametitle{Motivation}
 
-\begin{itemize}
-\item It is clear that we would like to have something like \verb"fmap" for functions that
-have an arbitrary arity:
-
+It is clear that we would like to have something like \verb"fmap" for functions of an arbitrary arity:
 \begin{minted}{haskell}
-fmap2 
-  :: (a -> b -> c) 
+fmap2
+  :: (a -> b -> c)
   -> f a -> f b -> f c
-fmap3 
-  :: (a -> b -> c -> d) 
+fmap3
+  :: (a -> b -> c -> d)
   -> f a -> f b -> f c -> f d
-fmap4 
-  :: (a -> b -> c -> d -> e) 
+fmap4
+  :: (a -> b -> c -> d -> e)
   -> f a -> f b -> f c -> f d -> e
 ...
 \end{minted}
-\item That is, one needs to generalise a functor
-\item The solution is the \verb"Applicative" type class that extends \verb"Functor"
-\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -335,7 +306,7 @@ class Functor f => Applicative f where
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"Applicative" class. Example}
+\frametitle{The \verb"Applicative" class. A couple of examples}
 \begin{minted}{haskell}
 instance Applicative Maybe where
   pure = Just
@@ -345,7 +316,7 @@ instance Applicative Maybe where
 
 instance Applicative [] where
   pure x = [x]
-  fs <*> fx = [ f x | f <- fs, x <- xs] 
+  fs <*> fx = [ f x | f <- fs, x <- xs]
 \end{minted}
 \end{frame}
 
@@ -360,16 +331,15 @@ pure (.) <*> u <*> v <*> w = u <*> (v <*> w) -- composition
 
 pure f <*> pure x = pure (f x) -- homomorphism
 
-u <*> pure y = pure ($ y) <*> u -- interchange
+u <*> pure y = pure (\f -> f y) <*> u -- interchange
 \end{minted}
-Let us check some of these laws for the \verb"Maybe" data type on a whiteboard
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"Applicative" class. The list problem}
+\frametitle{The \verb"Applicative" class. Another \verb"Applicative" instance for lists}
 \begin{itemize}
 \item The list data type might have an alternative \verb"Applicative" instance
-\item One has the function called \verb"zipWith":
+\item Recall the function \verb"zipWith":
 \begin{minted}{haskell}
 zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
 zipWith _ [] _ = []
@@ -382,50 +352,42 @@ zipWith f (x:xs) (y:ys) = f x y : zipWith f xs ys
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"Applicative" class. The list problem}
-
-\begin{itemize}
-\item Let us introduce the following data type:
+\frametitle{The \verb"Applicative" class. Another \verb"Applicative" instance for lists}
 \begin{minted}{haskell}
 newtype ZipList a = ZipList { getZipList :: [a] }
-\end{minted}
 
-\item The instance is implemented via \verb"zipWith" as follows:
-\begin{minted}{haskell}
 instance Functor ZipList where
   fmap f = ZipList . getZipList . fmap f
 
 instance Applicative ZipList where
-  liftA2 f (ZipList xs) (ZipList ys) = 
+  liftA2 f (ZipList xs) (ZipList ys) =
     ZipList (zipWith f xs ys)
   zipF <*> zipX = liftA2 ($)
   pure = ???
 \end{minted}
 
-\item How to implement \verb"pure" to preverse the applicative laws? 
-If we define \verb"pure" as below, then all those laws will break
+How to implement \verb"pure" and preverse the applicative laws?
+If we define \verb"pure" as below, that would break all those axioms.
 \begin{minted}{haskell}
-  pure x = ZipList [x] 
+  pure x = ZipList [x]
 \end{minted}
-\end{itemize}
 
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The \verb"Applicative" class. The list problem}
+\frametitle{The \verb"Applicative" class. Another \verb"Applicative" instance for lists}
 
 \begin{itemize}
 \item Here is the proper instance:
 \begin{minted}{haskell}
 instance Applicative ZipList where
-  liftA2 f (ZipList xs) (ZipList ys) = 
+  liftA2 f (ZipList xs) (ZipList ys) =
     ZipList (zipWith f xs ys)
   zipF <*> zipX = liftA2 ($)
   pure a = ZipList $ iterate x
     where iterate x = x : iterate x
 \end{minted}
 \end{itemize}
-
 \end{frame}
 
 \section{Monoid}
@@ -435,11 +397,11 @@ instance Applicative ZipList where
 
 \begin{minted}{haskell}
 class Semigroup a where
-  (<>) :: a -> a -> a 
+  (<>) :: a -> a -> a
     -- a binary associative operation
 
 class Semigroup a => Monoid a where
-  mempty :: a 
+  mempty :: a
     -- a neutral element
   mappend :: a -> a -> a
   mappend = (<>)
@@ -511,13 +473,13 @@ instance Monoid All where
 
 \vspace{\baselineskip}
 
-One has the similar story with the Boolean disjunction.
+The same for disjunction.
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Back to the \verb"Applicative" class}
 
-The \verb"Monoid" type class allows one to have the \verb"Applicative" instance for  
+The \verb"Monoid" type class allows one to have the \verb"Applicative" instance for
 tuples as follows:
 
 \begin{minted}{haskell}
@@ -525,11 +487,6 @@ instance Monoid a => Applicative ((,) a) where
   pure x = (mempty x, x)
   (a, f) <*> (b, x) = (a <> b, f x)
 \end{minted}
-
-\vspace{\baselineskip}
-
-From the left, there is a counter or logging message which is accumulated by the monoidal operation.  
-From the right, one has an application.
 
 \end{frame}
 
@@ -566,7 +523,7 @@ class Foldable t where
   foldr f z t = appEndo (foldMap (Endo . f) t) z
 
   foldl :: (b -> a -> b) -> b -> t a -> b
-    foldl f z t = 
+    foldl f z t =
       appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
 \end{minted}
 \end{frame}
@@ -649,8 +606,7 @@ Nothing
 \begin{frame}[fragile]
 \frametitle{The \verb"Traversable" definition}
 
-The \verb"Traversable" type class describe how exactly two computational contexts 
-commute with each other:
+According to the documentation, \verb"Traversable" describes ``functors representing data structures that can be traversed from left to right''.
 
 \begin{minted}{haskell}
 class (Functor t, Foldable t) => Traversable t where
@@ -674,7 +630,7 @@ instance Travesable Maybe where
 instace Traversable [] where
   traverse _ g = foldr consF (pure [])
     where
-      consF x ys = liftA2 (:) (g x) ys 
+      consF x ys = liftA2 (:) (g x) ys
 \end{minted}
 \end{frame}
 
@@ -690,9 +646,9 @@ and \verb"Traversable"
 \end{itemize}
 
 \onslide<2->{
-  Next time, we
+  Next time, we will
   \begin{itemize}
-  \item study actions within a computational context and start to realise what monad is
+  \item study monads!
   \end{itemize}
 }
 \end{frame}

@@ -318,10 +318,10 @@ taxiCab (Point x1 y1) (Point x2 y2) =
     \item An example of a lazy pattern:
     \begin{minted}{haskell}
     > f *** g (a,b) = (f a, g b)
-    > const 2 *** const 1 $ undefined
+    > (const 2) *** (const 1) $ undefined
     *** Exception: Prelude.undefined
     > f *** g ~(a,b) = (f a, g b)
-    > const 2 *** const 1 $ undefined
+    > (const 2) *** (const 1) $ undefined
     (2,1)
     \end{minted}
   \end{itemize}
@@ -462,7 +462,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
 \begin{frame}[fragile]
   \frametitle{Folds and lists. Motivation}
 
-Suppose we have the following functions
+Take a look at these functions
   \begin{minted}{haskell}
   sum :: Num a => [a] -> a
   sum [] = 0
@@ -535,7 +535,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
 \end{block}
 \begin{itemize}
   \item The universal property is proved inductively
-  \item This property implies \verb"foldr f v" and \verb"g" are interchangeable in this case
+  \item This property implies \verb"foldr f v" and \verb"g" are equivalent in this case
 \end{itemize}
 \end{frame}
 
@@ -626,6 +626,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   > scanl (*) 1 [1..] !! 5
   120
   \end{minted}
+  \item In contrast to \verb"foldl", \verb"scanl" works with infinite lists.
   \end{itemize}
 \end{frame}
 
@@ -666,15 +667,15 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   \frametitle{Strictness in Haskell. The \verb"seq" function}
 \begin{itemize}
   \item We've already had a look at the \verb"seq" function.
-  \item \verb"seq" is a combinator that enforce computation.
+  \item \verb"seq" is a combinator that enforces computation. It evaluates the first argument to its WHNF.
   \item This combinator has a type $a \to b \to b$.
-  \item It seems that the body of \verb"seq" looks like $\setminus\verb"x y -> y"$, but \verb"seq" satisfies the following equations:
+  \item It's quite close to something like $\lambda x y. y$, but \verb"seq" satisfies the following equations:
   \begin{center}
     $\verb"seq" \: \bot \: x = \bot$
 
     $\verb"seq" \: v \: x = x, v \neq \bot $
   \end{center}
-  \item Such an enforcing breaks the lazy semantics of Haskell! But this enforcing is not so far-reaching.
+  \item This function ``breaks'' our laziness! But this enforcing with \verb"seq" is not so far-reaching.
   Data constructors and lambdas put a barrier for the $\bot$ expansion:
   \begin{minted}{haskell}
   > seq (4,undefined) 5
@@ -684,6 +685,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   > seq (id . undefined) 5
   5
   \end{minted}
+  \item The library \verb"deepseq" contains the same titled combinator that \emph{fully} evaluates the first argument.
 \end{itemize}
 \end{frame}
 
@@ -696,7 +698,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
     ($!) :: (a -> b) -> a -> b
     f $! x = x `seq` f x
     \end{minted}
-    \item That is, this application behaves as usual if the second argument is not bottom.
+    \item That is, this application behaves as usual unless the second argument is the bottom.
   \end{itemize}
 \end{frame}
 
