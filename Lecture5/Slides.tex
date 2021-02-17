@@ -119,7 +119,7 @@ We will study
 \frametitle{\verb"Semigroup" and \verb"Monoid": the definition}
 
 In this subsection, we study the generalisation of folds with the type class called \verb"Foldable".
-For that, we have a look at the classes called \verb"Semigroup" and \verb"Monoid". Here are the definition.
+For that, we have a look at the classes called \verb"Semigroup" and \verb"Monoid".
 
 \begin{minted}{haskell}
 class Semigroup a where
@@ -144,7 +144,7 @@ class Semigroup a => Monoid a where
   \end{minted}
   \begin{itemize}
   \item NOTE BENE: every \verb"Semigroup"/\verb"Monoid" instance should obey these laws.
-  \item The compiler is not capable of proving such properties (note that tests $\neq$ proofs), so programmers have to ensure that required laws are valid for such instances.
+  \item The compiler is not capable of proving such properties (note that tests $\neq$ proofs), so programmers have to ensure that required laws are valid for such instances themselves.
   \item The moral is that declaring a \verb"Semigroup" instance where the operations happens to be non-associative is \emph{mauvais go\^{u}t}.
 \end{itemize}
 \end{frame}
@@ -167,7 +167,7 @@ instance Monoid [a] where
   x : (xs ++ (ys ++ zs)) = -- IH
   x : ((xs ++ ys) ++ zs) =
   (x : (xs ++ ys)) ++ zs =
-  (x : (xs ++ ys)) ++ zs
+  ((x : xs) ++ ys) ++ zs
 \end{minted}
 \end{frame}
 
@@ -266,7 +266,7 @@ sum, product :: (Num a, Foldable t) => t a -> a
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Foldable instances.}
+\frametitle{Foldable instances}
 
 \begin{minted}{haskell}
 instance Foldable [] where
@@ -394,7 +394,7 @@ constTree = "Anna" <$ treeWord
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{The example of a \verb"Functor" instance. The \verb"DeriveFunctor" extension}
+\frametitle{The \verb"DeriveFunctor" extension}
 
 One may derive the \verb"Functor" instance automatically for some data types.
 
