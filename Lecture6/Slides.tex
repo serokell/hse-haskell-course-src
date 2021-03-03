@@ -202,13 +202,13 @@ cosM = toKleisli cos
 
 It is clear that $\cos \pi = - 1$, but \verb"cosM pi" has the type \verb"(Monad m, Floating b) => m b" and we have several variants:
 \begin{minted}{haskell}
-> piM :: Maybe Double
+> cosM pi :: Maybe Double
 Just (-1.0)
-> piM :: [Double]
+> cosM pi :: [Double]
 [-1.0]
-> piM :: IO (Double)
+> cosM pi :: IO (Double)
 -1.0
-> piM :: Either String Double
+> cosM pi :: Either String Double
 Right (-1.0)
 \end{minted}
 \end{frame}
