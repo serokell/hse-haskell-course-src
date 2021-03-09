@@ -127,7 +127,7 @@ We will study the following monads
 getChar :: IO Char
 getLine :: IO String
 \end{minted}
-\item In fact, these functions have types:
+\item In fact, these functions have the following types:
 \begin{minted}{haskell}
 getChar :: RealWorld -> (RealWorld, Char)
 getLine :: RealWorld -> (RealWorld, String)
@@ -144,15 +144,14 @@ getLine :: RealWorld -> (RealWorld, String)
     newtype IO a = IO (RealWorld -> (RealWorld, a))
     \end{minted}
     \item According to Hoogle, ``\verb"RealWorld" is deeply magical. It is primitive... We never manipulate values of type RealWorld... it's only used in the type system''
-    \item That is, an engineer has no access to the \verb"RealWorld" and we cannot use the same \verb"RealWorld" twice!
+    \item That is, an engineer has no access to values of \verb"RealWorld" and we cannot use the same \verb"RealWorld" twice!
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{The \verb"IO" as a Monad}
 
-\begin{itemize}
-\item The \verb"Monad" instance (very roughly):
+ The \verb"Monad" instance (very roughly):
 \begin{minted}{haskell}
 instance Monad IO where
    return x = IO $ \w -> (w, x)
@@ -160,6 +159,7 @@ instance Monad IO where
      case m w of
        (w', a) -> k a w'
 \end{minted}
+\begin{itemize}
 \item An effect of every action occurs only once.
 \item Note that the order of effects matters!
 \end{itemize}
@@ -186,7 +186,7 @@ instance Monad IO where
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The example of \verb"IO"}
+  \frametitle{An example of \verb"IO"}
 
   \begin{minted}{haskell}
   main :: IO ()
@@ -203,7 +203,7 @@ instance Monad IO where
 \begin{frame}[fragile]
   \frametitle{The \verb"getLine" function closely}
 
-  Let us take a look at the approximate \verb"getLine" implementation:
+  Let us take a look at the rough version of \verb"getLine":
 
   \begin{minted}{haskell}
   getLine' :: IO String
@@ -218,7 +218,7 @@ instance Monad IO where
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The \verb"putStr" functions closely}
+  \frametitle{The \verb"putStr" function}
 
   \begin{minted}{haskell}
   putStr' :: String -> IO ()
@@ -238,7 +238,7 @@ instance Monad IO where
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The \verb"putStr" functions closely}
+  \frametitle{The \verb"putStr" function}
 
   Using \verb"sequence_" and \verb"mapM_":
   \begin{minted}{haskell}
@@ -271,24 +271,43 @@ instance Monad IO where
   \end{minted}
 
   \begin{itemize}
-    \item \verb"return" yields an argument ingoring a given environment
-    \item \verb"(>>=)" passes a given environment to both computations
-    \item The useful combinators:
+    \item Here \verb"(>>=)" passes a given environment to both computations
+    \item Useful functions:
     \begin{minted}{haskell}
-    ask :: Reader r r
-    local :: (r -> r) -> Reader r a -> Reader r a
+    ask   :: Reader e e
+    asks  :: (e -> a) -> Reader e a
+    local :: (e -> b) -> Reader b a -> Reader e a
     \end{minted}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Reader. An example}
+  \begin{minted}{haskell}
+  data Environment = Environment { ids  :: [Int]
+                                 , name :: Int -> String
+                                 , near :: Int -> (Int, Int) }
+
+  inEnv :: Int -> Reader Environment Bool
+  inEnv i = asks (elem i . ids)
+
+  anyInEnv :: (Int, Int) -> Reader Environment Bool
+  anyInEnv (i, j) = inEnv i ||^ inEnv j
+
+  checkNeighbours :: Int -> Reader Environment (Maybe String)
+  checkNeighbours i =
+    asks (`near` i) >>= \pair ->
+    anyInEnv pair   >>= \res  ->
+    if res
+    then Just <$> asks (`name` i)
+    else pure Nothing
+  \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Writer}
   \begin{itemize}
-  \item The \verb"Writer" monad with the logging features
+  \item The \verb"Writer" monad for computation with logs
   \begin{minted}{haskell}
   newtype Writer w a = Writer { runWriter :: (a, w) }
 
@@ -306,18 +325,30 @@ instance Monad IO where
   tell :: Monoid w => w -> Writer w ()
   listen :: Monoid w => Writer w a -> Writer w (w, a)
   pass :: Monoid w => Writer w (a, w -> w) -> Writer w a
+  execWriter :: Writer w a -> w
   \end{minted}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Writer. An example}
+  \begin{minted}{haskell}
+  binPow :: Int -> Int -> Writer String Int
+  binPow 0 _      = return 1
+  binPow n a
+    | even n    = binPow (n `div` 2) a >>= \b ->
+                  Writer (b * b, "Square " ++ show b ++ "\n")
+    | otherwise =
+        binPow (n - 1) a >>= \b ->
+        Writer
+          (a * b, "Mul " ++ show a ++ " and " ++ show b ++ "\n")
+  \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{State}
   \begin{itemize}
-    \item The \verb"State" monad is a monad for processing of mutable states
+    \item The \verb"State" monad for processing of mutable states
   \begin{minted}{haskell}
   newtype State s a = State { runState :: s -> (a,s) }
 
@@ -330,17 +361,33 @@ instance Monad IO where
       let (a, s') = act s
       in runState (k a) s'
   \end{minted}
-  \item The useful combinators:
+  \item Useful functions:
   \begin{minted}{haskell}
-  get :: State s s
-  put :: s -> State s ()
-  modify :: (s -> s) -> State s ()
+  get       :: State s s
+  put       :: s -> State s ()
+  modify    :: (s -> s) -> State s ()
+  gets      :: (s -> a) -> State s a
+  withState :: (s -> s) -> State s a -> State s a
+  evalState :: State s a -> s -> a
+  execState :: State s a -> s -> s
   \end{minted}
 \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{State. An example}
+  \begin{minted}{haskell}
+  type Stack = [Int]
+
+  pop :: State Stack Int
+  pop = State $ \(x:xs) -> (x, xs)
+
+  push :: Int -> State Stack ()
+  push x = State $ \xs -> ((), x:xs)
+
+  stackOps :: State Stack Int
+  stackOps = pop >>= \x -> push 5 >> push 10 >> return x
+  \end{minted}
 \end{frame}
 
 \end{document}
