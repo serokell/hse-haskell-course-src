@@ -1,0 +1,463 @@
+\documentclass[10pt]{beamer}
+\usepackage[cache=false]{minted}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{fontawesome}
+\usepackage{graphicx}
+\usepackage[english,ngerman]{babel}
+\usepackage{bussproofs}
+
+% ------------------------------------------------------------------------------
+% Use the beautiful metropolis beamer template
+% ------------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage{fontawesome}
+\usepackage{FiraSans}
+\newtheorem{defin}{Definition}
+\newtheorem{theor}{Theorem}
+\newtheorem{prop}{Proposition}
+\mode<presentation>
+{
+  \usetheme[progressbar=foot,numbering=fraction,background=light]{metropolis}
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  %\setbeamertemplate{frame footer}{My custom footer}
+}
+
+% ------------------------------------------------------------------------------
+% beamer doesn't have texttt defined, but I usually want it anyway
+% ------------------------------------------------------------------------------
+\let\textttorig\texttt
+\renewcommand<>{\texttt}[1]{%
+  \only#2{\textttorig{#1}}%
+}
+
+% ------------------------------------------------------------------------------
+% minted
+% ------------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------------
+% tcolorbox / tcblisting
+% ------------------------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{codecolor}{HTML}{FFC300}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most,listingsutf8,minted}
+
+\tcbset{tcbox width=auto,left=1mm,top=1mm,bottom=1mm,
+right=1mm,boxsep=1mm,middle=1pt}
+
+\newtcblisting{myr}[1]{colback=codecolor!5,colframe=codecolor!80!black,listing only,
+minted options={numbers=left, style=tcblatex,fontsize=\tiny,breaklines,autogobble,linenos,numbersep=3mm},
+left=5mm,enhanced,
+title=#1, fonttitle=\bfseries,
+listing engine=minted,minted language=r}
+
+
+% ------------------------------------------------------------------------------
+% Listings
+% ------------------------------------------------------------------------------
+\definecolor{mygreen}{HTML}{37980D}
+\definecolor{myblue}{HTML}{0D089F}
+\definecolor{myred}{HTML}{98290D}
+
+\usepackage{listings}
+
+% the following is optional to configure custom highlighting
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morecomment=[s]{<!--}{-->},
+  morestring=[s]{>}{<},
+  morekeywords={ref,xmlns,version,type,canonicalRef,metr,real,target}% list your attributes here
+}
+
+\lstdefinestyle{myxml}{
+language=XML,
+showspaces=false,
+showtabs=false,
+basicstyle=\ttfamily,
+columns=fullflexible,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+basicstyle=\color{mygreen}\ttfamily,%\footnotesize,
+stringstyle=\color{myred},
+commentstyle=\color{myblue}\upshape,
+keywordstyle=\color{myblue}\bfseries,
+}
+
+
+% ------------------------------------------------------------------------------
+% The Document
+% ------------------------------------------------------------------------------
+\title{Functional programming, Seminar No. 8}
+\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+
+\vspace{\baselineskip}
+
+\date{Higher School of Economics \\ The Department of Computer Science}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}[fragile]
+  \frametitle{Type of parser}
+  What is a type of function which parses an integer?
+  \begin{minted}{haskell}
+    parseInteger :: String -> Bool
+  \end{minted}
+  Not quite, we would like to get an \verb"Integer"
+
+  The second variant. But such a parser can fail.
+  \begin{minted}{haskell}
+    parseInteger :: String -> Integer
+  \end{minted}
+
+  \begin{minted}{haskell}
+  parseInteger :: String -> Maybe Integer
+  \end{minted}
+  Now. How do you parse two integers separated by space? Or by any number of spaces? Or comma-separated list of integers? Or the same list inside square brackets [] with any number of spaces between elements?
+
+  The solution is the following:
+  \begin{minted}{haskell}
+    parseInteger :: String -> Maybe (Integer, String)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Type of parser}
+  But instead of this:
+  \begin{minted}{haskell}
+  parseInteger :: String -> Maybe (Integer, String)
+  \end{minted}
+  We introduce \verb"Parser" with the \verb"newtype" wrapper in order to have useful instances:
+  \begin{minted}{haskell}
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some usage examples}
+The parser combinator type:
+\begin{minted}{haskell}
+newtype Parser a = Parser { runP :: String -> Maybe (a, String) }
+\end{minted}
+
+Parsing functions
+\begin{minted}{haskell}
+parseInteger :: Parser Integer
+  -- String -> Maybe (Integer, String)
+\end{minted}
+
+How to use it and which behaviour we want?
+\begin{minted}{haskell}
+runP :: Parser a -> String -> Maybe (a, String)
+ghci> runP parseInteger "5"
+Just (5, "") :: Maybe (Integer, String)
+
+ghci> runP parseInteger "42x7"
+Just (42, "x7") :: Maybe (Integer, String)
+
+ghci> runP parseInteger "abc"
+Nothing :: Maybe (Integer, String)
+\end{minted}
+This behaviour allows us to combine parsers relatively easy!
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Now, idea and how to do it}
+
+\begin{itemize}
+  \item The key idea of parser combinators: implement manually very simple parsers, implement combinators for combining parser and then implement more complex parsers by combining simpler ones.
+  \item Haskell provides combinators through standard type classes. And it's convenient to use them. What we need is just:
+  \begin{minted}{haskell}
+  instance Functor     Parser
+    -- replace parser value
+  instance Applicative Parser
+    -- run parsers sequentially one after another
+  instance Monad       Parser
+    -- same as above but with monadic capabilities
+  instance Alternative Parser
+    -- allows one to choose parser
+  \end{minted}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Primitive parsers. \verb"ok"}
+
+  \begin{minted}{haskell}
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+
+  -- always succeeds without consuming any input
+  ok :: Parser ()
+  ok = Parser $ \s -> Just ((), s)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Primitive parsers. \verb"isnot"}
+
+\begin{minted}{haskell}
+newtype Parser a =
+  Parser { runP :: String -> Maybe (a, String) }
+
+-- fails w/o consuming any input if given parser succeeds,
+-- and succeeds if given parser fails
+isnot :: Parser a -> Parser ()
+isnot parser =
+  Parser $ \s -> case runP parser s of
+                   Just _  -> Nothing
+                   Nothing -> Just ((), s)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Primitive parsers. \verb"eof"}
+
+\begin{minted}{haskell}
+newtype Parser a =
+  Parser { runP :: String -> Maybe (a, String) }
+
+-- succeeds only at the end of input stream
+eof :: Parser ()
+eof = Parser $ \s -> case s of
+    [] -> Just ((), "")
+    _  -> Nothing
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Primitive parsers. \verb"ok"}
+
+\begin{minted}{haskell}
+newtype Parser a =
+  Parser { runP :: String -> Maybe (a, String) }
+
+-- consumes only single character and
+-- returns it if predicate is true
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy p = Parser $ \s -> case s of
+  []     -> Nothing
+  (x:xs) -> if p x then Just (x, xs) else Nothing
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Combining}
+\begin{minted}{haskell}
+-- always fails without consuming any input
+notok :: Parser ()
+notok = isnot ok
+
+-- consumes given character and returns it
+char :: Char -> Parser Char
+char c = satisfy (== c)
+
+-- consumes any character or any digit only
+anyChar, digit :: Parser Char
+anyChar = satisfy (const True)
+digit   = satisfy isDigit
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Combining}
+  \begin{minted}{haskell}
+  ghci> runP eof ""
+  Just ((),"")
+  ghci> runP eof "aba"
+  Nothing
+  ghci> runP (char 'a') "aba"
+  Just ('a',"ba")
+  ghci> runP (char 'x') "aba"
+  Nothing
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Instances}
+  The \verb"Functor" instance
+  \begin{minted}{haskell}
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+
+  instance Functor Parser where
+    fmap :: (a -> b) -> Parser a -> Parser b
+    fmap f (Parser parser) = Parser (fmap (first f) . parser)
+
+  first :: (a -> b) -> (a, c) -> (b, c)
+  first f (a, c) = (f a, c)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Instances}
+  The \verb"Applicative" instance
+  \begin{minted}{haskell}
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+
+  instance Applicative Parser where
+    pure :: a -> Parser a
+    pure a = Parser $ \s -> Just (a, s)
+
+    (<*>) :: Parser (a -> b) -> Parser a -> Parser b
+    Parser pf <*> Parser pa = Parser $ \s -> case pf s of
+        Nothing     -> Nothing
+        Just (f, t) -> case pa t of
+            Nothing     -> Nothing
+            Just (a, r) -> Just (f a, r)
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Instances}
+  The \verb"Monad" instance
+  \begin{minted}{haskell}
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+
+  instance Monad Parser where
+    (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+    Parser pf >>= k = Parser $ \s -> do
+        (x, rest1) <- runP p1 s
+        runP (k x) rest1
+
+  instance Alternative Parser where
+    empty :: Parser a
+    -- always fails
+    (<|>) :: Parser a -> Parser a -> Parser a
+    -- run first, if fails — run second
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Simple parser combinators core}
+  \begin{minted}{haskell}
+  -- type
+  newtype Parser a =
+    Parser { runP :: String -> Maybe (a, String) }
+
+  -- parsers
+  eof, ok :: Parser ()
+  satisfy :: (Char -> Bool) -> Parser Char
+  empty   :: Parser a
+
+  -- combinators
+  pure  :: a -> Parser a
+  (<|>) :: Parser a -> Parser a -> Parser a         -- orElse
+  (>>=) :: Parser a -> (a -> Parser b) -> Parser b  -- andThen
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Simple parser combinators core}
+  \begin{minted}{haskell}
+  -- combinators
+  -- * Functor
+  fmap  :: (a -> b) -> Parser a -> Parser b
+  (<$)  :: a -> Parser b -> Parser a
+
+  -- * Applicative
+  (<*>) :: Parser (a -> b) -> Parser a -> Parser b
+  (<*)  :: Parser a -> Parser b -> Parser a
+    -- run both in sequence, result of first
+
+  -- * Alternative
+  many  :: Parser a -> Parser [a]
+  some  :: Parser a -> Parser [a]
+
+  -- * Monadic
+  (>>=) :: Parser a -> (a -> Parser b) -> Parser b  -- andThen
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{minted}{haskell}
+  ghci> runP (ord <$> char 'A') "A"
+  Just (65,"")
+
+  ghci> runP ((\x y -> [x, y]) <$> char 'a' <*> char 'b') "abc"
+  Just ("ab","c")
+  ghci> runP ((\x y -> [x, y]) <$> char 'a' <*> char 'b') "xxx"
+  Nothing
+
+  ghci> runP (char 'a' <* eof) "a"
+  Just ('a',"")
+  ghci> runP (char 'a' <* eof) "ab"
+  Nothing
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{minted}{haskell}
+  ghci> runP (many $ char 'a') "aaabcd"
+  Just ("aaa","bcd")
+  ghci> runP (many $ char 'a') "xxx"
+  Just ("","xxx")
+  ghci> runP (some $ char 'a') "xxx"
+  Nothing
+
+  ghci> runP (many $ char 'a') "aaabcd"
+  Just ("aaa","bcd")
+  ghci> runP (many $ char 'a') "xxx"
+  Just ("","xxx")
+  ghci> runP (some $ char 'a') "xxx"
+  Nothing
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{minted}{haskell}
+  ghci> runP (many $ char 'a') "aaabcd"
+  Just ("aaa","bcd")
+  ghci> runP (many $ char 'a') "xxx"
+  Just ("","xxx")
+  ghci> runP (some $ char 'a') "xxx"
+  Nothing
+
+  ghci> runP (many $ char 'a') "aaabcd"
+  Just ("aaa","bcd")
+  ghci> runP (many $ char 'a') "xxx"
+  Just ("","xxx")
+  ghci> runP (some $ char 'a') "xxx"
+  Nothing
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{minted}{haskell}
+string :: String -> Parser String
+  -- like 'char' but for string
+oneOf  :: [String] -> Parser String
+  -- parse first matched string from list
+
+data Answer = Yes | No
+
+yesP :: Parser Answer
+yesP = Yes <$ oneOf ["y", "Y", "yes", "Yes", "ys"]
+
+noP :: Parser Answer
+noP = No <$ oneOf ["n", "N", "no", "No"]
+
+answerP :: Parser Answer
+answerP = yesP <|> noP
+  \end{minted}
+\end{frame}
+
+
+\end{document}
