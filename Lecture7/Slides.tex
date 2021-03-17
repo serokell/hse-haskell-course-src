@@ -257,7 +257,7 @@ instance Monad IO where
 
 \begin{frame}[fragile]
   \frametitle{Reader}
-  The \verb"Reader" monad allows to read values from an environment:
+  The \verb"Reader" monad allows one to read values from an environment:
   \begin{minted}{haskell}
   newtype Reader r a = Reader { runReader :: (r -> a) }
 
