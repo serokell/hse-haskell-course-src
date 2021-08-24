@@ -189,7 +189,7 @@ Local binding with the \verb"let"-keyword:
 
 \vspace{\baselineskip}
 
-  One may use the dollar infix operator. That would allow us to avoid too many brackets.
+  One may use the dollar infix operator to reduce the overuse of brackets.
   For example, the functions \verb"function" and \verb"function1" are equivalent:
   \metroset{block=fill}
   \begin{exampleblock}{Example}
@@ -202,7 +202,7 @@ Local binding with the \verb"let"-keyword:
 
 \begin{frame}[fragile]
   \frametitle{Prefix and infix notation}
-  Any operator or function might be called in prefix and infix:
+  Every operator or function is prefix and infix in the following sense:
 
   \metroset{block=fill}
   \begin{exampleblock}{Example}
@@ -213,7 +213,7 @@ Local binding with the \verb"let"-keyword:
 [314.1592653589793,628.3185307179587,942.4777960769379]
   \end{minted}
   \end{exampleblock}
-  One may declare an operator defining its priority and associativity explicitly. Here's an example:
+  One can declare an operator defining its priority and associativity explicitly. Here is an example:
 \metroset{block=fill}
 \begin{exampleblock}{Example}
 \begin{minted}{haskell}
@@ -286,7 +286,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{Guards}
 
-  Let us take a look at the factorial implementation via guards:
+  Let us take a look at the factorial implementation with guards:
   \metroset{block=fill}
   \begin{exampleblock}{Example}
   \begin{minted}{haskell}
@@ -299,8 +299,8 @@ In Haskell, values are immutable. A small example:
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Basic datatypes}
-  The basic datatypes are:
+  \frametitle{Basic types}
+  The basic types are:
   \begin{itemize}
     \item \verb"Bool"
     \item \verb"Int"
@@ -342,7 +342,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{Types in GHCi}
 
-  Use the GHCi command \verb":t" to know a type of an expression:
+  Use the GHCi command \verb":t" to get a type of an expression:
 
   \metroset{block=fill}
   \begin{exampleblock}{Example}
@@ -365,7 +365,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{Function declaration with datatypes}
 
-  Let us recall the examples of function declarations:
+  Let us recall the examples:
   \metroset{block=fill}
   \begin{exampleblock}{Example}
     \begin{minted}{haskell}
@@ -392,7 +392,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{Lists}
 
-  Let's talk about lists. In Haskell, a list is a homogeneous collection of elements.
+  In Haskell, a list is a homogeneous collection of elements.
   \metroset{block=fill}
   \begin{exampleblock}{Example}
   \begin{minted}{haskell}
@@ -497,7 +497,7 @@ In Haskell, values are immutable. A small example:
 \begin{frame}[fragile]
   \frametitle{Higher order functions}
 
-  Function is a first-class object and one may pass any function as an argument:
+  A function is a first-class object and one may pass any function as an argument:
   \metroset{block=fill}
   \begin{exampleblock}{Example}
   \begin{minted}{haskell}
@@ -534,10 +534,10 @@ In Haskell, values are immutable. A small example:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Theoretical Flashback. Reduction strategies}
+  \frametitle{Reduction strategies}
 
 \onslide<1->{
-  We recall a couple of definitions related to the lambda calculus:
+  We recall a couple of definitions related to lambda calculus:
 }
 \onslide<2->{
   \begin{enumerate}
@@ -546,12 +546,12 @@ In Haskell, values are immutable. A small example:
   \end{enumerate}
 
 \onslide<4->{
-  It is clear, that SN implies WN, not vice versa. In other words, there exists a term that has an infinite reduction path, but it has a finite reduction path at the same time.
+  It is clear, that SN implies WN, not vice versa. In other words, there exists a term with an infinite reduction path, but it has a finite one at the same time.
   }
 \end{frame}
 
 \begin{frame}
-  \frametitle{Theoretical Flashback. Reduction strategies}
+  \frametitle{Reduction strategies}
 
 \onslide<1->{
   Let us consider the example of the following ridiculous term: $(\lambda x y. x) (\lambda z. z) ((\lambda x. x x) (\lambda x. x x))$. One may reduce this term in two ways:
@@ -578,22 +578,21 @@ From the one hand:
   & (\lambda x y. x) (\lambda z. z) ((\lambda x. x x) (\lambda x. x x)) \rightarrow_{\beta} & \\
   & (\lambda x y. x) (\lambda z. z) (x x)(x := [\lambda x. x x]) \rightarrow_{\beta}& \\
   & (\lambda x y. x) (\lambda z. z) ((\lambda x. x x) (\lambda x. x x)) \rightarrow_{\beta} \dots & \\
-  & \text{ spasiti pamagiti pajalusta ya tak bolshe ni magu (((((((9(99( lol kek}&
   \end{array}$
 }
 \end{frame}
 
 \begin{frame}
-  \frametitle{Theoretical Flashback. Reduction strategies}
+  \frametitle{Reduction strategies}
   \onslide<1->{
-  Let us consider the example above in some other aspects.
+  Let us consider the aforementioned example in some other aspects.
   } \onslide<2->{
   \begin{itemize}
     \item In the first case, we have got a sensible result by several reduction steps. On the other hand, we have a loop in the second case.
     } \onslide<3->{
     \item Also, in the first case, we start our reduction from the leftmost innermost redex. But when we were trying to reduce the term $(\lambda x. x x) (\lambda x. x x)$, we have seen that something went wrong.
     } \onslide<4->{
-    \item Can we distinguish all possible ways of term reduction?
+    \item The moral is that the order of reduction matters.
     }
   \end{itemize}
 
@@ -608,10 +607,10 @@ From the one hand:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Theoretical Flashback. Reduction strategies}
+  \frametitle{Reduction strategies}
 
 \onslide<1->{
-  Thus, one needs to overview of the possible ways of application reduction. We have two chairs:
+  Thus, one needs to analyse the possible ways of application reduction. We have the following alternatives:
 } \onslide<2->{
   \begin{enumerate}
     \item $(\lambda x_1 \dots x_n. M) N_1 \dots N_n$: we firtsly reduce $(N_i)_{i \in \{ 1, \dots, n \}}$
@@ -622,7 +621,7 @@ From the one hand:
   The first way is called \emph{applicative order reduction}, the second one is normal order reduction. In the following sense, the second is better:
 } \onslide<4->{
   \begin{theorem}
-    Let $M$ be a term such that $M$ has a normal form $M'$, then $M$ might be reduced to $M'$ with normal order reduction.
+    Let $M$ be a term such that $M$ has a normal form $M'$, then $M$ can be reduced to $M'$ using normal order reduction.
   \end{theorem}
   }
 \end{frame}
@@ -632,9 +631,9 @@ From the one hand:
 
 \begin{itemize}
   \onslide<1->{\item The applicative (normal) order is often called call-by-value (call-by-name)}
-  \onslide<2->{\item The most mainstream programming languages you know (Java, Python, Kotlin, etc) have call-by-value semantics}
-  \onslide<3->{\item The Haskell reduction has a call-by-need strategy which is quite close to call-by-name. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell doesn't compute a value if it's not needed at the moment}
-  \onslide<4->{\item Call-by-name reduction reduces reducible terms to the bitter end, but it's not always optimal, unfortunately}
+  \onslide<2->{\item The most mainstream programming languages you know (Java, Python, Kotlin, etc) have the call-by-value semantics}
+  \onslide<3->{\item The Haskell reduction has a call-by-need strategy which is quite close to call-by-name. Informally, such a stragety is called \emph{lazy}. Laziness denotes that Haskell does not compute a value if it is not needed at the moment}
+  \onslide<4->{\item Call-by-name reduction reduces reducible terms to the bitter end, but it is not always optimal, unfortunately}
 \end{itemize}
 \end{frame}
 
@@ -709,7 +708,7 @@ From the one hand:
     \onslide<1->{\item A function is called \emph{pure} if it has no side effects}
     \onslide<2->{\item It means that such a function behaves 'in the same way' at every point. This principle is also called \emph{referential transparency}
     }
-    \onslide<3->{\item A side-effect function is a function that may yield different values passing the same arguments. Mathematically, such a function is not function at all.
+    \onslide<3->{\item A side-effect function is a function that may yield different values for the same arguments. Mathematically, such a function is not function at all. This is rather a procedure.
     } \onslide<4->{
     \item Haskell functions are (mostly) pure ones, but Haskell is not confluent as a version of the lambda calculus
     }

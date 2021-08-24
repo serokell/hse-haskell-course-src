@@ -1,5 +1,5 @@
 \documentclass[10pt]{beamer}
-\usepackage[cache=false]{minted}
+\usepackage[outputdir=build]{minted}
 \usepackage[utf8x]{inputenc}
 \usepackage{hyperref}
 \usepackage{fontawesome}
@@ -117,15 +117,6 @@ keywordstyle=\color{myblue}\bfseries,
     \item The language standard: Haskell2010
     \item Default compiler: Glasgow Haskell compiler
     \item Haskell is a strongly-typed, polymorphic, and purely functional programming language
-    \onslide<2->{
-    \item This course is quite introductory.
-    }
-    \onslide<3->{
-    \item Vox populi:
-    \begin{center}
-    \includegraphics[scale=0.5]{Pics/VoxPopuli.png}
-    \end{center}
-    }
   \end{itemize}
 \end{frame}
 
@@ -134,16 +125,16 @@ keywordstyle=\color{myblue}\bfseries,
 
 \onslide<1->{
   \begin{itemize}
-    \item At the end of the 1920-s, Alonzo Church proposed an alternative approach to the foundations of mathematics where the notion of a function is the primitive one. The lambda calculus is a formal system that describes arbitrary abstract functions.
+    \item At the end of the 1920-s, Alonzo Church proposed an alternative approach to the foundations of mathematics where the notion of a function is a primitive one. Informally, lambda-calculus is a formal system that describes abstract functions.
     }
 \onslide<2->{
     \item Moreover, Church used the lambda calculus to show that Peano arithmetic is undecidable.
     }
   \onslide<3->{
-    \item Kleene and Rosser showed that the initial version of the lambda calculus is inconsistent. Initially, the idea of typing was the instrument that would allow us to avoid paradoxes.
+    \item Kleene and Rosser showed that the initial version of the lambda calculus is inconsistent. Initially (due to Bertand Russell), the idea of typing was the instrument that would allow us to avoid paradoxes.
   }
   \onslide<4->{
-    \item The first system of typed the lambda calculus is a hybrid from the lambda calculus and type theory developed by Bertrand Russell and Alfred North Whitehead (1910-s).
+    \item The first system of typed the lambda calculus is a hybrid from the lambda calculus and type theory developed by Bertrand Russell and Alfred North Whitehead in Principia Mathematica (1910-s).
   }
   \end{itemize}
 \end{frame}
@@ -173,13 +164,14 @@ keywordstyle=\color{myblue}\bfseries,
 \begin{frame}
   \frametitle{Functional programming and its foundations}
   \onslide<1->{
-  The lambda calculus establishes the foundations for functional programming in the same manner as the von Neumann principles are the root of imperative programming.
+  The lambda calculus establishes the foundations for functional programming in the same manner as the von Neumann principles for imperative programming.
   } \onslide<2->{
   \begin{itemize}
-    \item We have no assignment in imperative languages.  Variables are nullary constant functions rather than so-called boxes.
-    \item Hence, we have no states
+    \item We have no assignment in imperative languages.  Variables are nullary constant functions rather than boxes.
+    \item We have no states (in a usual sense)
     \item We use recursion instead of loops
     \item Pattern-matching
+    \item ...
   \end{itemize}
   }
 \end{frame}
@@ -193,7 +185,7 @@ A type system is a tractable syntactic method for proving the absence of certain
 \end{exampleblock}
 
 \onslide<2->{
-It's about
+Types in programming languages are about
   \begin{itemize}
     \item A partial specification
     \item Type preserving
@@ -232,7 +224,7 @@ We may classify possible ways of typing as follows
 \begin{frame}
   \frametitle{The Haskell Platform installation}
 
-  There are several ways to install the Haskell platform on Mac:
+  There are several ways to install the Haskell platform on Mac (if you have M1, don't cry):
 
 \onslide<1->{
   \begin{itemize}
@@ -250,11 +242,6 @@ We may classify possible ways of typing as follows
   Choose any way you prefer. All these ways are equivalent to each other.
 }
   \vspace{\baselineskip}
-
-
-\onslide<5->{
- I'm a Mac user, but I believe that you'll manage to install the Haskell Platform on NixOs/Windows/Linux/etc quite quickly.
- }
 \end{frame}
 
 \begin{frame}
@@ -268,7 +255,7 @@ We may classify possible ways of typing as follows
     }
     \item GHC is developed under the GHC Steering committee control.
     \onslide<2->{
-    \item Very roughly, compiling pipeline is arranged as follows:
+    \item Very roughly, compiling pipeline has the following form:
 \begin{center}
     parsing $\Rightarrow$ compile-time (type-checking mostly)
     $\Rightarrow$ runtime (program execution)
@@ -283,12 +270,12 @@ We may classify possible ways of typing as follows
   \begin{itemize}
     \item GHCi is a Haskell interpreter based on GHC.
     \item One may run GHCi with the command \verb"ghci".
-    \item You may play with GHCi as a calculator, the ordinary arithmetic operators are usual
-    \item You may also have a look at the GHCi chapter in the GHC User's Guide to get familiar with GHCi closely.
+    \item You may play with GHCi as a calculator, arithmetic operators are usual
+    \item You may also have a look at the GHCi chapter in the GHC User's Guide to get familiar with GHCi closer.
   \end{itemize}
 
   \begin{center}
-  \includegraphics[scale=0.46]{Pics/GHCi.png}
+  \includegraphics[scale=0.23]{Pics/GHCi.png}
   \end{center}
 \end{frame}
 
@@ -300,7 +287,7 @@ We may classify possible ways of typing as follows
     \item Cabal is a system of library and dependency management
     \item A \verb".cabal" file describes the version of a package and its dependencies
     \item Cabal is also a packaging tool
-    \item Cabal used to cause dependency hell
+    \item Cabal used to cause dependency hell, and it still does.
   \end{itemize}}
 \end{frame}
 
@@ -338,7 +325,7 @@ We may classify possible ways of typing as follows
     \item A screenshot from Stackage:
 
     \begin{center}
-    \includegraphics[scale=0.4]{Pics/Snapshots.png}
+    \includegraphics[scale=0.33]{Pics/Snapshots.png}
     \end{center}
     }
   \end{itemize}
@@ -347,15 +334,15 @@ We may classify possible ways of typing as follows
 \begin{frame}
   \frametitle{Ecosystem encapsulation}
 
-  The Haskell ecosystem encapsulation might be described as the sequence of the following inclusions:
+  The Haskell ecosystem encapsulation can be described as the sequence of the following inclusions:
 
   \begin{center}
-  \includegraphics[scale=0.15]{Pics/Eco.jpeg}
+  \includegraphics[scale=0.25]{Pics/Eco.png}
   \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Creating a Haskell project with Stack}
+  \frametitle{Creating a Haskell project using Stack}
   \onslide<1->{
   \begin{itemize}
     \item Figure out how to call your project and run the script \verb"stack new <projectname>"
@@ -364,7 +351,7 @@ We may classify possible ways of typing as follows
   \onslide<2->{
 
   \begin{center}
-  \includegraphics[scale=0.35]{Pics/Tree.png}
+  \includegraphics[scale=0.34]{Pics/Tree.png}
   \end{center}
   \end{itemize}
   }
@@ -374,7 +361,7 @@ We may classify possible ways of typing as follows
   \frametitle{\verb"stack.yaml"}
 
 \onslide<1->{
-  Let us discuss on how dependency files look like. First of all, we observe the \verb"stack.yaml" file:
+  Let us discuss on how dependency files look like. First of all, we have a look the \verb"stack.yaml" file:
 }
 
 \onslide<2->{
@@ -388,11 +375,11 @@ We may classify possible ways of typing as follows
   \frametitle{Cabal file}
 
 \onslide<1->{
-  As we told above, the \verb".cabal" file describes the relevant version of a project and its dependencies:
+  The \verb".cabal" file describes the relevant version of a project and its dependencies:
 }
 \onslide<2->{
 \begin{center}
-\includegraphics[scale=0.273]{Pics/CabalFile.png}
+\includegraphics[scale=0.35]{Pics/CabalFile.png}
 \end{center}
   }
 \end{frame}
@@ -405,7 +392,7 @@ We may classify possible ways of typing as follows
 }
 \onslide<2->{
 \begin{center}
-\includegraphics[scale=0.25]{Pics/PackageYaml.png}
+\includegraphics[scale=0.35]{Pics/PackageYaml.png}
 \end{center}
 }
 \end{frame}
@@ -441,7 +428,7 @@ The basic commands:
   }
 \onslide<4->{
 \begin{center}
-\includegraphics[scale=0.3]{Pics/HackageExample.png}
+\includegraphics[scale=0.22]{Pics/HackageExample.png}
 \end{center}
   }
 \end{frame}
@@ -463,7 +450,7 @@ The basic commands:
 \begin{frame}
   \frametitle{Hackage Search}
 
-  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is by Vlad Zavialov, my GHC teammate from Serokell.
+  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is by Vladislav Zavialov, my GHC teammate from Serokell.
 
   \verb"https://hackage-search.serokell.io".
 
@@ -478,12 +465,12 @@ The basic commands:
   \frametitle{Hackage Search}
 
 \onslide<1->{
-  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is made Vlad Zavialov, my GHC teammate from Serokell.
+  Hackage Search is a searching tool for Hackage based on regular expressions. This tool is by Vlad Zavialov, my GHC teammate from Serokell.
 
   \verb"https://hackage-search.serokell.io".
 }
 \begin{center}
-\includegraphics[scale=0.24]{Pics/HackageSearch2.png}
+\includegraphics[scale=0.38]{Pics/HackageSearch2.png}
 \end{center}
 \end{frame}
 
@@ -507,7 +494,7 @@ The basic commands:
     \item The basic Haskell syntax
     \item The underlying aspects of the Haskell type system
     \item Functions and lambdas
-    \item Immutability and Laziness
+    \item Immutability and laziness
   \end{enumerate}
   }
 \end{frame}
