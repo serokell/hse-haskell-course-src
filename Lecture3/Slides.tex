@@ -104,7 +104,7 @@ keywordstyle=\color{myblue}\bfseries,
 
   We will study
   \begin{center}
-  \includegraphics[scale=0.33]{Pics/doge.png}
+  \includegraphics[scale=0.3]{Pics/doge.png}
   \end{center}
 \end{frame}
 
@@ -117,7 +117,7 @@ keywordstyle=\color{myblue}\bfseries,
   changeTwiceBy operation value = operation (operation value)
   \end{minted}
 
-  One may implement the 'same' functions for Boolean values and strings:
+  Here are the `same' functions for Booleans and strings:
 
   \begin{minted}{haskell}
   changeTwiceBy :: (Bool -> Bool) -> Bool -> Bool
@@ -137,7 +137,7 @@ keywordstyle=\color{myblue}\bfseries,
 \begin{frame}[fragile]
   \frametitle{Parametric polymorphism}
 
-The key idea of parametric polymorphism that the same function might be called on distinct data types. Here are the first polymorphic examples:
+The key idea of parametric polymorphism that the same function can be called on distinct data types. Here are the first polymorphic examples:
   \begin{minted}{haskell}
   id :: a -> a
   id x = x
@@ -151,14 +151,6 @@ The key idea of parametric polymorphism that the same function might be called o
   swap :: (a, b) -> (b, a)
   swap (a, b) = (b, a)
   \end{minted}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Meme time}
-
-  \begin{center}
-  \includegraphics[scale=0.3]{Pics/Ryan.png}
-  \end{center}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -292,7 +284,7 @@ The key idea of parametric polymorphism that the same function might be called o
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Bye-bye boilerplate!}
+  \frametitle{We no longer have boilerplate}
 
   All those functions such as the following one
   \metroset{block=fill}
@@ -303,7 +295,7 @@ The key idea of parametric polymorphism that the same function might be called o
     operation (operation value)
   \end{minted}
 \end{exampleblock}
-  might be replaced by one of the following ones:
+  can be generalised as follows:
   \metroset{block=fill}
   \begin{exampleblock}{\verb"applyTwice"}
   \begin{minted}{haskell}
@@ -428,7 +420,7 @@ The key idea of parametric polymorphism that the same function might be called o
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The notion of a type class}
+  \frametitle{Type classes}
 
 \begin{itemize}
   \item \emph{A type class} is a collection of functions with type signatures with a common type parameter. An example given:
@@ -696,20 +688,20 @@ class Num a where
 \onslide<1->{
   On this seminar, we
   \begin{itemize}
-    \item took a look at parametric polymorphism to see how to avoid boilerplate
-    \item discussed type classes and ad hoc polymorphism
-    \item studied such basic type classes as \verb"Eq", \verb"Show", etc
+    \item had a look at parametric polymorphism to see how to avoid boilerplate,
+    \item discussed type classes and ad hoc polymorphism,
+    \item studied such basic type classes as \verb"Eq", \verb"Show", etc.
   \end{itemize}
 }
 
 \onslide<2->{
-On the next seminar, we will
+On the next seminar, we will study
   \begin{itemize}
-    \item delve into the variety of Haskell data types: algebraic data types, newtypes,
-    type synonyms, etc
-    \item feel the power of pattern matching
-    \item discuss folds
-    \item see how to enforce evaluation in Haskell
+    \item  the variety of Haskell data types: algebraic data types, newtypes,
+    type synonyms, etc,
+    \item the power of pattern matching,
+    \item foldsm
+    \item evaluation enforcement.
   \end{itemize}
 }
 \end{frame}
