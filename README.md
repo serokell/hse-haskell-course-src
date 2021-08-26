@@ -1,4 +1,4 @@
-### Syllabus
+### (Approximate) Syllabus
 
 1. `stack`, `cabal`, and `Hello World` in Haskell. Module system. `GHC` and `GHCi`. `Hackage` and `Hoogle`.
 2. Introduction to Haskell: Basic syntax, partial application, currying, infix operators. Lists, infinite lists, list comprehension.
@@ -15,7 +15,35 @@
 
 #### Articles and blog posts
 
+1. [Philip Wadler. Comprehending Monads](https://ncatlab.org/nlab/files/WadlerMonads.pdf)
+2. [Philip Wadler. Monads for functional programming](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+3. [Philip Wadler. Theorems for Free](https://people.mpi-sws.org/~dreyer/tor/papers/wadler.pdf)
+4. [Simon Peyton Jones, Andrew Gordon, Sigbjorn Finne. Concurrent Haskell](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.47.7494&rep=rep1&type=pdf)
+5. [Paul Hudak, John Hughes, Simon Peyton Jones, Philip Wadler. A history of Haskell: being lazy with class](https://dl.acm.org/doi/abs/10.1145/1238844.1238856)
+6. [Simon Peyton Jones, Dimitrios Vytiniotis, Stephanie Weirich, Mark Shields. Practical type inference for arbitrary-rank types](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/abs/practical-type-inference-for-arbitraryrank-types/5339FB9DAB968768874D4C20FA6F8CB6)
+7. [Cordelia V Hall, Kevin Hammond, Simon Peyton Jones, Philip L Wadler. Type classes in Haskell](https://dl.acm.org/doi/abs/10.1145/227699.227700)
+8. [Heitor Toledo Lassarote de Paula. A Brief Introduction to Template Haskell](https://serokell.io/blog/introduction-to-template-haskell)
+9. [Vladislav Zavialov. Type Families in Haskell: The Definitive Guide](https://serokell.io/blog/type-families-haskell)
+10. [Vladislav Zavialov. Why Dependent Haskell is the Future of Software Development](https://serokell.io/blog/why-dependent-haskell)
+11. [Vladislav Zavialov. Haskell to Core: Understanding Haskell Features Through Their Desugaring](https://serokell.io/blog/haskell-to-core)
+12. [Simon Marlow, Simon Peyton Jones. The Glasgow Haskell Compiler](https://www.aosabook.org/en/ghc.html)
+
 #### Books
+
+1. [Miran Lipovača. Learn You a Haskell for Great Good](http://learnyouahaskell.com/)
+2. [Sandy Maguire. Thinking with Types: Type-Level Programming in Haskell](https://leanpub.com/thinking-with-types)
+3. [Vitaly Bragilevsky. Haskell in Depth](https://www.manning.com/books/haskell-in-depth)
+4. [Alejandro Serrano Mena. Practical Haskell](https://www.apress.com/gp/book/9781484244791)
+5. [Graham Hutton. Programming in Haskell](https://www.cs.nott.ac.uk/~pszgmh/pih.html)
+
+#### Types and lambda
+
+1. [Benjamin C. Pierce. Types and Programming Languages](https://www.cis.upenn.edu/~bcpierce/tapl/)
+2. [Morten Heine Sørensen, Pawel Urzyczyn. Lectures on the Curry-Howard Isomorphism](https://www.elsevier.com/books/lectures-on-the-curry-howard-isomorphism/sorensen/978-0-444-52077-7)
+3. [J. Roger Hindley. Basic Simple Type Theory](https://www.cambridge.org/core/books/basic-simple-type-theory/0C0B4DB68D19B96E2F2F8AAF8DD738C7)
+4. [Henk Barendregt. Lambda calculi with types](https://home.ttic.edu/~dreyer/course/papers/barendregt.pdf)
+5. [Therry Coquand. Type theory](https://plato.stanford.edu/entries/type-theory/)
+6. [Jean-Yves Girard, Yves Lafont, Paul Taylor. Proofs and types](https://www.paultaylor.eu/stable/prot.pdf)
 
 #### Videos
 
