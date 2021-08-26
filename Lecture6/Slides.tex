@@ -97,7 +97,7 @@ keywordstyle=\color{myblue}\bfseries,
 % The Document
 % ------------------------------------------------------------------------------
 \title{Functional programming, Seminar No. 6}
-\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\author{Daniel Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
 
 \vspace{\baselineskip}
 
@@ -131,7 +131,6 @@ We will study
     \item A computation with reading from an external environment \verb"a -> (e -> b)"
     \item A computation with a mutable state: \verb"a -> (State s) b"
     \item An input/output computation: \verb"a -> IO b"
-    \item A generalised version of such a function is a Kleisli function \verb"a -> m b"
   \end{itemize}
 \end{frame}
 
@@ -147,7 +146,7 @@ If one needs to provide a uniform interface to deal with Kreisli functions, then
     \begin{minted}{haskell}
     (>=>) :: (a -> m b) -> (b -> m c) -> a -> m c
     \end{minted}
-    \item In general, we \alert{cannot} extract \verb"a" from \verb"m a"
+    \item Generally, we \alert{cannot} extract \verb"a" from \verb"m a"
   \end{enumerate}
 \end{frame}
 
@@ -181,10 +180,9 @@ Let us take a look the full definition of the \verb"Monad" class
   class Applicative m => Monad m where
     join :: m (m a) -> m a
   \end{minted}
-
 \onslide<2->{
   Moreover, such a definition is closer to the original categorical definition
-  of a monad.
+  of a monad. But we do not care about categories here.
   }
 \end{frame}
 
@@ -216,7 +214,7 @@ Right (-1.0)
 \begin{frame}[fragile]
   \frametitle{The monadic bind operator}
 
-Take a look at the monadic type signature closely:
+Take a look at the monadic type signature closer:
   \begin{minted}{haskell}
   (>>=) :: Monad m => m a -> (a -> m b) -> m b
   \end{minted}
@@ -252,7 +250,7 @@ In some sense, it is quite close to the reverse application operator.
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The very first monad. The \verb"Identity" type}
+  \frametitle{The very first (trivial) monad. The \verb"Identity" type}
 
   Let us define the following new type
   \begin{minted}{haskell}

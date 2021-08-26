@@ -97,7 +97,7 @@ keywordstyle=\color{myblue}\bfseries,
 % The Document
 % ------------------------------------------------------------------------------
 \title{Functional programming, Seminar No. 5}
-\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\author{Daniel Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
 \date{Higher School of Economics \\ The Faculty of Computer Science}
 
 \begin{document}
@@ -434,7 +434,7 @@ instance Functor (Either a) where
 \begin{frame}[fragile]
 \frametitle{The \verb"Functor" laws}
 
-Any \verb"Functor" instance is expected to satisfy the following axioms:
+Any \verb"Functor" instance has to satisfy the following axioms:
 
 \begin{minted}{haskell}
 
@@ -446,7 +446,7 @@ fmap (f . g) fx = (fmap f . fmap g) fx
 
 \begin{frame}[fragile]
 \frametitle{The \verb"Functor" laws. Example}
-Let us check that the list data type is really a functor.
+Let us check that the list data type is really a functor by induction.
 
 \begin{minted}{haskell}
 
@@ -464,7 +464,7 @@ fmap (f . g) (x : xs) =
 \end{minted}
 \end{frame}
 
-\section{Applicative functors}
+\section{Applicative Functors}
 
 \begin{frame}[fragile]
 \frametitle{Motivation}
@@ -563,7 +563,7 @@ instance Applicative ZipList where
 \end{minted}
 
 How to implement \verb"pure" and preverse the applicative laws?
-If we define \verb"pure" as below, that would break all those axioms.
+If we define \verb"pure" as below, that would break all axioms of an applicative functor.
 \begin{minted}{haskell}
   pure x = ZipList [x]
 \end{minted}

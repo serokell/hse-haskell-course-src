@@ -97,7 +97,7 @@ keywordstyle=\color{myblue}\bfseries,
 % The Document
 % ------------------------------------------------------------------------------
 \title{Functional programming, Seminar No. 8}
-\author{Danya Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
+\author{Daniel Rogozin \\ Lomonosov Moscow State University, \\ Serokell O\"{U}}
 
 \vspace{\baselineskip}
 
@@ -363,7 +363,10 @@ lift (m >>= f) == lift m >>= (lift . f)
     writeFileWithLog path (format content)
 
   main :: IO ()
-  main = runReaderT (prettifyFileContent "foo.txt") (LoggerName "Application")
+  main =
+    runReaderT
+      (prettifyFileContent "foo.txt")
+      (LoggerName "Application")
   \end{minted}
 \end{frame}
 

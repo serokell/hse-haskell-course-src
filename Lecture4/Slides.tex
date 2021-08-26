@@ -95,7 +95,7 @@ keywordstyle=\color{myblue}\bfseries,
 }
 
 \title{Functional programming, Seminar No. 4}
-\author{Danya Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
+\author{Daniel Rogozin \\ Institute for Information Transmission Problems, RAS \\ Serokell O\"{U}}
 \date{Higher School of Economics \\ The Faculty of Computer Science}
 \begin{document}
 
@@ -126,7 +126,7 @@ keywordstyle=\color{myblue}\bfseries,
 
 \onslide<2->{
   \begin{itemize}
-    \item Terms like \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are called \emph{patterns}
+    \item Such expressions as \verb"(a,b)", \verb"[]", and \verb"(x : xs)" are called \emph{patterns}
     \item One needs to check whether the constructors \verb"(,)" and \verb"( : )" are relevant.
     \item Consider \verb"swap (45, True)". Variables \verb"a" and \verb"b" are bound with the values \verb"45" and \verb"True".
     \item Consider \verb"lenght [1,2,3]". Variables \verb"x" and \verb"xs" are bound with the values \verb"1" and \verb"[2,3]"
@@ -297,7 +297,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
 \begin{frame}[fragile]
   \frametitle{As-patterns}
   \begin{itemize}
-  \item Suppose we have the following function
+  \item Suppose we have the following function (a quite bad one)
   \begin{minted}{haskell}
   dupHead :: [a] -> [a]
   dupHead (x : xs) = x : x : xs
@@ -352,7 +352,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
 \begin{frame}[fragile]
   \frametitle{Field labels}
   \begin{itemize}
-    \item Sometimes product data types are too cumbersome:
+    \item Sometimes product data types are rather cumbersome:
     \begin{minted}{haskell}
     data Person = Person String String Int Float String
     \end{minted}
@@ -398,7 +398,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
   \frametitle{Field labels and type classes}
 
   \begin{itemize}
-    \item The previous listing a bit unsugared (very roughly):
+    \item The previous listing, an unsugared version (but very roughly):
     \begin{minted}{haskell}
     data Eq a =
       Eq { eq :: a -> a -> Bool
@@ -420,7 +420,7 @@ taxiCab (Point x1 y1) (Point x2 y2) =
 \begin{frame}[fragile]
   \frametitle{Some standard algebraic data types}
   \begin{itemize}
-    \item The \verb"Maybe a" data type allows one to define an optional value:
+    \item The \verb"Maybe a" data type is a type of optional values:
     \begin{minted}{haskell}
     data Maybe a = Nothing | Just a
 
