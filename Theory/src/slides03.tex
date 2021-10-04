@@ -1,0 +1,4454 @@
+\documentclass[xcolor=dvipsnames]{beamer}
+
+\usetheme[progressbar=frametitle,numbering=fraction,block=fill]{metropolis}
+\usepackage{proof}
+\usepackage{multirow,bigdelim}
+\usepackage[russian]{babel}
+\usepackage{minted}
+\usepackage{amssymb,amsmath}
+\usepackage{libertinus}
+\usefonttheme{serif}
+
+\usepackage[matrix,arrow]{xy}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,patterns,positioning,matrix,calc,arrows,shapes,fit,decorations,decorations.pathmorphing}
+%\usepackage{pifont}
+%\setmathfont{TeX Gyre Bonum Math}[range={\diamond}]
+
+\newcommand{\NN}{\mathbb{N}}
+
+\newcommand{\Int}{\mbox{\texttt{Int}}}
+\newcommand{\Bool}{\mbox{\texttt{Bool}}}
+\newcommand{\Char}{\mbox{\texttt{Char}}}
+
+
+\newcommand{\Cx}{\mathbf{C}}
+
+
+\newcommand{\Sc}{\mathcal{S}}
+\newcommand{\Yr}{\mathrm{Y}}
+
+
+\newcommand{\Ix}{\mathbf{I}}
+\newcommand{\Yx}{\mathbf{Y}}
+\newcommand{\Bx}{\mathbf{B}}
+\newcommand{\Yb}{\mathbb{Y}}
+
+\newcommand{\Fx}{\mathbf{F}}
+\newcommand{\Tx}{\mathbf{T}}
+\newcommand{\Kx}{\mathbf{K}}
+
+\newcommand{\adisj}{\vee}
+\newcommand{\aconj}{\wedge}
+
+\newcommand{\Kc}{\mathcal{K}}
+
+
+
+\newcommand{\ifxx}[3]{\bigl(\mathbf{if}\ {#1}\ \mathbf{then}\ {#2}\ \mathbf{else}\ {#3}\bigr)}
+
+\newenvironment{mypic}
+{\begin{center}\begin{tikzpicture}[line width=1.5pt]}
+{\end{tikzpicture}\end{center}}
+
+
+\newcommand{\BS}{\mathop{\backslash}}
+\newcommand{\SL}{\mathop{/}}
+\newcommand{\Pc}{\mathcal{P}}
+\newcommand{\ACT}{\mathbf{ACT}}
+\newcommand{\ACTomega}{\ACT_\omega}
+\newcommand{\TM}{\mathfrak{M}}
+\newcommand{\Gc}{\mathcal{G}}
+
+\newcommand{\MALC}{\mathbf{MALC}}
+\newcommand{\ILL}{\mathbf{ILL}}
+\newcommand{\IAL}{\mathbf{IAL}}
+\newcommand{\AMALC}{\mathbf{AMALC}}
+
+\newcommand{\eL}{\mathbf{\boldsymbol{!}L}}
+\newcommand{\rL}{\mathbf{\boldsymbol{!}^r L}}
+\newcommand{\reL}{\mathbf{\boldsymbol{!}^{re} L}}
+
+\newcommand{\exL}{\boldsymbol{!}_{\leqslant 1}\mathbf{L}}
+\newcommand{\rxL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{r}} \mathbf{L}}
+\newcommand{\rexL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{re}} \mathbf{L}}
+
+\newcommand{\Dc}{\mathcal{D}}
+
+
+\newcommand{\Factx}{\mathrm{Fact}}
+\newcommand{\Prevx}{\mathbf{Prev}}
+
+\newtheorem{theoremr}{Теорема}
+
+\begin{document}
+
+\title{Функциональное программирование}
+\subtitle{Лекция 3}
+\date{}
+\author{Степан Львович Кузнецов}
+\institute{НИУ ВШЭ, факультет компьютерных наук}
+
+\maketitle
+
+\iffalse 
+\begin{frame}{Вычисление как преобразование}
+ 
+ \begin{itemize}[<+->]
+  \item В функциональной парадигме {\em вычисление} функции (программы) $F$ на входных данных $a_1, \ldots, a_n$ --- это {\em редукция} (преобразование) терма
+  $F a_1 \ldots a_n$ вплоть до {\em нормальной формы} --- далее не редуцируемого состояния.
+  
+  \item Базовый язык --- <<чистое>> $\lambda$-исчисление, в котором термы строятся с помощью операций применения и $\lambda$-абстракции, а основное преобразование --- $\beta$-редукция:
+  \[
+  \mbox{\fbox{$\quad\ldots\quad (\lambda x.u)v \quad \ldots\quad$}} \to_\beta
+  \mbox{\fbox{$\quad\ldots\quad u[x:=v] \quad \ldots\quad$}}
+ \]
+
+ \item Редукции могут применяться в разном порядке.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Имеет место {\em свойство Чёрча -- Россера:}
+ \[
+  \xymatrix{
+   & v_1 \ar@{-->>}[dr] & \\
+  u \ar@{->>}[ur]\ar@{->>}[dr] & & w \\
+  & v_2 \ar@{-->>}[ur]
+  }
+ \]
+ \item Значит, совершить <<ошибочную>> редукцию на пути к нормальной форме невозможно: если нормальная форма существует, то любую стартовую последовательность редукций можно до неё довести.
+ 
+ \item В частности, нормальная форма, если существует, то $\alpha$-единственна.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Порядок редукций}
+ 
+ \begin{itemize}[<+->]
+  \item Теорема Чёрча -- Россера имеет место для <<чистого>> $\lambda$-исчисления, однако в его реально используемых расширениях может нарушаться.
+  \item Например, в Haskell'е есть \mintinline{text}{undefined} для аварийного прерывания вычисления.
+  \item В присутствии \mintinline{text}{undefined} (мы его обозначим как $\bot$) порядок вычислений существен.
+  \item Пример: $(\lambda y. z) \bot$.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Также бывают {\em слабо, но не сильно нормализуемые} термы, у которых есть нормальная форма, но есть и другой, бесконечный путь редукций.
+ 
+ \item Пример: $(\lambda y. z) \Omega$, где $\Omega = (\lambda x. (xx)) (\lambda x. (xx))$.
+ 
+ \item Поэтому, несмотря на свойство Чёрча -- Россера, {\em порядок применения редукций важен.}
+ 
+ \item Традиционно (в императивных языках) используется {\em ретивый} (eager) порядок вычисления: сначала вычислить значения аргументов функции, потом саму функцию.
+ 
+ \item В нашем примере $(\lambda y.z) \Omega$ такой порядок приводит к бесконечному циклу, пытаясь вычислить $\Omega$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Порядок вычислений}
+
+\begin{itemize}[<+->]
+ 
+ \item Элементы других, {\em ленивых}  (lazy) вычислений имеются и в некоторых императивных языках, например, в C:
+ \begin{minted}{c}
+if (x != 0 && y/x > 3) { /* ... */ }
+ \end{minted}
+\begin{itemize}
+\item Если \mintinline{c}{x} равно 0, то первый член конъюнкции ложен, значит, ложна и вся конъюнкция, и стандарт языка предписывает {\em не вычислять} второй член (что привело бы к ошибке <<деление на ноль>>).
+\end{itemize}
+\item Мы определим {\em нормальную} стратегию редукций, соответствующую идее ленивого вычисления: не вычисляй значение, пока оно не понадобится.
+ 
+
+\item Нормальная стратегия редукций реализует идею ленивости {\em последовательно.}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Ленивость}
+
+Для сравнения: при <<традиционном>> подходе, даже если реализация булевых операций ленивая, в более сложных случаях ленивость исчезает.
+
+\begin{minted}{python}
+x = 0
+y = 3
+
+if (x == 0 or y/x > 3):
+    print "Hello!"
+
+if ((lambda b: (x == 0 or b)) (y/x > 3)):
+    print "Hi!"
+\end{minted}
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Говорим, что один редекс находится {\em левее} другого, если $\lambda$ первого редекса расположена левее (в записи терма), чем $\lambda$ второго.
+ 
+ \item Это означает, что либо первый редекс целиком расположен левее второго, либо второй редекс находится внутри первого (в $u_1$ или в $v_1$):
+ \[
+ \ldots\quad (\lambda x.u_1)v_1 \quad \ldots\quad (\lambda x.u_2)v_2 \quad \ldots
+ \]
+ \[
+  \ldots \quad 
+  (\lambda x. 
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{u_1}\,) v_1 \quad \ldots
+ \]
+ \[
+  \ldots \quad
+  (\lambda x. u_1)
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{v_1}
+  \quad\ldots
+ \]
+
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item {\bf Нормальная стратегия:} всегда редуцируй {\em самый левый редекс.}
+ \item При этом это не обязательно самая левая $\lambda$: левее могут быть лямбды, не образующие $\beta$-редексов (после которых не идёт применение).
+ \item В частности, мы сначала редуцируем $(\lambda x . u_1) v_1$, а только потом (если потребуется) вычисляем внутри $v_1$ (ленивость!).
+ \begin{theoremr}
+  Если терм можно привести к нормальной форме, то нормальная стратегия добьётся этого.
+ \end{theoremr}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по необходимости}
+
+\begin{itemize}[<+->]
+ \item Как мы уже видели, нормальная стратегия редукций избавляет от вычисления ненужных аргументов: $(\lambda x y . x) v_1 v_2 \twoheadrightarrow_\beta v_1$.
+ \item С другой стороны, буквальное следование нормальной стратегии приводит к избыточным вычислениям за счёт копирования аргумента:
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}\,) v \to_\beta
+\mbox{\fbox{$\:\ldots\: v \:\ldots\: v \:\ldots\: v \:\ldots\:$}}
+ \]
+\item Для решения этой проблемы используется (в частности, в Haskell'е) {\em графовая оптимизация,} или <<вызов по необходимости>> (call-by-need):
+\[
+\xymatrix@-2em{
+&&&&&&& v \\
+\ldots & \lozenge\ar[urrrrrr] & \ldots & \lozenge
+\ar[urrrr] & \ldots & \lozenge\ar[urr] & \ldots
+}
+\]
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по...}
+
+\begin{itemize}
+ \item {\bf Вызов по значению} (call-by-value): сначала вычислить значения аргументов, потом применять функцию. Соответствует {\em аппликативному} порядку редукций, обычен для императивных языков.
+ 
+ \item {\bf Вызов по имени} (call-by-name): сначала подставить аргументы (не вычисляя их) в функцию, соответствует нормальному порядку редукций.
+ 
+ \item {\bf Вызов по необходимости} (call-by-need): соответствует порядку редукций с графовой оптимизацией.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item Ещё один недостаток нормализации --- её неустойчивость относительно расширения терма.
+ 
+ \item Например, терм $\lambda x. (x \Omega)$ не нормализуем (единственная редукция переводит $\Omega$ в себя), однако если рассмотреть его в большем терме: $(\lambda x. (x \Omega))(\lambda y.z)$, то этот терм нормализуется к $z$ с помощью нормальной стратегии.
+ 
+ \item Решение этой проблемы --- отказ от применения некоторых редукций, т.е. ослабление требований к нормальной форме.
+ 
+ \item Для этого используется {\em слабая головная нормальная форма} (WHNF), в которой разрешены редексы в определённых местах.
+ 
+ \item Всякая нормальная форма является WHNF, но не наоборот.
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item В чистом $\lambda$-исчислении к термам в WHNF относятся:
+ \begin{enumerate}
+  \item {\bf все} термы вида $\lambda x . u$;
+  \item термы вида $x \, v_1 \, \ldots \, v_n$, где $x$ --- переменная. (При этом внутри $v_i$ могут быть редексы.)
+ \end{enumerate}
+ \item Таким образом, мы не вычисляем тогда, когда это может не пригодиться:
+ \begin{enumerate}
+  \item функция с внешней $\lambda$'ой ещё не применена;
+  \item переменная $x$ обозначает неизвестную функцию.
+ \end{enumerate}
+ \item Недоредуцированные подтермы называются thunk'ами.
+ \item В Haskell'е, из-за другого синтаксиса, понятие WHNF немного другое (было/будет на семинаре).
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item К примеру, определим (в GHCi) ненормализуемый терм:
+ \begin{minted}{haskell}
+om = (let y = y in y)
+ \end{minted}
+ \item Попытка вычислить \mintinline{text}{om} уводит в бесконечный цикл.
+ \item Однако если определить функцию
+\begin{minted}{haskell}
+kk = \x -> x om
+\end{minted}
+то попытка её вычислить даёт уже ошибку ``no instance for Show'' --- т.е. \mintinline{text}{om} здесь не пытаются вычислить.
+\item В \mintinline{text}{kk (\z -> z)}, конечно, будет бесконечный цикл, а вот \mintinline{text}{kk (\z -> 0)} лениво вычисляется в \mintinline{text}{0}.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+{\footnotesize Пример из \url{https://eax.me/lazy-evaluation/} ,,Скандальная правда о Haskell и ленивых вычислениях``
+
+}
+
+\begin{itemize}[<+->]
+ \item Иногда стратегия вызова по необходимости, несмотря на графовую оптимизацию, приводит к нежелательным с точки зрения эффективности последствиям.
+ \item Рассмотрим следующий пример (вычисление суммы элементов списка):
+ \begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+ \end{minted}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item Эта программа выдаёт правильный ответ (500000500000).
+  \item Посмотрим, однако, на использование ресурсов.
+\begin{minted}{text}
+ghc -rtsopts lazy_fail.hs
+./lazy_fail +RTS -sstderr
+\end{minted}
+  \item Получаем ``\mintinline{text}{99 MiB total memory in use}'' (и это число будет меняться в зависимости от размера массива).
+  \item Проблема не в глубине стека: \mintinline{haskell}{mysum'} реализован через хвостовую рекурсию, она оптимизируется.
+  \item Дело в порядке редукций и слишком больших thunk'ах.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+\begin{itemize}[<+->]
+ \item Последовательность редукций:\\
+ \mintinline{haskell}{mysum' 0 [0..3]}
+ $\to$ 
+ \mintinline{haskell}{mysum' (0+0) [1..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1) [2..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2)
+ [3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2+3)
+ []}
+ $\twoheadrightarrow$
+ \mintinline{haskell}{6}
+ \item Аккумулятор \mintinline{text}{acc} в процессе вычислений остаётся огромным thunk'ом, а фактически вычисляется только в самом конце.
+ \item Получается, что мы храним наш большой массив \mintinline{haskell}{[1..1000000]} не в компактном, а в явном виде.
+ \item Чтобы избежать этого, нужно принудить Haskell сразу вычислять (приводить к WHNF) 
+ выражение \mintinline{text}{acc+x}.
+ \item Для этого используется встроенная функция \mintinline{text}{seq}.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item \mintinline{text}{seq} вычисляет свой первый аргумент и (если вычисление успешно) игнорирует его и возвращает второй.
+  \item В нашем примере:
+\begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = (acc+x) `seq` mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+\end{minted}
+\item Здесь новое значение аккумулятора оказывается предвычисленным и (за счёт графовой оптимизации) именно оно передаётся по рекурсии.
+\item Расход памяти --- 2 MiB (столько же, сколько у тривиальной ``Hello, World!''), и он не растёт с ростом длины списка.
+\item Через \mintinline{text}{seq} определяется оператор \mintinline{text}{f $! x}, который означает \mintinline{text}{x `seq` (f x)}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Изменение порядка редукций}
+ 
+ \begin{itemize}[<+->]
+  \item Итак, \mintinline{text}{seq} {\em изменяет порядок редукций.}
+  \item На одной из следующих лекций мы познакомимся с ещё одним таким оператором --- \mintinline{text}{par}, реализующим распараллеливание.
+ \end{itemize}
+
+\end{frame}
+
+\fi
+
+\begin{frame}[fragile]{Типы в языках программирования}
+ 
+ \begin{itemize}[<+->]
+  \item В большинстве языков программирования имеются системы {\em типов данных.} 
+  Бестиповые языки, такие как языки ассемблера или простейшее $\lambda$-исчисление, встречаются редко.
+  \item В бестиповом языке любую операцию можно совершить над любыми данными. Дисциплина типов данных налагает определённые {\em ограничения} на применение операций (функций), чтобы отсечь {\em бессмысленные} ошибочные применения.
+  \begin{itemize}
+    \item Например, выражение \mintinline{text}{2+2} осмысленно (хотя, может быть, вычисляет не то, что нам на самом деле нужно), а выражение \mintinline{text}{2+"two"} скорее всего бессмысленно.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типы в языках программирования}
+
+\begin{itemize}[<+->]
+ \item Таким образом, система типов выполняет охранительную функцию: проверки корректности типов запрещают некоторые конструкции (<<мешают программировать>>).
+ \item При этом эти конструкции не всегда совершенно бессмысленные. Например, комбинатор неподвижной точки $\Yx = \lambda f. \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$ скорее всего будет некорректен с точки зрения системы типов (аргумент функции не может иметь тот же тип, что и сама функция), однако разумно используется для реализации рекурсии.
+ \item Для собственно исполнения программы (вычисления) типы обыкновенно не нужны.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типы в языках программирования}
+ 
+ \begin{itemize}[<+->]
+  \item С другой стороны, контроль типов помогает избежать многих ошибок при программировании.
+  \begin{itemize}
+    \item Фактически, контроль типов --- это начальный элемент {\em верификации} (формального доказательства) корректности работы программы.
+    \item Используя развитую систему типов {\em (зависимые типы),} можно свести задачу верификации к проверке типов. Например, вместо
+    \( \mathrm{mod} \colon 
+     \NN \times \NN \to \NN
+    \)
+    можно потребовать более точный тип
+    \begin{multline*}
+     \mathrm{mod}' \colon
+     ((x,y) : \NN \times \NN) \mapsto\\\mapsto
+     r : \{ r : \NN \mid y = 0 \vee \exists q : \NN
+     (x = y\cdot q + r \wedge r < y) \},
+    \end{multline*}
+    %который выражается как зависимое- произведение
+    %\begin{multline*}
+     %\mathrm{mod'} \colon
+     %\prod_{(x,y) :  \NN \times \NN}
+     %\{ r : \NN \mid y = 0 \vee \exists q : \NN
+     %(x = y\cdot q + r \wedge r < y) \}
+    %\end{multline*}
+    \item Такие возможности есть в Coq, Agda и проч.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Типы в языках программирования}
+ \begin{itemize}[<+->]
+  \item Типы также используются как косвенный способ документирования программного кода: по типу функции зачастую можно понять, что она делает.
+  \begin{itemize}
+    \item Например, из типа $\Bx :
+    (B \to C) \to ((A \to B) \to (A \to C))$ даже без реализации ($\Bx = \lambda f g x . f (g x)$) понятно, что $\Bx$ реализует композицию функций.
+    \item Более того, если это полиморфный тип, где $A,B,C$ --- абстрактные переменные, то можно {\em доказать,} что $\Bx$ --- это оператор композиции. Это одна из так называемых {\em free theorems.}
+  \end{itemize}
+  \item Наконец, типы влияют на исполнение кода при так называемом {\em ad hoc полиморфизме,} или {\em перегрузке} функции. Пример (работает в C++, но не в C):
+  \begin{minted}{cpp}
+void f(int x) { printf("integer\n"); }
+void f(char x) { printf("character\n"); }
+  \end{minted}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Птицы и комбинаторы}
+ 
+ 
+ 
+ \begin{itemize}[<+->]
+  \item $\Bx = \lambda fgx. f(gx)$ --- это один из {\em комбинаторов.} 
+  \item Комбинаторами называется замкнутые (без свободных переменных) термы чистого $\lambda$-исчисления. Они выражают абстрактные алгоритмы работы с функциями и имеют, как мы  увидим, параметрически полиморфные типы.
+  \item Комбинаторы, следуя Смаллиану (``To mock a mockingbird''), называются по первым буквам названий видов птиц.
+  \item $\Bx$ --- сиалия (bluebird), семейства дроздовых.
+  \begin{center}
+  \vspace*{3pt}
+    \includegraphics[scale=.14]{Mountain_Bluebird.jpg}\\ \vspace*{-3pt}
+    {\sl Sialia currucoides}\\
+    \vspace*{-8pt}
+    {\tiny\color{gray}\sf Elaine R. Wilson --- NaturesPicsOnline, CC BY-SA 2.5}
+  \end{center}
+
+ \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Особенности типизации в Haskell'е}
+ 
+ \begin{itemize}[<+->]
+  \item Типизация --- это процесс присвоения типов объектам (переменным и составным выражениям) для дальнейшего контроля типов.
+  \item Типизация в разных языках программирования устроена по-разному.
+  \item Перечислим основные свойства типизации в Haskell'е.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Особенности типизации в Haskell'е}
+
+\begin{enumerate}[<+->]
+\item Система типов достаточно богатая, в частности, присутствуют функциональные {\em (<<стрельчатые>>)} типы вида $A \to B$.
+\item Типизация {\em сильная} (или строгая, strong): корректность типов контролируется последовательно, её нельзя <<обойти>> --- как, например, приведением к типу \mintinline{c}{void*} в C.
+\item При этом имеется развитый {\em полиморфизм} (о нём мы поговорим позже).
+\item {\em Статическая} типизация: проверки типов выполняются на этапе компиляции, при выполнении типы не имеют значения. (Противоположность: {\em динамическая} типизация, когда типы вычисляются и проверяются при исполнении.) 
+\begin{itemize}
+ \item Динамические типы: Data.Dynamic.
+\end{itemize}
+
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Особенности типизации в Haskell'е}
+ 
+ \begin{enumerate}\setcounter{enumi}{4}
+  \item Типизация может быть {\em неявной:} программист может не указывать типы, и тогда они будут автоматически вычислены (выведены) с помощью {\em алгоритма выведения типов} (type inference). \visible<2->{Явное указание типов также допускается.}
+ \end{enumerate}
+
+ 
+ \begin{itemize}
+  \item<3-> Выведение типов неразрывно связано с полиморфизмом. Если одно и то же выражение можно типизовать по-разному (т.е. оно является полиморфным), то алгоритм выведения типов должен выбрать в некотором смысле {\em наиболее общий} (наиболее абстрактный) тип.
+  \item<4-> Система типов в Haskell'е и алгоритм выведения типов основаны на {\em системе Хиндли -- Милнера,} о которой мы поговорим  позже.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item Haskell поддерживает два вида полиморфизма: {\em ad hoc} (аналог перегрузки функций в C++, реализуется через {\em классы типов}) и {\em параметрический} (в состав типа могут входить {\em переменные,} вместо которых можно подставить произвольный тип или тип из какого-то класса).
+ \item В C++ параметрический полиморфизм реализуется с помощью механизма {\em шаблонов} (templates).
+ \item Мы будем обсуждать параметрический полиморфизм.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item Параметрический полиморфизм проще всего проиллюстрировать на комбинаторах.
+ \item Рассмотрим комбинатор $\Kx = \lambda x. \lambda y. x$.
+ \item Птица --- пустельга (kestrel).
+  \begin{center}
+  \vspace*{3pt}
+    \includegraphics[scale=.6]{Kestrel.jpg}\\ \vspace*{-3pt}
+    {\sl Falco tinnunculus}\\
+    \vspace*{-8pt}
+    {\tiny\color{gray}\sf Andreas Trepte, CC BY-SA 2.5}
+  \end{center}
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+ 
+ \begin{itemize}[<+->]
+  \item Комбинатор $\Kx = \lambda x. \lambda y. x$ (Haskell: \mintinline{haskell}{\x y -> x}) берёт два аргумента и возвращает первый.
+  \item При этом типы аргументов могут быть разными, а сам $\Kx$ может быть типизован и как $\Int \to (\Int \to \Int)$, и как
+  $\Char \to (\Bool \to \Char)$, и даже как
+  $(\Int \to \Bool) \to (\Char \to (\Int \to \Bool))$.
+  \item В языке без полиморфизма пришлось бы программировать каждую версию $\Kx$ отдельно:
+  \begin{minted}{c}
+int K_int(int x, int y) { return x; }
+int K_charint(char x, int y) { return x; }
+  \end{minted}
+  \begin{itemize}
+  \item С перегрузкой (ad hoc полиморфизм) эти функции можно было бы назвать одним словом, но дублирования кода не избежать.
+  \end{itemize}
+ \end{itemize}
+
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е комбинатор $\Kx$ получает (автоматически, с помощью выведения типов) абстрактный тип
+ \[ p_1 \to (p_2 \to p_1), \]
+ где $p_1$ и $p_2$ --- {\em переменные по типам.}
+ \item Этот параметрический тип является {\em наиболее общим} в том смысле, что любой другой корректный тип для $\Kx$ получается из \( p_1 \to (p_2 \to p_1), \) подстановкой конкретных типов вместо $p_1$ и $p_2$. 
+ \item Реализация в C++ с помощью шаблонов:
+\begin{minted}{cpp}
+template<typename P1, typename P2>
+  P1 kestrel(P1 x, P2 y) { return x; }
+\end{minted}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е значения параметров (переменных по типам) могут ограничиваться классами типов, например:
+ \begin{minted}{haskell}
+(\x y z -> x (y+z)) :: Num t1 => (t1 -> t2) -> t1 
+  -> t1 -> t2
+ \end{minted}
+\item Таким образом, параметрический полиморфизм может сочетаться с ad hoc полиморфизмом: реализация операции 
+\mintinline{haskell}{(+) :: Num t1 => t1 -> t1 -> t1} зависит от типа \mintinline{text}{t1}.
+\item Мы начнём с простой типизации <<чистого>> $\lambda$-исчисления, где переменные по типам всегда могут принимать произвольные значения.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda_\to$: простое типизованное $\lambda$-исчисление}
+ 
+ \begin{itemize}[<+->]
+  \item Множество типов строится из переменных по типам $p_1, p_2, p_3, \ldots$ (не путать с переменными по объектам $x,y,z,\ldots$) с помощью единственной операции $\to$. Если $A$ и $B$ --- типы, то $(A \to B)$ --- тоже тип.
+  \begin{itemize}
+  \item Константных типов (вроде $\Bool$, $\Int$) нет, как нет и констант-термов.
+  \end{itemize}
+  
+  \item Единственное {\em ограничение типизации:} применение $(uv)$ корректно только тогда, когда $v$ имеет тип $A$, а $u$ имеет тип $(A \to B)$ для некоторых типов $A$ и $B$.
+  В этом случае $(uv)$ имеет тип $B$.
+  
+  \item $\lambda$-абстракция может применяться всегда. При этом если переменная $x$ имеет тип $A$, а терм $u$ --- тип $B$, то $\lambda x. u$ имеет тип $(A \to B)$.
+ \end{itemize}
+
+                                                     
+\end{frame}
+
+
+\begin{frame}{Типизация переменных}
+ 
+ \begin{itemize}[<+->]
+  \item Осталось разобраться, как присваивать типы переменным.
+  \begin{itemize}
+  \item {\bf Внимание:} тип переменной-объекта не обязательно является переменной-типом. Например, в типизации комбинатора $\Bx = 
+  \lambda f g x . f(gx)$ переменные $f$ и $g$ имеют сложные типы $(B \to C)$ и $(A \to B)$.
+  \end{itemize}
+  \item Переменные бывают свободные и связанные (находящиеся под $\lambda$'ми).
+  \item Для простоты будем считать, что множества свободных и связанных переменных не пересекаются (иначе применим $\alpha$-преобразования).
+  \item Типы свободных переменных декларируются явно в {\em контексте} $\Gamma = x_1 : A_1, \ldots, x_n : A_n$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Типизация по Чёрчу}
+ 
+ \begin{itemize}[<+->]
+  \item Для типизации связанных переменных есть два подхода.
+  \item При типизации {\em по Чёрчу} (<<жёсткой>>), при каждой $\lambda$'е явно указывается тип соответствующей переменной.
+  \item Далее тип каждого терма вычисляется однозначно.
+  \item Типизация по Чёрчу приводит к необходимости изменения языка термов (добавить указания типов), а также фактически к отказу от полиморфизма. Так, вместо одного комбинатора $\Bx = \lambda fgx. f(gx)$ нужно ввести отдельный комбинатор
+  \[
+   \Bx_{A,B,C} = \lambda f^{B\to C} . \lambda g^{A \to B}. \lambda x^A. f(gx)
+  \]
+  для каждого набора типов $A,B,C$.
+
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+
+\begin{itemize}[<+->]
+ \item Более гибкой является {\em типизация по Карри.}
+ \item При типизации по Карри данный терм в данном контексте может иметь много различных {\em возможных} типов.
+ \item Запись $\Gamma \vdash u : B$ означает что %терм $u$ {\em может} быть типизован типом $B$ в контексте $\Gamma$ 
+ $B$ --- {\em один} из допустимых типов для $u$ в контексте $\Gamma$
+ (т.е. что связанным переменным в $u$ {\em можно} приписать такие типы, что полученный терм будет корректно типизован по Чёрчу, и его типом будет $B$).
+ \item Запись $\Gamma \vdash u : B$ называется {\em утверждением о типизуемости.} Такие утверждения будут {\em доказываться как теоремы} в специально построенном логическом исчислении.
+ \item Терм $u$ не типизуем в контексте $\Gamma$, если $\Gamma \vdash u : B$ не доказуемо (не имеет места) ни для какого $B$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+
+\begin{itemize}[<+->]
+ \item Правила исчисления для типизации по Карри соответствуют правилам построения термов:
+ 
+ \[
+  \infer[\mathrm{Ax}]
+  {\Gamma, x : A \vdash x : A}{}
+  \qquad
+  \infer[\mathrm{Abs}]
+  {\Gamma \vdash
+  (\lambda x . u) : (A \to B)}
+  {\Gamma, x : A \vdash u : B}
+ \]
+ \[
+  \infer[\mathrm{App}]
+  {\Gamma \vdash (uv) : B}
+  {\Gamma \vdash u : 
+  (A \to B) & 
+  \Gamma \vdash v : A}
+ \]
+\item Доказательство (вывод) удобно представлять в виде дерева, где в корне стоит целевое утверждение $\Gamma \vdash u : B$, в листьях --- аксиомы (Ax), а внутренние вершины соответствуют правилам App и Abs. 
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+ 
+ \begin{itemize}[<+->]
+  \item Введённая нами система типов обладает свойством {\em безопасности типов} относительно $\beta$-редукции: если $\Gamma \vdash u : B$ и $u \to_\beta u'$, то $\Gamma \vdash u' : B$.
+  \item Это означает, что в процессе вычислений можно не контролировать типы, достаточно (статической) проверки в начале.
+  \item В обратную сторону, однако, это не работает: если $u \to_\beta u'$ и $\Gamma \vdash u' : B$, то не обязательно $\Gamma \vdash u : B$. Может оказаться, что $u$ вообще не типизируем, либо у него меньше корректных типов, чем у $u'$.
+  \begin{itemize}
+   \item {\bf Задача.} Придумать конкретные примеры.
+  \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Типизация по Карри}
+ 
+\begin{itemize}[<+->]
+ \item 
+ Пример типизации комбинатора $\Bx$:
+ 
+ $$\footnotesize\hspace*{-3em}
+\infer[\mathrm{Abs}]{\vdash \lambda f. \lambda g. \lambda x. f(gx) :
+(B \to C) \to ((A \to B) \to (A \to C))}
+{\infer[\mathrm{Abs}]{f : (B \to C) \vdash \lambda g. \lambda x. f(gx) :
+(A \to B) \to (A \to C)}
+{\infer[\mathrm{Abs}]{f : (B \to C), g : (A \to B) \vdash \lambda x. f(gx) :
+A \to C}
+{\infer[\mathrm{App}]{f : (B \to C), g : (A \to B), x : A \vdash f(gx) : C}
+{f : (B \to C), \ldots \vdash f:(B \to C) & 
+\infer[\mathrm{App}]{f : (B \to C), g : (A \to B), x : A \vdash gx : B}{\ldots, g : (A \to B), \ldots \vdash g : (A \to B) & \ldots, x : A \vdash x : A}}}}}
+$$
+
+\item Этот вывод показывает, что терм $\lambda f. \lambda g. \lambda x. f(gx)$ типизуем типом $(B \to C) \to ((A \to B) \to (A \to C))$ для {\em произвольных} типов $A,B,C$.
+
+\item Иначе говоря, корректным типом для $\Bx$ (при пустом контексте) будет $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$ с любой подстановкой типов вместо переменных $r_1, r_2, r_3$.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Наиболее общий тип}
+ 
+ \begin{itemize}[<+->]
+  \item Оказывается (мы это докажем), что это {\bf полное} описание всех типов для $\Bx$.
+  \item А именно, если $\vdash \Bx : T$, то $T$ получается подстановкой из $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$.
+  \item Сам $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$ называется {\em наиболее общим типом} для $\Bx$.
+  \item Более того, оказывается, что так будет всегда!
+  \item Любой терм $u$ либо вообще не типизуем в контексте $\Gamma$, либо имеет наиболее общий тип, из которого все остальные получаются подстановкой типов вместо переменных, не встречающихся в $\Gamma$.
+  \item {<<Неизменяемые>>} переменные по типам, используемые в контексте $\Gamma$, обозначим через $p_1, p_2, \ldots$. Остальные --- $r_1, r_2, \ldots$
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Наиболее общий тип}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е используется более мощная система типов, основанная на типизации Хиндли -- Милнера (об этом мы поговорим на следующих лекциях).
+ \item В GHCi вычислить наиболее общий тип $\lambda$-терма можно командой {\tt :t}
+ \item Например, для нумералов Чёрча \mintinline{haskell}{:t (\s o -> s (s (s o)))} даёт
+ \begin{minted}{haskell}
+  (\s o -> s (s (s o))) :: (t -> t) -> t -> t
+ \end{minted}
+
+ \item При этом для, например, операции сложения
+ \mintinline{haskell}{churchPlus = \x y s o -> x s (y s o)} тип оказывается более общим, чем ожидалось:
+ \mintinline{haskell}{(t1 -> t2 -> t3) -> (t1 -> t4 -> t2) -> t1 -> t4 -> t3}, а не
+ \mintinline{haskell}{((t -> t) -> t -> t) -> ((t -> t) -> t -> t)}
+ \mintinline{haskell}{-> (t -> t) -> t -> t}.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Типы и рекурсия}
+
+\begin{itemize}[<+->]
+ \item Как мы видим, нумералы Чёрча, а также реализованные в чистом $\lambda$-исчислении булевы операции, типизируемы по Карри.
+ 
+ \item Однако это не так для комбинатора неподвижной точки $\Yx = \lambda f . \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$.
+ Действительно, уже подтерм $xx$ не пройдёт контроль типов, т.к. $(A \to B) \ne A$.
+ 
+ \begin{itemize}
+ \item На самом деле, никакой другой комбинатор неподвижной точки типизовать тоже нельзя, поскольку в чистом $\lambda$-исчислении все типизуемые термы сильно нормализуемы.
+\end{itemize}
+
+\item Однако $\Yx$ как <<чёрный ящик>> типизуем! Можно ввести константу $\Yb$ полиморфного типа $(r \to r) \to r$ и редукцию $\Yb u \to_\delta u (\Yb u)$.
+\end{itemize}
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda_\to \mathrm{Y}$-исчисление}
+
+\begin{itemize}[<+->]
+ \item В $\lambda$-исчислении с простой системой типов, расширенном константой $\Yb$ и $\delta$-редукцией, можно реализовать рекурсию, используя только типизуемые термы. Значит, это опять полный по Тьюрингу язык.
+ \item Вместо константы $\Yb$ можно ввести оператор $\mathrm{Y}$, связывающий переменную: $\mathrm{Y} x. u$, и получить исчисление 
+ $\lambda_\to \mathrm{Y}$.
+ \begin{itemize}
+ \item Типизация: 
+ \[
+\infer[\mathrm{Fix}]
+{\Gamma \vdash (\mathrm{Y} x. u) : B}
+{\Gamma, x:B \vdash u : B} 
+ \]
+ \item $\delta$-редукция: 
+ \( \mathrm{Y} x. u \to_\delta 
+ u[x := \mathrm{Y}x. u] \)
+ \item С помощью $\Yb$ выражается так:
+ $\mathrm{Y} x. u = \Yb (\lambda x. u)$; тогда
+ $\Yb (\lambda x. u) \to_\delta (\lambda x.u) (\Yb (\lambda x. u)) \to_\beta 
+ u[x := \Yb (\lambda x. u)]$.
+ \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Выведение типов}
+ 
+ \begin{itemize}[<+->]
+  \item Задача поиска наиболее общего типа (или выяснения, что терм нетипизуем) называется задачей {\em выведения типа} (type inference).
+  
+  \item Эта задача алгоритмически разрешима, и соответствующий алгоритм реализован в GHC.
+  
+  \item Таким образом, во многих случаях можно не указывать типы (программировать в бестиповом стиле), при этом сохраняя строгую типизацию.
+  
+  \item Однако Haskell позволяет и указывать типы явно. Таким образом можно сделать тип менее общим: например, для
+  \mintinline{haskell}{idfunc = (\x -> x) :: ((a -> a) -> (a -> a))} применение \mintinline{haskell}{idfunc 0} будет некорректным.
+  
+  \item Также явное указание типов делает код яснее.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Выведение типов}
+
+\begin{itemize}[<+->]
+ \item Сложность задачи выведения типов в общем случае, к сожалению, экспоненциальная.
+ 
+ \item Это неизбежно, потому что ответ может иметь экспоненциальную длину.
+ \begin{itemize}
+
+ \item Пример: для \mintinline{haskell}{dup = \x -> (x,x)} терм \mintinline{text}{dup . dup . dup . }... будет иметь экспоненциально длинный тип:
+ \begin{minted}{haskell}
+(dup . dup . dup . dup) :: 
+     b -> ((((b, b), (b, b)), ((b, b), (b, b))),
+         (((b, b), (b, b)), ((b, b), (b, b))))
+ \end{minted}
+\item Здесь \mintinline{haskell}{.} --- это инфиксно записанный $\Bx$-комбинатор (композиция).
+\item Можно сделать то же и в чистой $\lambda$'е:
+\mintinline{haskell}{dup' = \x -> \f -> (f x x)}
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Далее...}
+
+\begin{itemize}[<+->]
+ \item На следующей лекции мы опишем алгоритм выведения типов в $\lambda_\to$ (простая система типов по Карри).
+ \item В частности, мы докажем теорему, что любой типизуемый терм имеет наиболее общий тип.
+ \item После мы рассмотрим более богатые системы типов, такие как $\lambda2$ (система F) и система Хиндли -- Милнера, и обсудим вопросы выведения типов в этих системах.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Полиморфная типизация по Карри}
+
+
+\begin{itemize}[<+->]
+ \item При типизации по Карри утверждения о типизации $\Gamma \vdash u : B$ {\em доказываются} в исчислении
+ \[
+  \infer[\mathrm{Ax}]
+  {\Gamma, x : A \vdash x : A}{}
+  \qquad
+  \infer[\mathrm{Abs}]
+  {\Gamma \vdash
+  (\lambda x . u) : (A \to B)}
+  {\Gamma, x : A \vdash u : B}
+ \]
+ \[
+  \infer[\mathrm{App}]
+  {\Gamma \vdash (uv) : B}
+  {\Gamma \vdash u : 
+  (A \to B) & 
+  \Gamma \vdash v : A}
+ \]
+ \item Правила вывода соответствуют правилам построения термов.
+ \item Можно доказать, что доказуемость $\Gamma \vdash u: B$ равносильна возможности указать типы связанных переменных так, чтобы $u$ получил тип $B$ (типизация по Чёрчу).
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}{Свойства типизации}
+ 
+ \begin{itemize}[<+->]
+  \item \emph{Безопасность типов.} Если $\Gamma \vdash u: B$ и $u \to_\beta u'$, то $\Gamma \vdash u':B$.
+  \item Отсюда следует {\em статичность} типизации: типы достаточно проверить один раз до начала вычислений.
+  \item Безопасность типов доказывается индукцией по построению терма $u$.
+  \begin{itemize}
+    \item Основная лемма: если $\Gamma \vdash u : B$, $\Gamma \vdash v : A$ и $(x : A) \in \Gamma$, то $\Gamma \vdash u[x:=v] : B$.
+  \end{itemize}
+  \item {\em Подстановка типов.} Утверждение о типизации сохраняет силу при подстановке сложных типов вместо переменных: если $\Gamma \vdash u : B$, то $\Gamma[p:=A] \vdash u : B[p:=A]$.
+  \item При этом если переменная $r$ не встречается в $\Gamma$, то из $\Gamma \vdash u: B$ следует $\Gamma \vdash u:B[r:=A]$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Задача выведения типов}
+
+\begin{itemize}[<+->]
+ \item Наша задача, для данного контекста $\Gamma_0$ и данного терма $u_0$, определить, какие типы может иметь данный терм в данном контексте:
+ \[
+  \Gamma_0 \vdash u_0 : \color{red}{\boldsymbol{?}}
+ \]
+ \vspace*{-15pt}
+ \item Пусть $p_1, \ldots, p_n$ --- базовые типы, входящие в контекст $\Gamma_0$. Будем считать их {\em неизменяемыми} (константами).
+ 
+ \item Остальные базовые типы $r_1, r_2, \ldots$ --- это настоящие {\em переменные,} вместо них можно будет подставлять другие типы.
+ 
+ \item Заметим, что в процессе вывода в контексте $\Gamma$ также могут появиться переменные $r_i$, за счёт применения правила $\mathrm{Abs}$.
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Задача выведения типов}
+
+\begin{itemize}[<+->]
+ \item Легко видеть, что если  $\sigma = [r_1 := A_1, \ldots, r_k := A_k]$ --- подстановка и $\Gamma_0 \vdash u_0 : B$, то 
+ $\Gamma_0 \vdash u_0 : B\sigma$.
+ \begin{itemize}
+ \item Через $B\sigma$ будем обозначать применение подстановки $\sigma$ к типу $B$.
+ \item Тип $B$ называется {\em более общим типом,} чем $B\sigma$, а $B\sigma$ --- {\em более конкретным,} чем $B$.
+ \end{itemize}
+ \item Тип $B_0$ называется {\em наиболее общим типом} для $u_0$ в контексте $\Gamma_0$, если: (1) $\Gamma_0 \vdash u_0 : B_0$; (2) если $\Gamma_0 \vdash u_0 : B$, то $B = B_0 \sigma$ для некоторой подстановки $\sigma$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Задача выведения типов}
+
+\begin{theoremr}
+ Для любых $\Gamma_0$ и $u_0$ либо существует наиболее общий тип для $u_0$ в контексте $\Gamma_0$, либо $u_0$ не типизуем в контексте $\Gamma_0$.
+\end{theoremr}
+
+\begin{itemize}
+ \item<2-> Таким образом, задача выведения типов --- это задача поиска наиболее общего типа (или определения, что терм не типизуем).
+ \item<3-> Мы предъявим алгоритм решения этой задачи (тем самым, в частности, доказав теорему).
+ \begin{itemize}
+ \item<4-> Отметим, что задача выведения типов проще, чем обычные задачи доказуемости, поскольку структура дерева вывода (последовательность применения правил) уже задана структурой терма.
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{<<Желательные равенства>>}
+
+\begin{itemize}
+ \item Начнём с того, что напишем вместо всех типов в правилах вывода различные переменные:
+ \begin{align*}
+  & \infer[\mathrm{Ax}]{\Gamma, x : A \vdash x : r}{} && \visible<2->{r \approx A}\\[5pt]
+  & \infer[\mathrm{App}]{\Gamma  \vdash (uv) : r_1}
+  {\Gamma \vdash u : r_2 & \Gamma \vdash v : r_3} &&  \visible<2->{r_2 \approx r_3 \to r_1} \\[5pt]
+  & \infer[\mathrm{Abs}]
+  {\Gamma \vdash (\lambda x.  u) : r_1}
+  {\Gamma, x : r_2 \vdash u : r_3} && \visible<2->{r_1 \approx r_2 \to r_3}
+ \end{align*}
+ \item<2-> Разумеется, здесь типы рассогласованы, и чтобы согласовать их, мы выпишем <<желательные равенства>>.
+ \item<3-> Если подстановка $\tau$ обращает все <<желательные равенства>> в равенства, то $r_0\tau$ --- корректный тип для $u_0$ в контексте $\Gamma_0$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Пример: комбинатор $\Cx$}
+ 
+ $\Cx = \lambda f. \lambda x. \lambda y. f y x$
+ 
+ \begin{center}
+  \vspace*{3pt}
+    \includegraphics[scale=.7]{CardinalMale2007.jpg}\\ \vspace*{-3pt}
+    {\sl Красный кардинал (Cardinalis cardinalis)}\\
+    \vspace*{-8pt}
+    {\tiny\color{gray}\sf Ivan Petrov, CC BY-SA 3.0}
+  \end{center}
+
+ 
+\end{frame}
+
+\begin{frame}{Пример: комбинатор $\Cx$}
+ \( \Cx = \lambda f. \lambda x . \lambda y. f y x \)
+ 
+ \visible<2->{{\small
+ \[
+  \infer[\mathrm{Abs}]
+  {\vdash \lambda f. \lambda x. \lambda y. f yx : r_0} 
+  {\infer[\mathrm{Abs}]
+  {f: r_1 \vdash \lambda x. \lambda y. f y x : r_2}
+  {\infer[\mathrm{Abs}]
+  {f: r_1, x : r_3 \vdash \lambda y .f y x : r_4}{\infer[\mathrm{App}]{f : r_1, x: r_3, y : r_5 \vdash f y x : r_6}
+  {\infer[\mathrm{App}]{f : r_1, y : r_5 \vdash f y : r_7}
+  {f : r_1 \vdash f : r_9 & y : r_5 \vdash y : r_{10}}& 
+  x : r_3 \vdash x : r_8}}}}
+ \]
+}}
+
+
+\visible<3->{<<Желательные равенства>>:
+
+{\small
+\begin{tabular}{l@{\qquad}l@{\qquad}l}
+\only<1-3>{$r_{10} \approx r_5$}\only<4->{{\color{gray}$r_{10} := r_5$}} & 
+ \only<1-4>{$\only<1-3>{r_9}\only<4->{{\color{blue} r_1}} \approx \only<1-3>{r_{10}}\only<4->{{\color{blue} r_5}} \to r_7$}\only<5->{{\color{gray} $r_1 := r_5 \to r_7$}}  & \only<1-6>{$r_4 \approx r_5 \to r_6$}\only<7->{{\color{gray} $r_4 := r_5 \to r_6$}}  \\
+ %
+ \only<1-3>{$r_9 \approx r_1$}\only<4->{{\color{gray}$r_9 := r_1$}} &
+ \only<1-5>{$r_7 \approx \only<1-3>{r_8}\only<4->{{\color{blue} r_3}} \to r_6$}\only<6->{{\color{gray} $r_7 := r_3 \to r_6$}} & \only<1-7>{$r_2 \approx r_3 \to \only<1-6>{r_4}\only<7->{{\color{blue} (r_5 \to r_6)}}$}\only<8->{{\color{gray} $r_2 := r_3 \to (r_5 \to r_6)$}} \\
+ %
+ \only<1-3>{$r_8 \approx r_3$}\only<4->{{\color{gray}$r_8 := r_3$}} & & 
+ \only<1-8>{$r_0 \approx \only<1-4>{r_1}\only<5>{{\color{blue} (r_5 \to r_7)}}\only<6>{(r_5 \to {\color{blue} (r_3 \to r_6)})}\only<7->{(r_5 \to (r_3 \to r_6))} \to \only<1-7>{r_2}\only<8>{{\color{blue} (r_3 \to (r_5 \to r_6))}}$}\only<9->{{\color{red} $r_0 := (r_5 \to (r_3 \to r_6)) \to (r_3 \to (r_5 \to r_6))$}}
+ \end{tabular}
+
+}
+}
+
+ 
+\end{frame}
+
+\begin{frame}{Пример: комбинатор $\Cx$}
+
+{\small
+ \[\hspace*{-1em}
+  \infer[\mathrm{Abs}]
+  {\vdash \lambda f. \lambda x. \lambda y. f yx : (r_5 \to (r_3 \to r_6)) \to (r_3 \to (r_5 \to r_6))} 
+  {\infer[\mathrm{Abs}]
+  {f: r_5 \to (r_3 \to r_6) \vdash \lambda x. \lambda y. f y x : r_3 \to (r_5 \to r_6)}
+  {\infer[\mathrm{Abs}]
+  {f: r_5 \to (r_3 \to r_6), x : r_3 \vdash \lambda y .f y x : (r_5 \to r_6)}{\infer[\mathrm{App}]{f : r_5 \to (r_3 \to r_6), x: r_3, y : r_5 \vdash f y x : r_6}
+  {\infer[\mathrm{App}]{f : r_5 \to (r_3 \to r_6), y : r_5 \vdash f y : r_3 \to r_6}
+  {f : r_5 \to (r_3 \to r_6) \vdash f : r_5 \to (r_3 \to r_6) & y : r_5 \vdash y : r_5}& 
+  x : r_3 \vdash x : r_3}}}}
+ \]
+}
+ 
+ 
+ \visible<2->{Вместо $r_5$, $r_3$, $r_6$ можно подставить произвольные типы: $\Cx : (A \to (B \to C)) \to (B \to (A \to C))$.}
+ 
+ %FIXME: честный вывод с $\Cx$
+ 
+ %FIXME: другой пример --- комбинатор $\Yx$
+\end{frame}
+
+
+\begin{frame}{Пример: комбинатор $\Yx$}
+ 
+ $\Yx = \lambda f. \bigl( (\lambda x.  f(xx))
+ (\lambda x. f(xx)) \bigr)$
+ 
+ \visible<2->{{\small
+ \[\hspace*{-1em}
+ \infer[\mathrm{Abs}]{\vdash \lambda f. \bigl( (\lambda x.  f(xx))
+ (\lambda x. f(xx)) \bigr) : r_0}
+ {\infer[\mathrm{App}]{f: r_1 \vdash (\lambda x. f(xx)) (\lambda x. f(xx)) : r_2}
+ {\infer[\mathrm{Abs}]{f : r_1 \vdash \lambda x. f(xx) : r_3}
+ {\infer[\mathrm{App}]{f:r_1, x:r_5 \vdash f(xx) : r_6}
+ {f : r_1 \vdash f : r_7 & 
+{\only<3->{\color{red}} \infer[\mathrm{App}]{x : r_5 \vdash xx : r_8}{x : r_5 \vdash x : r_9 & x : r_5 \vdash x : r_{10}}}}} & 
+ \infer{f : r_1 \vdash \lambda x. f(xx) : r_4}{\ldots}}}
+ \]
+ }}
+ 
+ \visible<4->{
+\only<1-4>{$r_{10} \approx r_5$}\only<5->{{\color{gray} $r_{10} := r_5$}} \\
+\only<1-4>{$r_{9} \approx r_5$}\only<5->{{\color{gray} $r_9 := r_5$}} \\
+\only<1-4>{$r_{9} \approx r_{10} \to r_8$}
+\only<5>{${\color{blue} r_5} \approx {\color{blue} r_5} \to r_8$}\only<6->{{\color{red} $r_5 \approx r_5 \to r_8$}}\\
+  \ldots
+ }
+\end{frame}
+
+
+\begin{frame}{Унификация}
+
+\begin{itemize}[<+->]
+ \item В общем случае задача выведения типа сводится к {\em задаче унификации системы <<желательных равенств>>.}
+ \item Подстановка $\tau$ {\em унифицирует} систему равенств $\Sc = \{ A_1 \approx B_1, \ldots, A_n \approx B_n\}$, если $A_i \tau = B_i \tau$ для каждого $i$.
+ \item $\tau_0$ --- наиболее общий унификатор (most general unifier, MGU) системы $\Sc$, если (1) $\tau_0$ унифицирует $\Sc$; (2) для любого другого унификатора $\tau$ существует подстановка $\sigma$, такая что $\tau = \tau_0 \circ \sigma$.
+ \begin{itemize}
+ \item Здесь сначала применяется $\tau_0$, потом $\sigma$.
+ \item Таким образом, $\tau$ является <<конкретизацией>> $\tau_0$.
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}{Унификация и типизация}
+
+\begin{itemize}[<+->]
+ \item Обозначим через $\Sc_{\Gamma,u}$ систему <<желательных равенств>>, возникающую при типизации терма $u$ в контексте $\Gamma$.
+ \item Всякий унификатор $\tau$ этой системы даёт типизацию $u$ в $\Gamma$, а именно $B = r_0 \tau$.
+ \item И наоборот, если $\Gamma \vdash u : B$, то из доказательства этого утверждения извлекается подстановка $\tau$, унифицирующая $\Sc_{\Gamma,u}$; при этом $B = r_0 \tau$.
+ \item MGU $\tau_0$ даёт наиболее общий тип $B_0 = r_0 \tau_0$. Действительно, любой другой $B$ имеет вид $r_0 \tau = r_0 \tau_0 \sigma = B_0 \sigma$ (т.к. $\tau = \tau_0 \circ \sigma$).
+ \item Значит, достаточно найти MGU --- или установить, что унификаторов нет вообще, и тогда терм нетипизуем.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+
+\begin{itemize}[<+->]
+ \item Алгоритм Робинсона находит MGU данной системы $\Sc$ или устанавливает, что система неунифицируема.
+ \item Алгоритм действует по шагам, упрощая $\Sc$; на каждом шаге множество унификаторов системы либо сохраняется, либо изменяется по известному правилу.
+ \item При этом уменьшаются определённые параметры рекурсии, т.е. алгоритм завершает работу за конечное число шагов.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+Возьмём произвольное (например, первое) равенство из системы $\Sc$ и рассмотрим возможные случаи.
+ \begin{enumerate}
+  \item<2-> $A \approx A$. Такое равенство можно удалить без изменения множества унификаторов.
+  \item<3-> $(A_1 \to A_2) \approx (B_1 \to B_2)$. Заменяем на два равенства: $A_1 \approx B_1$ и $A_2 \approx B_2$. Множество унификаторов не меняется.
+  \item<4-> $p_i \approx B$ или $B \approx p_i$, где $B$ --- не переменная и не сама $p_i$. Такое равенство неунифицируемо, алгоритм останавливается.
+  \item<5-> $r_j \approx B$ или $B \approx r_j$, где $B$ содержит $r_j$, но не совпадает с ним. Такое равенство тоже неунифицируемо.
+ \end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+
+\begin{enumerate}\setcounter{enumi}{4}
+ \item Наиболее интересный случай: $r_j \approx A$ или $A \approx r_j$, где $A$ не содержит $r_j$.
+\end{enumerate}
+
+ В этом случае нужна совершить подстановку $r_j := A$ и продолжить работать с системой без $r_j$.
+ 
+ \begin{itemize}
+  \item<2-> Запишем это более формально. Пусть $\Sc$ --- исходная система, $\Sc'$ --- система без равенства $r_j \approx A$.
+  \item<3-> Утверждается, что $\tau$ --- унификатор системы $\Sc$ тогда и только тогда, когда $\tau = [r_j := A] \circ \tau'$, где $\tau'$ унифицирует $\Sc'[r_j := A]$. 
+  \item<4-> Таким образом, задача унификации $\Sc$ сводится к задаче унификации $\Sc'[r_j := A]$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+
+\begin{itemize}[<+->]
+ \item Действительно, пусть $\tau'$ --- унификатор системы $\Sc'[r_j := A]$, и пусть $\tau = [r_j := A] \circ \tau'$. 
+ \item Тогда после подстановки $r_j := A$ типы $r_j$ и $A$ отождествятся (поскольку $A$ не содержит $r_j$).
+ \item Остальные равенства (после подстановки $r_j := A$) унифицирует подстановка $\tau'$.
+ \item Теперь пусть $\tau$ --- унификатор $\Sc$.
+ \item Значит, $r_j\tau = A\tau$.
+ \item Для каждой $r_i$, где $i \ne j$, положим $r_i \tau' = r_i \tau$. (Подстановку достаточно определить на переменных.)
+ \item Легко проверить, что $\tau = [r_j := A] \circ \tau'$.
+ \item $A_i [r_j := A] \tau' = A_i \tau = B_i \tau = B_i [r_j := A] \tau'$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+ 
+ \begin{itemize}[<+->]
+  \item Более того, если $\tau'_0$ --- MGU системы $\Sc'[r_j := A]$, то $\tau = [r_j := A] \circ \tau'$ --- MGU системы $\Sc$.
+  \item Действительно, для любого другого унификатора $\tau$ имеем $\tau = [r_j := A] \circ \tau' = [r_j := A] \circ \tau'_0 \circ \sigma = \tau_0 \circ \sigma$.
+  \item Если $\Sc'[r_j := A]$ неунифицируема, то такова и исходная $\Sc$.
+  \item Таким образом, мы последовательно сводим вычисление MGU к более простым системам.
+  \item Осталось доказать, что процесс сойдётся за конечное число шагов к пустой системе (её MGU --- тождественная подстановка).
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Алгоритм Робинсона}
+ 
+ Параметры рекурсии (в порядке убывания приоритета):
+ 
+ \begin{enumerate}
+  \item Количество переменных ($r_j$): убывает в случае 5.
+  \item Количество стрелок: убывает в случае 2. При этом 1-й параметр сохраняется.
+  \item Количество равенств: убывает в случае 1. При этом 1-й и 2-й параметры не растут.
+ \end{enumerate}
+
+ 
+\visible<2->{В случаях 3 и 4 алгоритм сразу останавливается.}
+\end{frame}
+
+
+\begin{frame}{$\lambda_\to$}
+
+\begin{itemize}[<+->]
+ \item Подведём итоги.
+ \item При типизации по Карри у каждого терма (в данном контексте) есть наиболее общий тип, а все остальные типы получаются из него подстановкой (конкретизацией).
+ \begin{itemize}
+  \item Это {\em параметрический полиморфизм} (параметры --- переменные $r_1, r_2, \ldots$).
+ \end{itemize}
+ \item Типы не портятся и не используются при редукциях.
+ \begin{itemize}
+  \item Это даёт {\em статичность} типизации.
+  \item В Haskell'е второе неверно: информация о типах используется при вычислении (ad hoc полиморфизм).
+ \end{itemize}
+\item {\em Выведение типов.} Наиболее общий тип можно вычислить, его не нужно указывать явно.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Типизация и рекурсия}
+ 
+ \begin{itemize}[<+->]
+  \item Как мы видели, комбинатор $\Yx = \lambda f. \bigl( (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$ нетипизируем в системе $\lambda_\to$.
+  \item Более того: имеет место {\em теорема о нормализуемости} --- любой типизируемый терм сильно нормализуем.
+  \item Следовательно, {\em никакой} комбинатор неподвижной точки не может быть типизируемым.
+  \item Однако можно добавить константу $\Yb$ с редукцией $\Yb u \to_\delta u(\Yb u)$ и полиморфным типом $(r\to r) \to r$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация и рекурсия}
+
+\begin{itemize}[<+->]
+ \item Однако утверждение о типизации константы $\Yb$ придётся поместить в контекст $\Gamma$.
+ \item Значит, входящая в него переменная станет неизменяемой, $\Yb\!_p : (p \to p) \to p$.
+ \item Это плохо: нам {\em <<не хватает полиморфизма>>,} чтобы типизовать $\Yb$.
+ \item Можно обойти эту проблему, использовав конструктор термов $\Yr$:
+ \[
+  \infer[\mathrm{Fix}]
+  {\Gamma \vdash (\Yr x. u) : r_1}
+  {\Gamma, x : r_2 \vdash u : r_3}
+  \quad
+  r_1 \approx r_2 \approx r_3 
+  \qquad
+  \Yr x. u \to_\delta u[x := \Yr x.u]
+ \]
+ \item Безопасность типов при $\delta$-редукции соблюдается.
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Квантор $\forall$ по типам}
+
+\begin{itemize}[<+->]
+ \item Неявно в полиморфной типизации по Карри присутствуют {\em кванторы всеобщности} по переменным $r_j$:
+ \[
+  f : (p \to p) \vdash 
+  \lambda g . \lambda z. f (g z) :
+  {\color{red} \forall r.} 
+  ((r \to p) \to r \to p).
+ \]
+ \item По смыслу, $\Yb : \forall r . ((r \to r) \to r)$, и мы хотим поместить эту декларацию в контекст (чего нельзя сделать в $\lambda_\to$).
+ \item Употребление в контексте типов с кванторами $\forall$
+ {\em на внешнем уровне} разрешается в {\em системе типов Хиндли -- Милнера.}
+ \item Однако мы сначала познакомимся с {\em системой F,} или $\lambda 2$ (типизованное $\lambda$-исчисление второго порядка), где квантор разрешается использовать вообще без ограничений.
+\end{itemize}
+
+ 
+\end{frame}
+
+\end{document}
+
+\begin{frame}{Система F}
+ 
+ \begin{itemize}[<+->]
+  \item Как и $\lambda_\to$, система F --- это система типов поверх обычного $\lambda$-исчисления.
+  \item Типы строятся из базовых типов (переменных $r_j$ и констант $p_i$) с помощью двух конструкций: $A \to B$ и $\forall r. A$.
+  \item Правила типизации (по Карри):
+  \[
+   \infer[\mathrm{Ax}]
+   {\Gamma, x : A \vdash x : A}{}
+   \qquad
+   \infer[\mathrm{Abs}]
+   {\Gamma \vdash (\lambda x. u) : (A \to B)}
+   {\Gamma, x : A \vdash u : B}
+  \]
+  \[
+   \infer[\mathrm{App}]
+   {\Gamma \vdash (uv) : B}
+   {\Gamma \vdash u : (A \to B) &
+   \Gamma \vdash v : A}
+  \]
+  \[
+   \infer[\mathrm{Gen}]
+   {\Gamma \vdash u : (\forall r. A)}
+   {\Gamma \vdash u : A}
+   \qquad
+   \infer[\mathrm{Inst}]
+   {\Gamma \vdash u : B[r := A]}
+   {\Gamma \vdash u : (\forall r. B)}
+  \]
+
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Система F}
+
+\begin{itemize}
+ \item С помощью $\forall$ можно типизовать применение функции к самой себе:
+ например, $x : \forall r. (r \to r) \vdash
+ (xx) : \forall r . (r \to r)$.
+ \visible<2->{
+ \[\footnotesize \hspace*{-2em}
+\infer[\mathrm{Gen}]{x : \forall r. (r \to r) \vdash
+ xx : \forall r . (r \to r)}
+ {\infer[\mathrm{App}]{x : \forall r. (r \to r) \vdash
+ xx : r \to r}
+ {\infer[\mathrm{Inst}]{x : \forall r. (r \to r) \vdash x : (r \to r) \to (r \to r)}
+ {x : \forall r. (r \to r) \vdash x : \forall r . (r \to r)} & 
+ \infer[\mathrm{Inst}]{x : \forall r. (r \to r) \vdash x : r \to r}{x : \forall r. (r \to r) \vdash x : \forall r . (r \to r)}}}
+ \]
+ }
+ \vspace*{-2em}
+ \item<3-> Далее, можно применить $\lambda$-абстракцию:
+ \vspace*{-1em}
+ \[
+  \vdash \lambda x. (xx) : \bigl(\forall r. (r \to r)\bigr) \to \forall r. (r \to r).
+ \]
+ \vspace*{-2em}
+ \item<4-> Тем не менее, все типы, типизуемые в системе F, обладают свойством сильной нормализуемости [J.-Y. Girard], поэтому типизовать $\Omega = (\lambda x. (xx)) (\lambda x. (xx))$ не получится.
+
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Система F в Haskell'e}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item В Haskell'е система F включается прагмой \mintinline{text}{RankNTypes}).
+  \item Пример:
+\begin{minted}{haskell}
+applyToTuple = (\f -> \(x, y) -> (f x, f y)) 
+  :: (forall a. [a] -> b) -> ([c], [d]) -> (b,b)
+applyToTuple length ("hello", [1,2,3])
+\end{minted}
+даёт \mintinline{text}{(5,3)}.
+
+\item \mintinline{text}{length} имеет полиморфный тип --- даже более общий, чем
+\mintinline{text}{forall a. [a]}\mintinline{haskell}{ -> Int}.
+
+\item Выведение типов (в $\lambda_\to$) даёт 
+\mintinline{haskell}{applyToTuple :: (t -> b) -> (t, t) -> (b, b)} \\--- применить к 
+\mintinline{haskell}{("hello", [1,2,3])} не получится.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Типизация в системе F}
+
+\begin{itemize}[<+->]
+ \item Вернёмся к примеру $\lambda x. (xx)$.
+ \item Кроме типизации $\bigl(\forall r. (r \to r)\bigr) \to \forall r. (r \to r)$, корректной является также типизация $\bigl(\forall r. ((r \to r) \to (r \to r))\bigr) \to \forall r. ((r \to r) \to (r \to r))$.
+ 
+ \item Оказывается, эти две типизации {\em несравнимы,} хотя вторая кажется конкретизацией первой.
+ \begin{itemize}
+  \item Пусть $A = \forall r. (r \to r)$ и $B = \forall r. ((r \to r) \to (r \to r))$. 
+  \item Тип $A$ более абстрактный, чем $B$, значит, ему удовлетворяет <<меньше>> объектов.
+  \item С другой стороны, у функции типа $A \to A$ <<меньше>> разнообразие аргументов (это должен быть полиморфный объект типа $\forall r . (r \to r)$), значит, найти такую функцию <<проще>>.
+ \end{itemize}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация в системе F}
+ 
+ \begin{itemize}[<+->]
+  \item Конкретные примеры (в Haskell'е):
+  терм \mintinline{haskell}{\f g x -> f g x} имеет тип $B \to B$, но не $A \to A$, а 
+  \mintinline{haskell}{\f -> (\x z -> z) (f 0)} --- наоборот.
+  \item Итак, в системе F наиболее общий тип может попросту не существовать, а значит, задача выведения типов некорректна.
+  \item Более того, даже задача {\em типизуемости} (существования хотя бы одного корректного типа) в системе F алгоритмически неразрешима [J.B. Wells].
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Упражнение}
+
+{\footnotesize
+\begin{minted}{haskell}
+{-# LANGUAGE RankNTypes #-}
+
+lxx :: (forall a. a -> a) -> (forall a. a -> a)
+lxx = \x -> (x x) 
+
+lxx2 :: (forall b. (b->b) -> (b->b)) -> (forall b. (b->b) -> (b->b))
+lxx2 = \x -> (x x)
+
+dup = \f -> \x -> f (f x)
+\end{minted}
+}
+
+\begin{itemize}
+ \item Чему равно значение \mintinline{text}{lxx2 dup}\mintinline{haskell}{ (+2) 3} ?
+ \item Корректно ли \mintinline{text}{lxx dup} ?
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Система Хиндли -- Милнера}
+
+\begin{itemize}[<+->]
+ \item Некоторым компромиссом между $\lambda_\to$ и $\lambda 2$ является {\em система типов Хиндли -- Милнера.}
+ \item В этой системе кванторы $\forall$ допускаются только {\em на внешнем уровне,} т.е. типы имеют вид $\forall r_1 . \ldots  \forall r_k . A$, где $A$ --- бескванторный тип.
+ \item Такие типы могут встречаться у переменных в контекстах, однако $\lambda$-абстракция таких переменных запрещена.
+ \item Тем не менее, имеется дополнительная конструкция термов $\mathbf{let}\ \ldots \mathbf{in}\ \ldots$, которая допускает аналог абстракции по такой полиморфной переменной {\em (let-полиморфизм)}.
+ \item Кроме того, в конструкцию $\mathbf{let}\ \ldots \mathbf{in}\ \ldots$ встроена рекурсия.
+ \item И главное: система Хиндли -- Милнера допускает выведение наиболее общего типа!
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}[fragile]{Типы в языках программирования}
+ 
+ \begin{itemize}[<+->]
+  \item В большинстве языков программирования имеются системы {\em типов данных.} 
+  Бестиповые языки, такие как языки ассемблера или простейшее $\lambda$-исчисление, встречаются редко.
+  \item В бестиповом языке любую операцию можно совершить над любыми данными. Дисциплина типов данных налагает определённые {\em ограничения} на применение операций (функций), чтобы отсечь {\em бессмысленные} ошибочные применения.
+  \begin{itemize}
+    \item Например, выражение \mintinline{text}{2+2} осмысленно (хотя, может быть, вычисляет не то, что нам на самом деле нужно), а выражение \mintinline{text}{2+"two"} скорее всего бессмысленно.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}{Типы в языках программирования}
+
+\begin{itemize}[<+->]
+ \item Таким образом, система типов выполняет охранительную функцию: проверки корректности типов запрещают некоторые конструкции (<<мешают программировать>>).
+ \item При этом эти конструкции не всегда совершенно бессмысленные. Например, комбинатор неподвижной точки $\Yx = \lambda f. \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$ скорее всего будет некорректен с точки зрения системы типов (аргумент функции не может иметь тот же тип, что и сама функция), однако разумно используется для реализации рекурсии.
+ \item Для собственно исполнения программы (вычисления) типы обыкновенно не нужны.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типы в языках программирования}
+ 
+ \begin{itemize}[<+->]
+  \item С другой стороны, контроль типов помогает избежать многих ошибок при программировании.
+  \begin{itemize}
+    \item Фактически, контроль типов --- это начальный элемент {\em верификации} (формального доказательства) корректности работы программы.
+    \item Используя развитую систему типов {\em (зависимые типы),} можно свести задачу верификации к проверке типов. Например, вместо
+    \( \mathrm{mod} \colon 
+     \NN \times \NN \to \NN
+    \)
+    можно потребовать более точный тип
+    \begin{multline*}
+     \mathrm{mod}' \colon
+     ((x,y) : \NN \times \NN) \mapsto\\\mapsto
+     r : \{ r : \NN \mid y = 0 \vee \exists q : \NN
+     (x = y\cdot q + r \wedge r < y) \},
+    \end{multline*}
+    %который выражается как зависимое- произведение
+    %\begin{multline*}
+     %\mathrm{mod'} \colon
+     %\prod_{(x,y) :  \NN \times \NN}
+     %\{ r : \NN \mid y = 0 \vee \exists q : \NN
+     %(x = y\cdot q + r \wedge r < y) \}
+    %\end{multline*}
+    \item Такие возможности есть в Coq, Agda и проч.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Типы в языках программирования}
+ \begin{itemize}[<+->]
+  \item Типы также используются как косвенный способ документирования программного кода: по типу функции зачастую можно понять, что она делает.
+  \begin{itemize}
+    \item Например, из типа $\Bx :
+    (B \to C) \to ((A \to B) \to (A \to C))$ даже без реализации ($\Bx = \lambda f g x . f (g x)$) понятно, что $\Bx$ реализует композицию функций.
+    \item Более того, если это полиморфный тип, где $A,B,C$ --- абстрактные переменные, то можно {\em доказать,} что $\Bx$ --- это оператор композиции. Это одна из так называемых {\em free theorems.}
+  \end{itemize}
+  \item Наконец, типы влияют на исполнение кода при так называемом {\em ad hoc полиморфизме,} или {\em перегрузке} функции. Пример (работает в C++, но не в C):
+  \begin{minted}{cpp}
+void f(int x) { printf("integer\n"); }
+void f(char x) { printf("character\n"); }
+  \end{minted}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Птицы и комбинаторы}
+ 
+ 
+ 
+ \begin{itemize}[<+->]
+  \item $\Bx = \lambda fgx. f(gx)$ --- это один из {\em комбинаторов.} 
+  \item Комбинаторами называется замкнутые (без свободных переменных) термы чистого $\lambda$-исчисления. Они выражают абстрактные алгоритмы работы с функциями и имеют, как мы  увидим, параметрически полиморфные типы.
+  \item Комбинаторы, следуя Смаллиану (``To mock a mockingbird''), называются по первым буквам названий видов птиц.
+  \item $\Bx$ --- сиалия (bluebird), семейства дроздовых.
+  \begin{center}
+  \vspace*{3pt}
+    \includegraphics[scale=.14]{Mountain_Bluebird.jpg}\\ \vspace*{-3pt}
+    {\sl Sialia currucoides}\\
+    \vspace*{-8pt}
+    {\tiny\color{gray}\sf Elaine R. Wilson --- NaturesPicsOnline, CC BY-SA 2.5}
+  \end{center}
+
+ \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Особенности типизации в Haskell'е}
+ 
+ \begin{itemize}[<+->]
+  \item Типизация --- это процесс присвоения типов объектам (переменным и составным выражениям) для дальнейшего контроля типов.
+  \item Типизация в разных языках программирования устроена по-разному.
+  \item Перечислим основные свойства типизации в Haskell'е.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Особенности типизации в Haskell'е}
+
+\begin{enumerate}[<+->]
+\item Система типов достаточно богатая, в частности, присутствуют функциональные {\em (<<стрельчатые>>)} типы вида $A \to B$.
+\item Типизация {\em сильная} (или строгая, strong): корректность типов контролируется последовательно, её нельзя <<обойти>> --- как, например, приведением к типу \mintinline{c}{void*} в C.
+\item При этом имеется развитый {\em полиморфизм} (о нём мы поговорим позже).
+\item {\em Статическая} типизация: проверки типов выполняются на этапе компиляции, при выполнении типы не имеют значения. (Противоположность: {\em динамическая} типизация, когда типы вычисляются и проверяются при исполнении.) 
+\begin{itemize}
+ \item Динамические типы: Data.Dynamic.
+\end{itemize}
+
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Особенности типизации в Haskell'е}
+ 
+ \begin{enumerate}\setcounter{enumi}{4}
+  \item Типизация может быть {\em неявной:} программист может не указывать типы, и тогда они будут автоматически вычислены (выведены) с помощью {\em алгоритма выведения типов} (type inference). \visible<2->{Явное указание типов также допускается.}
+ \end{enumerate}
+
+ 
+ \begin{itemize}
+  \item<3-> Выведение типов неразрывно связано с полиморфизмом. Если одно и то же выражение можно типизовать по-разному (т.е. оно является полиморфным), то алгоритм выведения типов должен выбрать в некотором смысле {\em наиболее общий} (наиболее абстрактный) тип.
+  \item<4-> Система типов в Haskell'е и алгоритм выведения типов основаны на {\em системе Хиндли -- Милнера,} о которой мы поговорим  позже.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item Haskell поддерживает два вида полиморфизма: {\em ad hoc} (аналог перегрузки функций в C++, реализуется через {\em классы типов}) и {\em параметрический} (в состав типа могут входить {\em переменные,} вместо которых можно подставить произвольный тип или тип из какого-то класса).
+ \item В C++ параметрический полиморфизм реализуется с помощью механизма {\em шаблонов} (templates).
+ \item Мы будем обсуждать параметрический полиморфизм.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item Параметрический полиморфизм проще всего проиллюстрировать на комбинаторах.
+ \item Рассмотрим комбинатор $\Kx = \lambda x. \lambda y. x$.
+ \item Птица --- пустельга (kestrel).
+  \begin{center}
+  \vspace*{3pt}
+    \includegraphics[scale=.6]{Kestrel.jpg}\\ \vspace*{-3pt}
+    {\sl Falco tinnunculus}\\
+    \vspace*{-8pt}
+    {\tiny\color{gray}\sf Andreas Trepte, CC BY-SA 2.5}
+  \end{center}
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+ 
+ \begin{itemize}[<+->]
+  \item Комбинатор $\Kx = \lambda x. \lambda y. x$ (Haskell: \mintinline{haskell}{\x y -> x}) берёт два аргумента и возвращает первый.
+  \item При этом типы аргументов могут быть разными, а сам $\Kx$ может быть типизован и как $\Int \to (\Int \to \Int)$, и как
+  $\Char \to (\Bool \to \Char)$, и даже как
+  $(\Int \to \Bool) \to (\Char \to (\Int \to \Bool))$.
+  \item В языке без полиморфизма пришлось бы программировать каждую версию $\Kx$ отдельно:
+  \begin{minted}{c}
+int K_int(int x, int y) { return x; }
+int K_charint(char x, int y) { return x; }
+  \end{minted}
+  \begin{itemize}
+  \item С перегрузкой (ad hoc полиморфизм) эти функции можно было бы назвать одним словом, но дублирования кода не избежать.
+  \end{itemize}
+ \end{itemize}
+
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е комбинатор $\Kx$ получает (автоматически, с помощью выведения типов) абстрактный тип
+ \[ p_1 \to (p_2 \to p_1), \]
+ где $p_1$ и $p_2$ --- {\em переменные по типам.}
+ \item Этот параметрический тип является {\em наиболее общим} в том смысле, что любой другой корректный тип для $\Kx$ получается из \( p_1 \to (p_2 \to p_1), \) подстановкой конкретных типов вместо $p_1$ и $p_2$. 
+ \item Реализация в C++ с помощью шаблонов:
+\begin{minted}{cpp}
+template<typename P1, typename P2>
+  P1 kestrel(P1 x, P2 y) { return x; }
+\end{minted}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Параметрический полиморфизм}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е значения параметров (переменных по типам) могут ограничиваться классами типов, например:
+ \begin{minted}{haskell}
+(\x y z -> x (y+z)) :: Num t1 => (t1 -> t2) -> t1 
+  -> t1 -> t2
+ \end{minted}
+\item Таким образом, параметрический полиморфизм может сочетаться с ad hoc полиморфизмом: реализация операции 
+\mintinline{haskell}{(+) :: Num t1 => t1 -> t1 -> t1} зависит от типа \mintinline{text}{t1}.
+\item Мы начнём с простой типизации <<чистого>> $\lambda$-исчисления, где переменные по типам всегда могут принимать произвольные значения.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda_\to$: простое типизованное $\lambda$-исчисление}
+ 
+ \begin{itemize}[<+->]
+  \item Множество типов строится из переменных по типам $p_1, p_2, p_3, \ldots$ (не путать с переменными по объектам $x,y,z,\ldots$) с помощью единственной операции $\to$. Если $A$ и $B$ --- типы, то $(A \to B)$ --- тоже тип.
+  \begin{itemize}
+  \item Константных типов (вроде $\Bool$, $\Int$) нет, как нет и констант-термов.
+  \end{itemize}
+  
+  \item Единственное {\em ограничение типизации:} применение $(uv)$ корректно только тогда, когда $v$ имеет тип $A$, а $u$ имеет тип $(A \to B)$ для некоторых типов $A$ и $B$.
+  В этом случае $(uv)$ имеет тип $B$.
+  
+  \item $\lambda$-абстракция может применяться всегда. При этом если переменная $x$ имеет тип $A$, а терм $u$ --- тип $B$, то $\lambda x. u$ имеет тип $(A \to B)$.
+ \end{itemize}
+
+                                                     
+\end{frame}
+
+
+\begin{frame}{Типизация переменных}
+ 
+ \begin{itemize}[<+->]
+  \item Осталось разобраться, как присваивать типы переменным.
+  \begin{itemize}
+  \item {\bf Внимание:} тип переменной-объекта не обязательно является переменной-типом. Например, в типизации комбинатора $\Bx = 
+  \lambda f g x . f(gx)$ переменные $f$ и $g$ имеют сложные типы $(B \to C)$ и $(A \to B)$.
+  \end{itemize}
+  \item Переменные бывают свободные и связанные (находящиеся под $\lambda$'ми).
+  \item Для простоты будем считать, что множества свободных и связанных переменных не пересекаются (иначе применим $\alpha$-преобразования).
+  \item Типы свободных переменных декларируются явно в {\em контексте} $\Gamma = x_1 : A_1, \ldots, x_n : A_n$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Типизация по Чёрчу}
+ 
+ \begin{itemize}[<+->]
+  \item Для типизации связанных переменных есть два подхода.
+  \item При типизации {\em по Чёрчу} (<<жёсткой>>), при каждой $\lambda$'е явно указывается тип соответствующей переменной.
+  \item Далее тип каждого терма вычисляется однозначно.
+  \item Типизация по Чёрчу приводит к необходимости изменения языка термов (добавить указания типов), а также фактически к отказу от полиморфизма. Так, вместо одного комбинатора $\Bx = \lambda fgx. f(gx)$ нужно ввести отдельный комбинатор
+  \[
+   \Bx_{A,B,C} = \lambda f^{B\to C} . \lambda g^{A \to B}. \lambda x^A. f(gx)
+  \]
+  для каждого набора типов $A,B,C$.
+
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+
+\begin{itemize}[<+->]
+ \item Более гибкой является {\em типизация по Карри.}
+ \item При типизации по Карри данный терм в данном контексте может иметь много различных {\em возможных} типов.
+ \item Запись $\Gamma \vdash u : B$ означает что %терм $u$ {\em может} быть типизован типом $B$ в контексте $\Gamma$ 
+ $B$ --- {\em один} из допустимых типов для $u$ в контексте $\Gamma$
+ (т.е. что связанным переменным в $u$ {\em можно} приписать такие типы, что полученный терм будет корректно типизован по Чёрчу, и его типом будет $B$).
+ \item Запись $\Gamma \vdash u : B$ называется {\em утверждением о типизуемости.} Такие утверждения будут {\em доказываться как теоремы} в специально построенном логическом исчислении.
+ \item Терм $u$ не типизуем в контексте $\Gamma$, если $\Gamma \vdash u : B$ не доказуемо (не имеет места) ни для какого $B$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+
+\begin{itemize}[<+->]
+ \item Правила исчисления для типизации по Карри соответствуют правилам построения термов:
+ 
+ \[
+  \infer[\mathrm{Ax}]
+  {\Gamma, x : A \vdash x : A}{}
+  \qquad
+  \infer[\mathrm{Abs}]
+  {\Gamma \vdash
+  (\lambda x . u) : (A \to B)}
+  {\Gamma, x : A \vdash u : B}
+ \]
+ \[
+  \infer[\mathrm{App}]
+  {\Gamma \vdash (uv) : B}
+  {\Gamma \vdash u : 
+  (A \to B) & 
+  \Gamma \vdash v : A}
+ \]
+\item Доказательство (вывод) удобно представлять в виде дерева, где в корне стоит целевое утверждение $\Gamma \vdash u : B$, в листьях --- аксиомы (Ax), а внутренние вершины соответствуют правилам App и Abs. 
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Типизация по Карри}
+ 
+ \begin{itemize}[<+->]
+  \item Введённая нами система типов обладает свойством {\em безопасности типов} относительно $\beta$-редукции: если $\Gamma \vdash u : B$ и $u \to_\beta u'$, то $\Gamma \vdash u' : B$.
+  \item Это означает, что в процессе вычислений можно не контролировать типы, достаточно (статической) проверки в начале.
+  \item В обратную сторону, однако, это не работает: если $u \to_\beta u'$ и $\Gamma \vdash u' : B$, то не обязательно $\Gamma \vdash u : B$. Может оказаться, что $u$ вообще не типизируем, либо у него меньше корректных типов, чем у $u'$.
+  \begin{itemize}
+   \item {\bf Задача.} Придумать конкретные примеры.
+  \end{itemize}
+
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Типизация по Карри}
+ 
+\begin{itemize}[<+->]
+ \item 
+ Пример типизации комбинатора $\Bx$:
+ 
+ $$\footnotesize\hspace*{-3em}
+\infer[\mathrm{Abs}]{\vdash \lambda f. \lambda g. \lambda x. f(gx) :
+(B \to C) \to ((A \to B) \to (A \to C))}
+{\infer[\mathrm{Abs}]{f : (B \to C) \vdash \lambda g. \lambda x. f(gx) :
+(A \to B) \to (A \to C)}
+{\infer[\mathrm{Abs}]{f : (B \to C), g : (A \to B) \vdash \lambda x. f(gx) :
+A \to C}
+{\infer[\mathrm{App}]{f : (B \to C), g : (A \to B), x : A \vdash f(gx) : C}
+{f : (B \to C), \ldots \vdash f:(B \to C) & 
+\infer[\mathrm{App}]{f : (B \to C), g : (A \to B), x : A \vdash gx : B}{\ldots, g : (A \to B), \ldots \vdash g : (A \to B) & \ldots, x : A \vdash x : A}}}}}
+$$
+
+\item Этот вывод показывает, что терм $\lambda f. \lambda g. \lambda x. f(gx)$ типизуем типом $(B \to C) \to ((A \to B) \to (A \to C))$ для {\em произвольных} типов $A,B,C$.
+
+\item Иначе говоря, корректным типом для $\Bx$ (при пустом контексте) будет $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$ с любой подстановкой типов вместо переменных $r_1, r_2, r_3$.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Наиболее общий тип}
+ 
+ \begin{itemize}[<+->]
+  \item Оказывается (мы это докажем), что это {\bf полное} описание всех типов для $\Bx$.
+  \item А именно, если $\vdash \Bx : T$, то $T$ получается подстановкой из $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$.
+  \item Сам $(r_2 \to r_3) \to ((r_1 \to r_2) \to (r_1 \to r_3))$ называется {\em наиболее общим типом} для $\Bx$.
+  \item Более того, оказывается, что так будет всегда!
+  \item Любой терм $u$ либо вообще не типизуем в контексте $\Gamma$, либо имеет наиболее общий тип, из которого все остальные получаются подстановкой типов вместо переменных, не встречающихся в $\Gamma$.
+  \item {<<Неизменяемые>>} переменные по типам, используемые в контексте $\Gamma$, обозначим через $p_1, p_2, \ldots$. Остальные --- $r_1, r_2, \ldots$
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Наиболее общий тип}
+
+\begin{itemize}[<+->]
+ \item В Haskell'е используется более мощная система типов, основанная на типизации Хиндли -- Милнера (об этом мы поговорим на следующих лекциях).
+ \item В GHCi вычислить наиболее общий тип $\lambda$-терма можно командой {\tt :t}
+ \item Например, для нумералов Чёрча \mintinline{haskell}{:t (\s o -> s (s (s o)))} даёт
+ \begin{minted}{haskell}
+  (\s o -> s (s (s o))) :: (t -> t) -> t -> t
+ \end{minted}
+
+ \item При этом для, например, операции сложения
+ \mintinline{haskell}{churchPlus = \x y s o -> x s (y s o)} тип оказывается более общим, чем ожидалось:
+ \mintinline{haskell}{(t1 -> t2 -> t3) -> (t1 -> t4 -> t2) -> t1 -> t4 -> t3}, а не
+ \mintinline{haskell}{((t -> t) -> t -> t) -> ((t -> t) -> t -> t)}
+ \mintinline{haskell}{-> (t -> t) -> t -> t}.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Типы и рекурсия}
+
+\begin{itemize}[<+->]
+ \item Как мы видим, нумералы Чёрча, а также реализованные в чистом $\lambda$-исчислении булевы операции, типизируемы по Карри.
+ 
+ \item Однако это не так для комбинатора неподвижной точки $\Yx = \lambda f . \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$.
+ Действительно, уже подтерм $xx$ не пройдёт контроль типов, т.к. $(A \to B) \ne A$.
+ 
+ \begin{itemize}
+ \item На самом деле, никакой другой комбинатор неподвижной точки типизовать тоже нельзя, поскольку в чистом $\lambda$-исчислении все типизуемые термы сильно нормализуемы.
+\end{itemize}
+
+\item Однако $\Yx$ как <<чёрный ящик>> типизуем! Можно ввести константу $\Yb$ полиморфного типа $(r \to r) \to r$ и редукцию $\Yb u \to_\delta u (\Yb u)$.
+\end{itemize}
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda_\to \mathrm{Y}$-исчисление}
+
+\begin{itemize}[<+->]
+ \item В $\lambda$-исчислении с простой системой типов, расширенном константой $\Yb$ и $\delta$-редукцией, можно реализовать рекурсию, используя только типизуемые термы. Значит, это опять полный по Тьюрингу язык.
+ \item Вместо константы $\Yb$ можно ввести оператор $\mathrm{Y}$, связывающий переменную: $\mathrm{Y} x. u$, и получить исчисление 
+ $\lambda_\to \mathrm{Y}$.
+ \begin{itemize}
+ \item Типизация: 
+ \[
+\infer[\mathrm{Fix}]
+{\Gamma \vdash (\mathrm{Y} x. u) : B}
+{\Gamma, x:B \vdash u : B} 
+ \]
+ \item $\delta$-редукция: 
+ \( \mathrm{Y} x. u \to_\delta 
+ u[x := \mathrm{Y}x. u] \)
+ \item С помощью $\Yb$ выражается так:
+ $\mathrm{Y} x. u = \Yb (\lambda x. u)$; тогда
+ $\Yb (\lambda x. u) \to_\delta (\lambda x.u) (\Yb (\lambda x. u)) \to_\beta 
+ u[x := \Yb (\lambda x. u)]$.
+ \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Выведение типов}
+ 
+ \begin{itemize}[<+->]
+  \item Задача поиска наиболее общего типа (или выяснения, что терм нетипизуем) называется задачей {\em выведения типа} (type inference).
+  
+  \item Эта задача алгоритмически разрешима, и соответствующий алгоритм реализован в GHC.
+  
+  \item Таким образом, во многих случаях можно не указывать типы (программировать в бестиповом стиле), при этом сохраняя строгую типизацию.
+  
+  \item Однако Haskell позволяет и указывать типы явно. Таким образом можно сделать тип менее общим: например, для
+  \mintinline{haskell}{idfunc = (\x -> x) :: ((a -> a) -> (a -> a))} применение \mintinline{haskell}{idfunc 0} будет некорректным.
+  
+  \item Также явное указание типов делает код яснее.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Выведение типов}
+
+\begin{itemize}[<+->]
+ \item Сложность задачи выведения типов в общем случае, к сожалению, экспоненциальная.
+ 
+ \item Это неизбежно, потому что ответ может иметь экспоненциальную длину.
+ \begin{itemize}
+
+ \item Пример: для \mintinline{haskell}{dup = \x -> (x,x)} терм \mintinline{text}{dup . dup . dup . }... будет иметь экспоненциально длинный тип:
+ \begin{minted}{haskell}
+(dup . dup . dup . dup) :: 
+     b -> ((((b, b), (b, b)), ((b, b), (b, b))),
+         (((b, b), (b, b)), ((b, b), (b, b))))
+ \end{minted}
+\item Здесь \mintinline{haskell}{.} --- это инфиксно записанный $\Bx$-комбинатор (композиция).
+\item Можно сделать то же и в чистой $\lambda$'е:
+\mintinline{haskell}{dup' = \x -> \f -> (f x x)}
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Далее...}
+
+\begin{itemize}[<+->]
+ \item На следующей лекции мы опишем алгоритм выведения типов в $\lambda_\to$ (простая система типов по Карри).
+ \item В частности, мы докажем теорему, что любой типизуемый терм имеет наиболее общий тип.
+ \item После мы рассмотрим более богатые системы типов, такие как $\lambda2$ (система F) и система Хиндли -- Милнера, и обсудим вопросы выведения типов в этих системах.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\end{document}
+
+
+
+
+\begin{frame}{Типы в языках программирования}
+
+FIXME: рекурсия, нетипизуемость Y-комбинатора
+
+FIXME: выведение типов алгоритмически разрешимо
+(но примеры с экспонентой)
+
+FIXME: далее --- что типизируется из нумералов Чёрча, булевой логики ...
+
+ FIXME Bluebird - картинка и ссылка на Смаллиана
+    FIXME: ссылка на Пирса (TAPL)
+\end{frame}
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{Вычисление как преобразование}
+ 
+ \begin{itemize}[<+->]
+  \item В функциональной парадигме {\em вычисление} функции (программы) $F$ на входных данных $a_1, \ldots, a_n$ --- это {\em редукция} (преобразование) терма
+  $F a_1 \ldots a_n$ вплоть до {\em нормальной формы} --- далее не редуцируемого состояния.
+  
+  \item Базовый язык --- <<чистое>> $\lambda$-исчисление, в котором термы строятся с помощью операций применения и $\lambda$-абстракции, а основное преобразование --- $\beta$-редукция:
+  \[
+  \mbox{\fbox{$\quad\ldots\quad (\lambda x.u)v \quad \ldots\quad$}} \to_\beta
+  \mbox{\fbox{$\quad\ldots\quad u[x:=v] \quad \ldots\quad$}}
+ \]
+
+ \item Редукции могут применяться в разном порядке.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Имеет место {\em свойство Чёрча -- Россера:}
+ \[
+  \xymatrix{
+   & v_1 \ar@{-->>}[dr] & \\
+  u \ar@{->>}[ur]\ar@{->>}[dr] & & w \\
+  & v_2 \ar@{-->>}[ur]
+  }
+ \]
+ \item Значит, совершить <<ошибочную>> редукцию на пути к нормальной форме невозможно: если нормальная форма существует, то любую стартовую последовательность редукций можно до неё довести.
+ 
+ \item В частности, нормальная форма, если существует, то $\alpha$-единственна.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Однако бывают {\em слабо, но не сильно нормализуемые} термы, у которых есть нормальная форма, но есть и другой, бесконечный путь редукций.
+ 
+ \item Пример: $(\lambda y. z) \Omega$, где $\Omega = (\lambda x. (xx)) (\lambda x. (xx))$.
+ 
+ \item Поэтому, несмотря на свойство Чёрча -- Россера, {\em порядок применения редукций важен.}
+ 
+ \item Традиционно (в императивных языках) используется {\em ретивый} (eager) порядок вычисления: сначала вычислить значения аргументов функции, потом саму функцию.
+ 
+ \item В нашем примере $(\lambda y.z) \Omega$ такой порядок приводит к бесконечному циклу, пытаясь вычислить $\Omega$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Порядок вычислений}
+
+\begin{itemize}[<+->]
+ 
+ \item Элементы других, {\em ленивых}  (lazy) вычислений имеются и в некоторых императивных языках, например, в C:
+ \begin{minted}{c}
+if (x != 0 && y/x > 3) { /* ... */ }
+ \end{minted}
+\begin{itemize}
+\item Если \mintinline{c}{x} равно 0, то первый член конъюнкции ложен, значит, ложна и вся конъюнкция, и стандарт языка предписывает {\em не вычислять} второй член (что привело бы к ошибке <<деление на ноль>>).
+\end{itemize}
+\item Мы определим {\em нормальную} стратегию редукций, соответствующую идее ленивого вычисления: не вычисляй значение, пока оно не понадобится.
+ 
+
+\item Нормальная стратегия редукций реализует идею ленивости {\em последовательно.}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Ленивость}
+
+Для сравнения: при <<традиционном>> подходе, даже если реализация булевых операций ленивая, в более сложных случаях ленивость исчезает.
+
+\begin{minted}{python}
+x = 0
+y = 3
+
+if (x == 0 or y/x > 3):
+    print "Hello!"
+
+if ((lambda b: (x == 0 or b)) (y/x > 3)):
+    print "Hi!"
+\end{minted}
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Говорим, что один редекс находится {\em левее} другого, если $\lambda$ первого редекса расположена левее (в записи терма), чем $\lambda$ второго.
+ 
+ \item Это означает, что либо первый редекс целиком расположен левее второго, либо второй редекс находится внутри первого (в $u_1$ или в $v_1$):
+ \[
+ \ldots\quad (\lambda x.u_1)v_1 \quad \ldots\quad (\lambda x.u_2)v_2 \quad \ldots
+ \]
+ \[
+  \ldots \quad 
+  (\lambda x. 
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{u_1}\,) v_1 \quad \ldots
+ \]
+ \[
+  \ldots \quad
+  (\lambda x. u_1)
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{v_1}
+  \quad\ldots
+ \]
+
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item {\bf Нормальная стратегия:} всегда редуцируй {\em самый левый редекс.}
+ \item При этом это не обязательно самая левая $\lambda$: левее могут быть лямбды, не образующие $\beta$-редексов (после которых не идёт применение).
+ \item В частности, мы сначала редуцируем $(\lambda x . u_1) v_1$, а только потом (если потребуется) вычисляем внутри $v_1$ (ленивость!).
+ \begin{theoremr}
+  Если терм можно привести к нормальной форме, то нормальная стратегия добьётся этого.
+ \end{theoremr}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по необходимости}
+
+\begin{itemize}[<+->]
+ \item Как мы уже видели, нормальная стратегия редукций избавляет от вычисления ненужных аргументов: $(\lambda x y . x) v_1 v_2 \twoheadrightarrow_\beta v_1$.
+ \item С другой стороны, буквальное следование нормальной стратегии приводит к избыточным вычислениям за счёт копирования аргумента:
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}\,) v \to_\beta
+\mbox{\fbox{$\:\ldots\: v \:\ldots\: v \:\ldots\: v \:\ldots\:$}}
+ \]
+\item Для решения этой проблемы используется (в частности, в Haskell'е) {\em графовая оптимизация,} или <<вызов по необходимости>> (call-by-need):
+\[
+\xymatrix@-2em{
+&&&&&&& v \\
+\ldots & \lozenge\ar[urrrrrr] & \ldots & \lozenge
+\ar[urrrr] & \ldots & \lozenge\ar[urr] & \ldots
+}
+\]
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по...}
+
+\begin{itemize}
+ \item {\bf Вызов по значению} (call-by-value): сначала вычислить значения аргументов, потом применять функцию. Соответствует {\em аппликативному} порядку редукций, обычен для императивных языков.
+ 
+ \item {\bf Вызов по имени} (call-by-name): сначала подставить аргументы (не вычисляя их) в функцию, соответствует нормальному порядку редукций.
+ 
+ \item {\bf Вызов по необходимости} (call-by-need): соответствует порядку редукций с графовой оптимизацией.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item Ещё один недостаток нормализации --- её неустойчивость относительно расширения терма.
+ 
+ \item Например, терм $\lambda x. (x \Omega)$ не нормализуем (единственная редукция переводит $\Omega$ в себя), однако если рассмотреть его в большем терме: $(\lambda x. (x \Omega))(\lambda y.z)$, то этот терм нормализуется к $z$ с помощью нормальной стратегии.
+ 
+ \item Решение этой проблемы --- отказ от применения некоторых редукций, т.е. ослабление требований к нормальной форме.
+ 
+ \item Для этого используется {\em слабая головная нормальная форма} (WHNF), в которой разрешены редексы в определённых местах.
+ 
+ \item Всякая нормальная форма является WHNF, но не наоборот.
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item В чистом $\lambda$-исчислении к термам в WHNF относятся:
+ \begin{enumerate}
+  \item {\bf все} термы вида $\lambda x . u$;
+  \item термы вида $x \, v_1 \, \ldots \, v_n$, где $x$ --- переменная. (При этом внутри $v_i$ могут быть редексы.)
+ \end{enumerate}
+ \item Таким образом, мы не вычисляем тогда, когда это может не пригодиться:
+ \begin{enumerate}
+  \item функция с внешней $\lambda$'ой ещё не применена;
+  \item переменная $x$ обозначает неизвестную функцию.
+ \end{enumerate}
+ \item Недоредуцированные подтермы называются thunk'ами.
+ \item В Haskell'е, из-за другого синтаксиса, понятие WHNF немного другое (было/будет на семинаре).
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item К примеру, определим (в GHCi) ненормализуемый терм:
+ \begin{minted}{haskell}
+om = (let y = y in y)
+ \end{minted}
+ \item Попытка вычислить \mintinline{text}{om} уводит в бесконечный цикл.
+ \item Однако если определить функцию
+\begin{minted}{haskell}
+kk = \x -> x om
+\end{minted}
+то попытка её вычислить даёт уже ошибку ``no instance for Show'' --- т.е. \mintinline{text}{om} здесь не пытаются вычислить.
+\item В \mintinline{text}{kk (\z -> z)}, конечно, будет бесконечный цикл, а вот \mintinline{text}{kk (\z -> 0)} лениво вычисляется в \mintinline{text}{0}.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+{\footnotesize Пример из \url{https://eax.me/lazy-evaluation/} ,,Скандальная правда о Haskell и ленивых вычислениях``
+
+}
+
+\begin{itemize}[<+->]
+ \item Иногда стратегия вызова по необходимости, несмотря на графовую оптимизацию, приводит к нежелательным с точки зрения эффективности последствиям.
+ \item Рассмотрим следующий пример (вычисление суммы элементов списка):
+ \begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+ \end{minted}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item Эта программа выдаёт правильный ответ (500000500000).
+  \item Посмотрим, однако, на использование ресурсов.
+\begin{minted}{text}
+ghc -rtsopts lazy_fail.hs
+./lazy_fail +RTS -sstderr
+\end{minted}
+  \item Получаем ``\mintinline{text}{99 MiB total memory in use}'' (и это число будет меняться в зависимости от размера массива).
+  \item Проблема не в глубине стека: \mintinline{haskell}{mysum'} реализован через хвостовую рекурсию, она оптимизируется.
+  \item Дело в порядке редукций и слишком больших thunk'ах.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+\begin{itemize}[<+->]
+ \item Последовательность редукций:\\
+ \mintinline{haskell}{mysum' 0 [0..3]}
+ $\to$ 
+ \mintinline{haskell}{mysum' (0+0) [1..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1) [2..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2)
+ [3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2+3)
+ []}
+ $\twoheadrightarrow$
+ \mintinline{haskell}{6}
+ \item Аккумулятор \mintinline{text}{acc} в процессе вычислений остаётся огромным thunk'ом, а фактически вычисляется только в самом конце.
+ \item Получается, что мы храним наш большой массив \mintinline{haskell}{[1..1000000]} не в компактном, а в явном виде.
+ \item Чтобы избежать этого, нужно принудить Haskell сразу вычислять (приводить к WHNF) 
+ выражение \mintinline{text}{acc+x}.
+ \item Для этого используется встроенная функция \mintinline{text}{seq}.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item \mintinline{text}{seq} вычисляет свой первый аргумент и (если вычисление успешно) игнорирует его и возвращает второй.
+  \item В нашем примере:
+\begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = (acc+x) `seq` mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+\end{minted}
+\item Здесь новое значение аккумулятора оказывается предвычисленным и (за счёт графовой оптимизации) именно оно передаётся по рекурсии.
+\item Расход памяти --- 2 MiB (столько же, сколько у тривиальной ``Hello, World!''), и он не растёт с ростом длины списка.
+\item Синтаксический сахар: \mintinline{text}{f $! x} означает \mintinline{text}{x `seq` (f x)}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Доказательство свойств $\lambda$-исчисления}
+ 
+ \begin{itemize}
+  \item Приведём схемы доказательств основных свойств редукций в <<чистом>> $\lambda$-исчислении: свойства Чёрча -- Россера и нормализации посредством нормальной стратегии.
+  \item<2-> Для этого нам будет нужно понятие <<пакетной>> редукции, обозначаемой $\to_\ell$:
+  \begin{enumerate}
+  \item $u \to_\ell u$;
+  \item если $u \to_\ell u'$, то
+  $\lambda x. u \to_\ell \lambda x. u'$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(uv) \to_\ell (u'v')$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(\lambda x. u) v \to_\ell 
+  u'[x := v']$.
+  \end{enumerate}
+  \item<3-> Один шаг $\to_\ell$ состоит из нескольких (возможно, нуля) шагов $\to_\beta$.
+  \item<4-> Поэтому $\twoheadrightarrow_\ell$ совпадает с $\twoheadrightarrow_{\beta}$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item {\bf Лемма о подстановке:} 
+  если $u \to_\ell u'$ и $v \to_\ell v'$, то
+  $u[x:=v] \to_\ell u'[x:=v']$ (в один шаг!).
+  \item Отсюда выводится {\em свойство ромба} для $\to_\ell$:\\
+  \centerline{
+  \xymatrix@-.5em{
+  u \ar^{\ell}[r]\ar^{\ell}[d] & 
+  u_1 \ar@{.>}^{\ell}[d] \\
+  u_2 \ar@{.>}^{\ell}[r] & u_3
+  }}
+  \item Из свойства ромба конфлюэнтность следует <<заполнением прямоугольника>>:
+  \centerline{
+  \xymatrix@-.5em{
+  \bullet \ar[r]\ar[d] & \bullet \ar[r]\ar@{.>}[d] & \bullet \ar[r]\ar@{.>}[d]  &  \bullet \ar@{.>}[d]\\
+  \bullet \ar@{.>}[r]\ar[d] & \bullet \ar@{.>}[r]\ar@{.>}[d] & \bullet \ar@{.>}[r]\ar@{.>}[d]& \bullet \ar@{.>}[d] \\
+  \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r]  & \bullet
+  }}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+\begin{itemize}[<+->]
+ \item Интересный случай:\\
+ \centerline{
+\xymatrix{
+(\lambda x . u) v \ar^{\ell}[r] \ar^{\ell}[d]& 
+u_1[x := v_1] \ar@{.>}^{\ell}[d] \\
+(\lambda x. u_2) v_2 \ar@{.>}^{\ell}[r]  &
+u_3[x := v_3]
+}}
+(Здесь мы пользуемся <<ромбами>> для $u,u_1,u_2$ и $v,v_1,v_2$.)
+\item Для исходной $\to_\beta$, чтобы <<замкнуть>> ромб, одного шага редукции не хватит.
+\item Если же разрешить <<замыкать>> последовательностями редукций, то процесс <<заполнения прямоугольника>> может не сойтись.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Докажем теперь теорему о том, что если терм нормализуем, то его можно привести к нормальной форме, следуя нормальной стратегии редукций.
+ \item Введём понятие {\em головной редукции} --- это редукция, в которой редексом является весь терм: $(\lambda x. u) v \to_h u[x := v]$.
+ \item Прочие редукции называются {\em внутренними.} В частности, <<пакетная>> редукция типов 1--3, $u \stackrel{\text{1--3}}{\to}_\ell v$, --- это последовательность внутренних редукций.
+ \item {\bf Лемма 1.} Из произвольной <<пакетной>> редукции можно вынести в начало все головные:
+ если $u \to_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\to}_\ell w$ для некоторого $v$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Теперь сделаем то же для последовательности <<пакетных>> редукций.
+ \item {\bf Лемма 2.} Если $u \twoheadrightarrow_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\twoheadrightarrow}_\ell w$.
+ \item Лемма 2 доказывается перестановкой редукций.
+ \begin{itemize}
+ \item Было: $u \to_\ell u_1 \to_\ell u_2 \to_\ell \ldots \to_\ell w$.
+ \item Каждую $\to_\ell$ разбиваем на $\twoheadrightarrow_h$ и $\stackrel{\text{1--3}}{\to}_\ell$.
+ \item Наконец, переносим вправо <<неправильные>> применения $\stackrel{\text{1--3}}{\to}_\ell$, идущие перед $\to_h$. 
+ \item А именно, $p \stackrel{\text{1--3}}{\to}_\ell q \to_h r$ перестраивается в 
+ $p \to_h p' \to_\ell r$ (поскольку $q = (\lambda x. q_1) q_2$, а значит, $p = (\lambda x. p_1) p_2$), а это, в свою очередь, в $p \twoheadrightarrow_h q^* \stackrel{\text{1--3}}{\to}_\ell r$.
+ \item Далее --- индукция по количеству <<неправильных>> $\stackrel{\text{1--3}}{\to}_\ell$.
+ \end{itemize}
+ \end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+ 
+ \begin{itemize}[<+->]
+  \item  Важное {\bf следствие} из леммы 2: если терм нормализуем, то он допускает только конечную цепочку головных редукций, дальнейшие редукции только внутренние:
+  \[
+   u \twoheadrightarrow_h v \twoheadrightarrow_i w.
+  \]
+  \item Пусть $w$ --- нормальная форма. Рассуждаем индукцией по структуре $w$.
+  \begin{itemize}
+  \item Если $w = x$, то $v = x$, и $u \twoheadrightarrow_h w$.
+  \item Если $w = \lambda x. w'$, то $v = \lambda x. v'$, причём по предположению $v'$ приводится к $w'$ нормальной стратегией.
+  Получаем: $u \twoheadrightarrow_N \lambda x. v' \twoheadrightarrow_N \lambda x. w'$.
+  \item Если $w = w_1 w_2$, то $v = v_1 v_2$.
+  Опять же, $u \twoheadrightarrow_N v_1 v_2 \twoheadrightarrow_N w_1 v_2 \twoheadrightarrow_N w_1 w_2$.
+  %\item Если $w = \lambda x_1 \ldots x_n. (w_0 w_1 \ldots w_m)$, то $v = \lambda x_1 \ldots \lambda x_n. (v_0 v_1 \ldots v_m)$, где $v_i \twoheadrightarrow_\beta w_i$.
+  %\item По предположению, $v_i$ приводится к $w_i$ нормальной стратегией.
+  %\item Из этого собирается нормальная стратегия приведения $v$ к $w$, а значит и $u$ к $w$.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Далее...}
+ 
+ \begin{itemize}
+  \item Пока что у нас не было типов данных: любую функцию можно было применять к любому объекту.
+  \item В следующий раз мы ограничим класс термов теми термами, в которых можно правильно расставить типы.
+  \item При этом, к сожалению, комбинатор неподвижной точки $\Yx = \lambda f. \bigl( 
+  (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$.
+  \item Однако его можно типизовать как <<чёрный ящик>>: $\Yx : (A \to A) \to A$.
+ \end{itemize}
+
+\end{frame}
+
+
+\end{document}
+
+\begin{frame}{*Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Чтобы доказать теорему, введём понятие {\em головной редукции} --- это редукция, в которой редексом является весь терм: $(\lambda x. u) v \to_\beta^h u[x := v]$.
+ \item Прочие редукции называются {\em внутренними:} $u \to_\beta^i u'$.
+ \item Если головная редукция идёт после внутренней, то их можно переставить. При этом внутренняя редукция может превратиться в несколько, например:
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v \to_\beta^i
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v' \to_\beta^h
+  \mbox{\fbox{$\:\ldots\: v' \:\ldots\: v' \:\ldots\: v' \:\ldots\:$}}
+ \]
+ преобразуется в
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v \to_\beta^h
+ \mbox{\fbox{$\:\ldots\: v \:\ldots\: v \:\ldots\: v \:\ldots\:$}}
+ \twoheadrightarrow_\beta^i
+ \mbox{\fbox{$\:\ldots\: v' \:\ldots\: v' \:\ldots\: v' \:\ldots\:$}}
+ \]
+
+FIXME проблема!!! (вдруг редукция не внутренняя теперь!) --- аккуратно расписать параметры индукции
+(а лучше - отдельно рассмотреть случай $(\lambda x . x) v$)
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{О курсе}
+
+\begin{itemize}[<+->]
+ \item Курс посвящён функциональной парадигме программирования на примере одного из наиболее известных функциональных языков --- Haskell.
+ \item На лекциях: теоретические основы функционального программирования ($\lambda$-исчисление, выведение типов, монады-лимонады и проч.).
+ \item На практических занятиях (Даниил Рогозин и Юрий Сыровецкий): программирование на Haskell'е.
+ \item Теория и практика связаны между собой: как в шутку говорят, {\em Haskell --- это язык, в котором нельзя напечатать ``Hello, World'' без знания теории категорий.}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Функции как объекты}
+
+\begin{itemize}[<+->]
+ \item Функциональная парадигма программирования существенно отличается от обычной (императивной).
+ \item Мы постепенно будем обсуждать её особенности.
+ \item {\bf Первое свойство,} объясняющее термин {\em <<функциональный>>:} функции являются полноправными <<гражданами>> (объектами) языка. Functions are first-class citizens.
+ \item В частности, функция может быть передана как аргумент другой функции. В этом случае последняя называется {\em функцией высшего порядка.}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функция как объект в C}
+ 
+\begin{itemize}[<+->]
+  \item Начнём с примеров функций высших порядков, которые встречаются в императивных языках.
+  \item Так, в стандартной библиотеке C есть функция сортировки:
+  \begin{minted}{c}
+   void qsort(void *base, size_t nmemb, size_t size,
+    int (*compar)(const void *, const void *));
+  \end{minted}
+
+  \item Эта функция может сортировать массив {\em произвольных данных.}
+  \item Отсюда тип \mintinline{c}{void*} --- указатель на произвольный объект. (При этом не производится проверка корректности типов данных, что плохо.)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Функция как объект в C}
+ 
+\begin{itemize}[<+->]
+ \item Функция \mintinline{c}{compar} возвращает значение $<0$, если первый аргумент меньше второго, $=0$, если равны, и $>0$, если второй аргумент меньше.
+ \item Например, для сравнения строк (\mintinline{c}{char*}) по алфавиту используется функция \mintinline{c}{strcmp} с соответствующим приведением типов:
+ \begin{minted}{c}
+int cmpstringp(const void *p1, const void *p2)
+{
+  return strcmp(*(const char **) p1, *(const char **) p2);
+}
+ \end{minted}
+\item Технически передача функции как аргумента реализуется в C как передача указателя на место в памяти, где находится код этой функции --- так что сгенерировать новую функцию <<на лету>> не получится.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функция как объект в Python'е}
+
+\begin{itemize}[<+->]
+ \item Аналогично устроена сортировка в Python'е:
+\begin{minted}{python}
+bigrams = {"AB": [10, 11, 12], "BC": [5, -5, 8],
+  "CD": [105, 1, 0], "DE": [6, 6], "EF": [15, 20, 15], 
+  "FG": [22, 11, 32], "GH": [20, 20, 20]}
+srtbg = sorted(bigrams, key=lambda key: sum(bigrams[key]), 
+  reverse=True)
+\end{minted}
+\item Здесь ради эффективности используется не функция сравнения, а функция вычисления ключа (которые потом сравниваются как целые числа).
+\item Интересно использование ключевого слова \mintinline{python}{lambda} для создания безымянной функции <<на месте>>.
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}{$\lambda$-оператор}
+
+\begin{itemize}[<+->]
+ \item Знаком $\lambda$ выделяется та переменная, которую мы будем считать аргументом функции.
+ \item В теоретическом материале мы будем использовать обозначение $\lambda x. u$, где $u$ --- выражение ({\em терм}), возможно содержащее $x$:
+ \[
+  \lambda x . \underbrace{\mbox{\fbox{ $\ldots x \ldots x \ldots x \ldots$}}}_u
+ \]
+ \item При вычислении значения функции $\lambda x . u$ на аргументе $x = a$ нужно подставить $a$ вместо $x$ вместо всех {\em свободных} (т.е. не связанных другими $\lambda$'ми) вхождений $x$ в $u$.
+ \item Это называется {\em $\beta$-преобразованием,} о нём мы поговорим позже.
+ \item В математике вместо $\lambda x .u $ пишут $x \mapsto u$.
+\end{itemize}
+
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Функции и изменяемость}
+
+\begin{itemize}[<+->]
+ \item Посмотрим на следующий код:
+\begin{minted}{python}
+x=5
+f=lambda y : y+x
+print f(2)
+x=7
+print f(2)
+\end{minted}
+\item Значение \mintinline{python}{f(2)} изменилось: действительно, \mintinline{python}{lambda} создаёт новую безымянную функцию, которая, помимо своего аргумента \mintinline{python}{y} имеет также неявный доступ к переменной \mintinline{python}{x}.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функции и изменяемость}
+ 
+ \begin{itemize}[<+->]
+  \item Таким образом, в Python'е функции, введённые с помощью \mintinline{python}{lambda}, ведут себя всё же не совсем как обычные объекты.
+  \item Действительно, если бы вместо \mintinline{python}{f} была бы числовая переменная:
+\begin{minted}{python}
+x=5
+f=x+2
+print f
+x=7
+print f
+\end{minted}
+то значение бы не поменялось.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Функции и изменяемость}
+
+\begin{itemize}[<+->]
+ \item Во многих функциональных языках (в частности, в Haskell'е) проблема с изменением значений решена радикально.
+ \item В этом состоит {\bf второе свойство} --- immutability: значения переменных вообще запрещено изменять!
+ \item Это свойство выглядит довольно дико, принуждая к созданию большого числа объектов вместо изменений одного. Однако этот негативный эффект компенсируется сборкой мусора и оптимизацией.
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{Неизменяемость}
+\begin{itemize}[<+->]
+ \item За счёт неизменяемости функции получаются {\em чистыми} в математическом смысле: возвращаемое значение однозначно определяется значениями аргументов, и при этом функция не имеет {\em побочных эффектов.}
+ \item В императивных языках, наоборот, функции взаимодействуют с неким {\em состоянием внешнего мира.}
+ \item Это делает осмысленными, в частности, функции, которые ничего не принимают и не возвращают:
+ \mintinline{c}{void func();}
+ \item Конечно, связь с внешним миром нужна, но в <<чистых>> функциональных языках она прописывается явно.
+ \item В Haskell'е для этого (в частности --- для ввода-вывода) используется механизм {\em монад,} основанный на теоретико-категорной конструкции.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Вычисление как преобразование}
+
+\begin{itemize}[<+->]
+ \item Наконец, ещё более фундаментальное {\bf третье свойство,} отличающее функциональные языки от императивных, заключается в самом понятии вычислительного процесса.
+ \item В функциональной парадигме вычисление есть последовательное {\em преобразование} некоего выражения ({\em терма}), пока он не дойдёт до некоторой далее не преобразуемой формы. (Например, терм, в явном виде представляющий натуральное число.)
+ \item Преобразования призваны <<упрощать>> терм, и поэтому также называются {\em редукциями.}
+ \item В реальности редукции не всегда упрощают терм, и возможны бесконечные их последовательности (что соответствует неостанавливающейся программе на императивном языке).
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вычисление как преобразование}
+
+\begin{itemize}[<+->]
+ \item В этом смысле исполнение функциональной программы напоминает вычисление арифметического выражения:
+ \[
+  (1+2) \cdot (3+4) \to 
+  3 \cdot (3+4) \to 3 \cdot 7 \to 21.
+ \]
+\item При этом, в отличие от императивной программы, порядок преобразований не задан жёстко:
+\[
+ (1+2) \cdot (3+4) \to 
+ (1+2) \cdot 7 \to 3 \cdot 7 \to 21.
+\]
+
+\item Преобразование можно применить к любому подвыражению (подтерму), которое может быть упрощено. Такой подтерм называется {\em редексом.}
+\end{itemize}
+
+
+ 
+\end{frame}
+
+
+\begin{frame}{Конфлюэнтность}
+
+\begin{itemize}[<+->]
+\item Если синтаксис разработан неправильно, то разные последовательности редукций могут давать разные ответы. Например, так получится, если не использовать скобки:
+\[
+\xymatrix@-1em{
+1+2 \cdot 3+4 \ar[r]\ar[dd] & 3 \cdot 3 + 4 \ar[r]\ar[d] & 3 \cdot 7 \ar[r] & 21\\
+& 9 + 4 \ar[r] & 13\\
+1+6+4 \ar[r] & 7+4 \ar[r] & 11
+}
+\]
+\item В <<хороших>> системах этого не происходит за счёт {\em конфлюэнтности (свойства Чёрча -- Россера):}
+если $u \twoheadrightarrow v_1$ и $u \twoheadrightarrow v_2$, то существует такой терм $w$, что $v_1 \twoheadrightarrow w$ и $v_2 \twoheadrightarrow w$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Ленивость}
+
+\begin{itemize}[<+->]
+ \item За счёт порядка преобразований какие-то подтермы могут оказаться вообще не вычисленными.
+ \item Например, $\mathrm{length} [ u,v,w ]$ можно сразу редуцировать к $3$, не пытаясь вычислить значения $u$, $v$, $w$.
+\item Это свойство называется {\em ленивостью} вычислений.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda$-исчисление}
+
+\begin{itemize}
+ \item $\lambda$-исчисление --- простейшая модель и основа функциональных языков программирования.
+ \item<2-> Термы $\lambda$-исчисления ({\em $\lambda$-термы}) строятся из переменных с помощью всего лишь двух операций:
+ \begin{itemize}
+ \item {\em применение:} если $u$ и $v$ --- термы, то $(uv)$ --- терм;
+ \item {\em $\lambda$-абстракция:} 
+ если $u$ --- терм, $x$ --- переменная, то
+ $\lambda x . u$ --- терм.
+ \end{itemize}
+ \item<3-> Запись $(uv)$ означает применение функции $u$ к  $v$. 
+ \item<4-> Более привычное обозначение было бы $u(v)$, однако бесскобочное обозначение также применяется в математике --- например, $\sin \alpha$.
+ \item<5-> В функциональных языках чаще используется бесскобочная запись.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Функции многих аргументов}
+
+\begin{itemize}[<+->]
+ \item С помощью $\lambda$-абстракции можно задать функцию {\em одного} аргумента $x$. Как быть с функциями многих аргументов?
+ \item Для этого используется приём, называемый {\em каррированием} (в честь Х.\,Карри): $f = \lambda x. \lambda y.\lambda z. u$.
+ \item В каррированном виде функция $f$ является функцией одного аргумента ($x$), возвращающая, в свою очередь, опять же функцию одного аргумента ($y$) и т.д.
+ \item Для каррированных функций многих аргументов используется сокращённое обозначение $\lambda xyz. u$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Примеры и бестиповость}
+ 
+ \begin{itemize}[<+->]
+  \item Простейший пример $\lambda$-терма: $\Ix = \lambda x.x$. Этот терм реализует тождественную функцию:
+\begin{minted}{python}
+def identity(x):
+  return x
+\end{minted}
+  \item Отметим, что наше $\lambda$-исчисление (как и Python) {\em бестиповое:} любой терм можно применить, как функцию, к любому другому.
+  
+  \item Более содержательный пример --- абстрактная программа для композиции функций
+  \[
+   \Bx = \lambda f g x . f(gx).
+  \]
+
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Преобразования $\lambda$-термов}
+
+\begin{itemize}[<+->]
+ \item Главное преобразование термов в $\lambda$-исчислении --- {\em $\beta$-редукция:}
+ \[
+  (\lambda x . u) v \to_\beta
+  u[x := v].
+ \]
+ \vspace*{-1em}
+ \begin{itemize}
+ \item Запись $u[x:=v]$ означает подстановку $v$ вместо каждого свободного вхождения $x$ в $u$.
+ \item Условие корректности подстановки: переменные, свободные в $v$, не должны оказаться связанными в $u$. (Например,
+ $(\lambda x. \lambda y. x) y \mathop{\not\to_\beta} \lambda y .y$.)
+ \end{itemize}
+ \item $\beta$-редукция может применяться к произвольному редексу вида $(\lambda x .u)v$:
+ \[
+  \mbox{\fbox{$\quad\ldots\quad (\lambda x.u)v \quad \ldots\quad$}} \to_\beta
+  \mbox{\fbox{$\quad\ldots\quad u[x:=v] \quad \ldots\quad$}}
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Преобразования $\lambda$-термов}
+
+\begin{itemize}[<+->]
+ \item Помимо $\beta$-редукции имеется вспомогательное преобразование --- {\em $\alpha$-конверсия:}
+ \[
+  \lambda x. u \to_\alpha \lambda y. u[x := y],
+ \]
+ где $y$ --- новая переменная.
+
+ \item Термы, которые можно свести к одному и тому же $\alpha$-конверсиями, называются {\em $\alpha$-равными} и в дальнейшем считаются вариантами одного терма.
+ 
+ \item $\alpha$-конверсия помогает решить проблему с недопустимой подстановкой при $\beta$-редукции:
+ \[
+  (\lambda x .\lambda y. x) y =_\alpha 
+  (\lambda x . \lambda z. x) y \to_\beta
+  \lambda z. y
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормализация}
+
+\begin{itemize}[<+->]
+ \item {\em Нормальная форма} --- это терм, в котором нет $\beta$-редексов (т.е. который далее нельзя редуцировать).
+ 
+ \item {\bf Теорема.} $\beta$-редукция обладает свойством Чёрча -- Россера:
+ \[
+  \xymatrix{
+   & v_1 \ar@{-->>}[dr] & \\
+  u \ar@{->>}[ur]\ar@{->>}[dr] & & w \\
+  & v_2 \ar@{-->>}[ur]
+  }
+ \]
+
+ \begin{itemize}
+ \item Доказательство этой, как и некоторых других, теорем, будет опубликовано в виде конспекта.
+ \end{itemize}
+ 
+ 
+ \item {\bf Следствие.} Данный терм не может редуцироваться к двум $\alpha$-разным нормальным формам.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормализация}
+
+\begin{itemize}[<+->]
+ \item Поскольку нормальная форма не зависит от пути, которым мы к ней пришли, её можно считать {\em результатом вычисления значения} данного $\lambda$-терма.
+ 
+ \item Однако всё не так просто.
+ 
+ \item Бывают термы, которые вообще не приводятся к нормальной форме (любое вычисление бесконечно).
+ 
+ \item Бывают и такие, для которых один путь приводит к нормальной форме ({\em слабая нормализуемость}), а другой бесконечен.
+ 
+ \item Наконец, если все пути приводят к нормальной форме, то такой терм {\em сильно нормализуем.}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Примеры}
+
+\begin{itemize}
+ \item Пусть $\omega = \lambda x. (xx)$, а $\Omega = \omega\omega$. Тогда $\Omega$ редуцируется только сам к себе: 
+ \[\Omega = (\lambda x.(xx)) (\lambda x. (xx)) \to_\beta (xx)[x := \omega] = \omega\omega = \Omega,\]
+ значит, он не нормализуем.
+ \item Можно построить и терм, который будет при <<редукции>> бесконечно разрастаться.
+ \item Бывает и слабо нормализуемый терм, не являющийся сильно нормализуемым: например, $(\lambda x . y) \Omega$.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Нормализуемость}
+
+\begin{itemize}[<+->]
+ \item Из-за существования слабо, но не сильно нормализуемых термов важен порядок, или {\em стратегия,} применения редукций.
+ \item О различных стратегиях редукций мы поговорим на следующей лекции.
+ \item А пока что коротко обсудим вычислительные возможности бестипового $\lambda$-исчисления.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Натуральные числа по Чёрчу}
+
+\begin{itemize}[<+->]
+ \item Натуральное число $n$ можно представить следующим образом с помощью константы $o$ (ноль) и функции $s$ (взятие следующего):
+ \[
+  \underbrace{s(s \ldots (s}_{\text{$n$ раз}}
+  o) \ldots)
+ \]
+
+ \item В <<чистом>> $\lambda$-исчислении у нас нет констант, поэтому мы просто абстрагируем $s$ и $o$ как переменные, получив замкнутый (без свободных переменных) терм, называемый {\em нумералом Чёрча:}
+ \[
+  \underline{n} = \lambda s o. \underbrace{s(s \ldots (s}_{\text{$n$ раз}}
+  o) \ldots)
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}[<+->]
+ \item Заметим, что нумералы Чёрча не содержат $\beta$-редексов, т.е. являются нормальными формами.
+ 
+ \item Таким образом, можно считать, что некий $\lambda$-терм $F$ является программой, вычисляющей $k$-местную функцию $f$ на натуральных числах, если 
+ \[F \, \underline{n_1} \ldots \underline{n_k}
+ \twoheadrightarrow_\beta 
+ \underline{f(n_1, \ldots, n_k)}\]
+ 
+ \item Здесь, в соответствии с функциональной парадигмой, процесс {\em вычисления} значения функции $f$ представляется в виде {\em редукции} терма $F \, \underline{n_1} \ldots \underline{n_k}$.
+ 
+ \item В силу конфлюэнтности, результат вычисления определяется однозначно.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}[<+->]
+ \item Однако возможна ситуация слабой нормализуемости, при которой мы можем пойти по <<неправильному>> пути и не достичь нормальной формы (которая при этом существует).
+ 
+ \item Бороться с этим нужно выбором правильной {\em стратегии нормализации,} о чём мы поговорим на следующей лекции.
+ 
+ \item Короткий ответ: если нормальная форма существует, то её можно достичь, всегда редуцируя {\em самый левый} (считая по начальной $\lambda$'е) $\beta$-редекс.
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}
+ \item На нумералах Чёрча легко определить операции сложения и умножения:
+ \begin{align*}
+ & \underline{n} + \underline{m} = 
+ \lambda s o. (\underline{n} s)(\underline{m} s o);
+ \\
+ & \underline{n} \cdot \underline{m} = 
+ \lambda s o. \underline{m}(\underline{n} s) o. 
+ \end{align*}
+
+ \item Абстрагируя, получаем термы для (двуместных) функций сложения и умножения:
+ \begin{align*}
+  & \boldsymbol{+} = \lambda xyso. (xs)(yso);\\
+  & \boldsymbol{\cdot} = \lambda xyso. x(ys)o.
+ \end{align*}
+
+ \item {\bf Задача.} Задайте $\lambda$-термом функцию <<предшественник>>:
+ \[
+  \mathrm{Prev}(n) = \left\{
+  \begin{aligned}
+   & 0, && \mbox{если $n = 0$;}\\
+   & n-1, && \mbox{если $n > 0$.}
+  \end{aligned} \right.
+ \]
+
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+ 
+ \begin{itemize}[<+->]
+  \item На самом деле, $\lambda$-термы умеют намного больше, чем сложение и умножение: с их помощью можно записать {\bf любую алгоритмически вычислимую} функцию на натуральных числах.
+  \item При этом функция может быть не всюду определённой --- тогда на соответствующих значениях аргументов терм $F\, \underline{n_1} \ldots \underline{n_k}$ будет ненормализуемым.
+  \item Мы обсуждаем такой <<низкоуровневый>> язык, как $\lambda$-исчисление, чтобы не перегружать изложение синтаксическими деталями.
+  \item Можно сказать, что всё остальное в функциональных языках --- надстройка для удобства, <<синтаксический сахар>>.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Булевы операции}
+ 
+ \begin{itemize}[<+->]
+  \item В $\lambda$-исчислении можно ввести константы <<истина>> и <<ложь>> как функции выбора из двух аргументов:
+  \[
+   \Tx = \lambda t. \lambda f. t; \qquad
+   \Fx = \lambda t. \lambda f. f.
+  \]
+
+  \item Условный оператор:
+  \(
+   \ifxx{b}{u}{v} = b\,u\, v.
+  \)
+
+  \item Логические операции:
+  \begin{align*}
+& (b_1 \mathop{\mathbf{and}} b_2) = 
+\ifxx{b_1}{\ifxx{b_2}{\Tx}{\Fx}}{\Fx}\\
+& \ldots
+  \end{align*}
+
+  \item Проверка на ноль: 
+  $\mathbf{Zero} = \lambda x. (x \, (\lambda z. \Fx) \, \Tx)$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+
+\begin{itemize}[<+->]
+ \item Чтобы достичь полноты по Тьюрингу, осталось реализовать {\bf рекурсию} (которая в функциональных языках используется повсеместно, в т.ч. вместо циклов).
+ 
+ \item Пример: факториал $f(n) = n! = 1 \cdot 2 \cdot \ldots \cdot n$.
+ 
+ \item Рекурсивная реализация:
+ \[
+  \Factx = \lambda x. 
+  \ifxx{\mathbf{Zero}\ x}{\underline{1}}{(\Factx\,(\Prevx\ x) \cdot x)}
+ \]
+
+ \item Проблема: $\Factx$ определяется через самоё себя.
+ 
+ \item С помощью $\lambda$-абстракции можно сделать зависимость в правой части явной (функциональной):
+ \[
+  \Factx = \underbrace{\bigl(\lambda g. \lambda x. 
+  \ifxx{\mathbf{Zero}\ x}{\underline{1}}{(g\,(\Prevx\ x) \cdot x)} \bigr)}_F \, 
+  \Factx
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}{Рекурсия}
+
+\begin{itemize}[<+->]
+ \item Чтобы реализовать рекурсивно определённую функцию, используется {\em комбинатор неподвижной точки} ($\Yx$-комбинатор, или комбинатор Карри) со следующим свойством: $\Yx\, F =_\beta F(\Yx\,F)$.
+ \item $\Yx = \lambda f. \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$
+ \item Имеем $\Yx\, F \to_\beta Y_F = 
+ (\lambda x. F(xx)) (\lambda x. F(xx))$, при этом $Y_F$ --- неподвижная точка для $F$: $Y_F \to_\beta F(Y_F)$.
+ \item Терм, использующий $\Yx$-комбинатор, никогда не будет сильно нормализуемым:
+ $Y_F \to_\beta F(Y_F) \to_\beta F(F(Y_F)) \to_\beta \ldots$
+ \item Однако если разбирать $F$, то процесс может сойтись: например, $\Factx \, \underline{n} \twoheadrightarrow_\beta \underline{n!}$
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+ \[\hspace*{-1em}
+  \Factx\, \underline{0} \to_\beta
+  Y_F \, \underline{0} \to_\beta F \, Y_F \, \underline{0} \twoheadrightarrow_\beta 
+  \ifxx{\mathbf{Zero}\, \underline{0}}{\underline{1}}{(Y_F \, (\Prevx\ \underline{0})) \cdot \underline{0}} \twoheadrightarrow_\beta \underline{1}
+ \]
+ 
+ \visible<2->{
+ \begin{multline*}
+  \Factx\, \underline{n+1} \to_\beta
+  Y_F \, \underline{n+1} \to_\beta
+  F \, Y_F \, \underline{n+1} 
+  \twoheadrightarrow_\beta\\
+  \twoheadrightarrow_\beta
+  \ifxx{\mathbf{Zero}\, \underline{n+1}}
+  {\underline{1}}
+  {(Y_F \, (\Prevx\ \underline{n+1})) \cdot \underline{n+1}} 
+  \twoheadrightarrow_\beta\\
+  \twoheadrightarrow_\beta
+  (Y_F  \, \underline{n}) \cdot \underline{n+1}
+ \end{multline*}
+
+ }
+
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+ 
+ \begin{itemize}[<+->]
+  \item Если рекурсивное определение <<плохое>> (например, забыто $\Prevx$), то терм будет ненормализуемым: {\bf любая} последовательность редукций бесконечна.
+  \item Статически проверить это невозможно, поскольку задача останова алгоритмически неразрешима.
+  \item $\Yx$ --- не единственный комбинатор неподвижной точки. Таков, например, также {\em комбинатор Тьюринга}
+  $\boldsymbol{\Theta} = 
+  (\lambda xy. y(xxy)) (\lambda xy. y(xxy))$
+  \item ... и даже $??????????????????????????$, где\\
+  \mbox{$? = \lambda abcdef ghijklmnopqstuvwxyzr.r(thisisaf ixedpointcombinator)$}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Y-комбинатор в Python'е}
+
+\begin{itemize}[<+->]
+ \item Терм, содержащий $\Yx$-комбинатор, не будет корректным, если следить за типами данных. Действительно, он содержит $xx$, значит, переменная $x$ должна одновременно быть некоторого типа $A$ и типа функции $A \to B$.
+ \item Тем не менее, в бестиповом языке, таком как Python, $\Yx$-комбинатор можно реализовать.
+ \item Наивная попытка:
+\begin{minted}{python}
+Y = lambda f : ((lambda x : f(x(x))) (lambda x : f(x(x))))
+fact = Y (lambda g : lambda n : (n and n * g(n-1)) or 1)
+\end{minted}
+\item Не работает: ``maximum recursion depth exceeded''. Python использует не тот порядок вычислений и уходит в бесконечное вычисление.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Y-комбинатор в Python'е}
+ 
+ \begin{itemize}
+  \item Положение можно исправить, заменив $xx$ на $\lambda z . xxz$:
+  \end{itemize}
+  \vspace*{-1.5em}
+  {\footnotesize
+  \hspace*{-2em}
+\begin{minted}{python}
+Y = lambda f : ((lambda x : f(x(x))) (lambda x : f(lambda z : x(x)(z))))   
+ \end{minted}
+}
+ 
+ 
+ \begin{itemize}
+  \item<2-> Математически $h$ и $\lambda z. hz$ эквивалентны (если $h$ не зависит от $z$), однако $\beta$-редукцией друг к другу не сводятся --- это {\em $\eta$-эквивалентность.}
+  \item<3-> Вычисление откладывается до тех пор, пока \mintinline{python}{lambda z : x(x)(z)} окажется к чему-то применено.
+  \item<4-> Теперь всё работает: например, \mintinline{python}{fact(6)} даёт 720.
+ \end{itemize}
+
+
+ 
+\end{frame}
+
+\begin{frame}{Y-комбинатор в Python'е}
+
+\begin{itemize}[<+->]
+ \item {\bf Упражнение.} Реализуйте на Python'е комбинатор Тьюринга $\boldsymbol{\Theta} = 
+  (\lambda xy. y(xxy)) (\lambda xy. y(xxy))$ (с соответствующим $\eta$-преобразованием).
+ \item {\bf Упражнение.} Верно ли, что для комбинатора $\widetilde{\Yx} = \lambda f. (\lambda x. f(xx)) (\lambda x. f(\lambda z. xxz))$ и терма $F$ из определения факториала терм $\widetilde{\Yx} F$ сильно нормализуем?
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\end{document}
+
+
+
+
+\end{document}
+
+
+
+
+\begin{frame}{Типы в языках программирования}
+
+FIXME: рекурсия, нетипизуемость Y-комбинатора
+
+FIXME: выведение типов алгоритмически разрешимо
+(но примеры с экспонентой)
+
+FIXME: далее --- что типизируется из нумералов Чёрча, булевой логики ...
+
+ FIXME Bluebird - картинка и ссылка на Смаллиана
+    FIXME: ссылка на Пирса (TAPL)
+\end{frame}
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{Вычисление как преобразование}
+ 
+ \begin{itemize}[<+->]
+  \item В функциональной парадигме {\em вычисление} функции (программы) $F$ на входных данных $a_1, \ldots, a_n$ --- это {\em редукция} (преобразование) терма
+  $F a_1 \ldots a_n$ вплоть до {\em нормальной формы} --- далее не редуцируемого состояния.
+  
+  \item Базовый язык --- <<чистое>> $\lambda$-исчисление, в котором термы строятся с помощью операций применения и $\lambda$-абстракции, а основное преобразование --- $\beta$-редукция:
+  \[
+  \mbox{\fbox{$\quad\ldots\quad (\lambda x.u)v \quad \ldots\quad$}} \to_\beta
+  \mbox{\fbox{$\quad\ldots\quad u[x:=v] \quad \ldots\quad$}}
+ \]
+
+ \item Редукции могут применяться в разном порядке.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Имеет место {\em свойство Чёрча -- Россера:}
+ \[
+  \xymatrix{
+   & v_1 \ar@{-->>}[dr] & \\
+  u \ar@{->>}[ur]\ar@{->>}[dr] & & w \\
+  & v_2 \ar@{-->>}[ur]
+  }
+ \]
+ \item Значит, совершить <<ошибочную>> редукцию на пути к нормальной форме невозможно: если нормальная форма существует, то любую стартовую последовательность редукций можно до неё довести.
+ 
+ \item В частности, нормальная форма, если существует, то $\alpha$-единственна.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Порядок редукций}
+
+\begin{itemize}[<+->]
+ \item Однако бывают {\em слабо, но не сильно нормализуемые} термы, у которых есть нормальная форма, но есть и другой, бесконечный путь редукций.
+ 
+ \item Пример: $(\lambda y. z) \Omega$, где $\Omega = (\lambda x. (xx)) (\lambda x. (xx))$.
+ 
+ \item Поэтому, несмотря на свойство Чёрча -- Россера, {\em порядок применения редукций важен.}
+ 
+ \item Традиционно (в императивных языках) используется {\em ретивый} (eager) порядок вычисления: сначала вычислить значения аргументов функции, потом саму функцию.
+ 
+ \item В нашем примере $(\lambda y.z) \Omega$ такой порядок приводит к бесконечному циклу, пытаясь вычислить $\Omega$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Порядок вычислений}
+
+\begin{itemize}[<+->]
+ 
+ \item Элементы других, {\em ленивых}  (lazy) вычислений имеются и в некоторых императивных языках, например, в C:
+ \begin{minted}{c}
+if (x != 0 && y/x > 3) { /* ... */ }
+ \end{minted}
+\begin{itemize}
+\item Если \mintinline{c}{x} равно 0, то первый член конъюнкции ложен, значит, ложна и вся конъюнкция, и стандарт языка предписывает {\em не вычислять} второй член (что привело бы к ошибке <<деление на ноль>>).
+\end{itemize}
+\item Мы определим {\em нормальную} стратегию редукций, соответствующую идее ленивого вычисления: не вычисляй значение, пока оно не понадобится.
+ 
+
+\item Нормальная стратегия редукций реализует идею ленивости {\em последовательно.}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Ленивость}
+
+Для сравнения: при <<традиционном>> подходе, даже если реализация булевых операций ленивая, в более сложных случаях ленивость исчезает.
+
+\begin{minted}{python}
+x = 0
+y = 3
+
+if (x == 0 or y/x > 3):
+    print "Hello!"
+
+if ((lambda b: (x == 0 or b)) (y/x > 3)):
+    print "Hi!"
+\end{minted}
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Говорим, что один редекс находится {\em левее} другого, если $\lambda$ первого редекса расположена левее (в записи терма), чем $\lambda$ второго.
+ 
+ \item Это означает, что либо первый редекс целиком расположен левее второго, либо второй редекс находится внутри первого (в $u_1$ или в $v_1$):
+ \[
+ \ldots\quad (\lambda x.u_1)v_1 \quad \ldots\quad (\lambda x.u_2)v_2 \quad \ldots
+ \]
+ \[
+  \ldots \quad 
+  (\lambda x. 
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{u_1}\,) v_1 \quad \ldots
+ \]
+ \[
+  \ldots \quad
+  (\lambda x. u_1)
+  \underbrace{\mbox{\fbox{$\:\ldots\: (\lambda x.u_2)v_2 \:\ldots\:$}}}_{v_1}
+  \quad\ldots
+ \]
+
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item {\bf Нормальная стратегия:} всегда редуцируй {\em самый левый редекс.}
+ \item При этом это не обязательно самая левая $\lambda$: левее могут быть лямбды, не образующие $\beta$-редексов (после которых не идёт применение).
+ \item В частности, мы сначала редуцируем $(\lambda x . u_1) v_1$, а только потом (если потребуется) вычисляем внутри $v_1$ (ленивость!).
+ \begin{theoremr}
+  Если терм можно привести к нормальной форме, то нормальная стратегия добьётся этого.
+ \end{theoremr}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по необходимости}
+
+\begin{itemize}[<+->]
+ \item Как мы уже видели, нормальная стратегия редукций избавляет от вычисления ненужных аргументов: $(\lambda x y . x) v_1 v_2 \twoheadrightarrow_\beta v_1$.
+ \item С другой стороны, буквальное следование нормальной стратегии приводит к избыточным вычислениям за счёт копирования аргумента:
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}\,) v \to_\beta
+\mbox{\fbox{$\:\ldots\: v \:\ldots\: v \:\ldots\: v \:\ldots\:$}}
+ \]
+\item Для решения этой проблемы используется (в частности, в Haskell'е) {\em графовая оптимизация,} или <<вызов по необходимости>> (call-by-need):
+\[
+\xymatrix@-2em{
+&&&&&&& v \\
+\ldots & \lozenge\ar[urrrrrr] & \ldots & \lozenge
+\ar[urrrr] & \ldots & \lozenge\ar[urr] & \ldots
+}
+\]
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вызов по...}
+
+\begin{itemize}
+ \item {\bf Вызов по значению} (call-by-value): сначала вычислить значения аргументов, потом применять функцию. Соответствует {\em аппликативному} порядку редукций, обычен для императивных языков.
+ 
+ \item {\bf Вызов по имени} (call-by-name): сначала подставить аргументы (не вычисляя их) в функцию, соответствует нормальному порядку редукций.
+ 
+ \item {\bf Вызов по необходимости} (call-by-need): соответствует порядку редукций с графовой оптимизацией.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item Ещё один недостаток нормализации --- её неустойчивость относительно расширения терма.
+ 
+ \item Например, терм $\lambda x. (x \Omega)$ не нормализуем (единственная редукция переводит $\Omega$ в себя), однако если рассмотреть его в большем терме: $(\lambda x. (x \Omega))(\lambda y.z)$, то этот терм нормализуется к $z$ с помощью нормальной стратегии.
+ 
+ \item Решение этой проблемы --- отказ от применения некоторых редукций, т.е. ослабление требований к нормальной форме.
+ 
+ \item Для этого используется {\em слабая головная нормальная форма} (WHNF), в которой разрешены редексы в определённых местах.
+ 
+ \item Всякая нормальная форма является WHNF, но не наоборот.
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item В чистом $\lambda$-исчислении к термам в WHNF относятся:
+ \begin{enumerate}
+  \item {\bf все} термы вида $\lambda x . u$;
+  \item термы вида $x \, v_1 \, \ldots \, v_n$, где $x$ --- переменная. (При этом внутри $v_i$ могут быть редексы.)
+ \end{enumerate}
+ \item Таким образом, мы не вычисляем тогда, когда это может не пригодиться:
+ \begin{enumerate}
+  \item функция с внешней $\lambda$'ой ещё не применена;
+  \item переменная $x$ обозначает неизвестную функцию.
+ \end{enumerate}
+ \item Недоредуцированные подтермы называются thunk'ами.
+ \item В Haskell'е, из-за другого синтаксиса, понятие WHNF немного другое (было/будет на семинаре).
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Слабая головная нормальная форма}
+
+\begin{itemize}[<+->]
+ \item К примеру, определим (в GHCi) ненормализуемый терм:
+ \begin{minted}{haskell}
+om = (let y = y in y)
+ \end{minted}
+ \item Попытка вычислить \mintinline{text}{om} уводит в бесконечный цикл.
+ \item Однако если определить функцию
+\begin{minted}{haskell}
+kk = \x -> x om
+\end{minted}
+то попытка её вычислить даёт уже ошибку ``no instance for Show'' --- т.е. \mintinline{text}{om} здесь не пытаются вычислить.
+\item В \mintinline{text}{kk (\z -> z)}, конечно, будет бесконечный цикл, а вот \mintinline{text}{kk (\z -> 0)} лениво вычисляется в \mintinline{text}{0}.
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+{\footnotesize Пример из \url{https://eax.me/lazy-evaluation/} ,,Скандальная правда о Haskell и ленивых вычислениях``
+
+}
+
+\begin{itemize}[<+->]
+ \item Иногда стратегия вызова по необходимости, несмотря на графовую оптимизацию, приводит к нежелательным с точки зрения эффективности последствиям.
+ \item Рассмотрим следующий пример (вычисление суммы элементов списка):
+ \begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+ \end{minted}
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item Эта программа выдаёт правильный ответ (500000500000).
+  \item Посмотрим, однако, на использование ресурсов.
+\begin{minted}{text}
+ghc -rtsopts lazy_fail.hs
+./lazy_fail +RTS -sstderr
+\end{minted}
+  \item Получаем ``\mintinline{text}{99 MiB total memory in use}'' (и это число будет меняться в зависимости от размера массива).
+  \item Проблема не в глубине стека: \mintinline{haskell}{mysum'} реализован через хвостовую рекурсию, она оптимизируется.
+  \item Дело в порядке редукций и слишком больших thunk'ах.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+
+\begin{itemize}[<+->]
+ \item Последовательность редукций:\\
+ \mintinline{haskell}{mysum' 0 [0..3]}
+ $\to$ 
+ \mintinline{haskell}{mysum' (0+0) [1..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1) [2..3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2)
+ [3]}
+ $\to$
+ \mintinline{haskell}{mysum' (0+0+1+2+3)
+ []}
+ $\twoheadrightarrow$
+ \mintinline{haskell}{6}
+ \item Аккумулятор \mintinline{text}{acc} в процессе вычислений остаётся огромным thunk'ом, а фактически вычисляется только в самом конце.
+ \item Получается, что мы храним наш большой массив \mintinline{haskell}{[1..1000000]} не в компактном, а в явном виде.
+ \item Чтобы избежать этого, нужно принудить Haskell сразу вычислять (приводить к WHNF) 
+ выражение \mintinline{text}{acc+x}.
+ \item Для этого используется встроенная функция \mintinline{text}{seq}.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Проблемы с ленивостью}
+ \begin{itemize}[<+->]
+  \item \mintinline{text}{seq} вычисляет свой первый аргумент и (если вычисление успешно) игнорирует его и возвращает второй.
+  \item В нашем примере:
+\begin{minted}{haskell}
+mysum x = mysum' 0 x
+mysum' acc [] = acc
+mysum' acc (x:xs) = (acc+x) `seq` mysum' (acc+x) xs
+main = putStrLn (show (mysum [1..1000000]))
+\end{minted}
+\item Здесь новое значение аккумулятора оказывается предвычисленным и (за счёт графовой оптимизации) именно оно передаётся по рекурсии.
+\item Расход памяти --- 2 MiB (столько же, сколько у тривиальной ``Hello, World!''), и он не растёт с ростом длины списка.
+\item Синтаксический сахар: \mintinline{text}{f $! x} означает \mintinline{text}{x `seq` (f x)}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Доказательство свойств $\lambda$-исчисления}
+ 
+ \begin{itemize}
+  \item Приведём схемы доказательств основных свойств редукций в <<чистом>> $\lambda$-исчислении: свойства Чёрча -- Россера и нормализации посредством нормальной стратегии.
+  \item<2-> Для этого нам будет нужно понятие <<пакетной>> редукции, обозначаемой $\to_\ell$:
+  \begin{enumerate}
+  \item $u \to_\ell u$;
+  \item если $u \to_\ell u'$, то
+  $\lambda x. u \to_\ell \lambda x. u'$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(uv) \to_\ell (u'v')$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(\lambda x. u) v \to_\ell 
+  u'[x := v']$.
+  \end{enumerate}
+  \item<3-> Один шаг $\to_\ell$ состоит из нескольких (возможно, нуля) шагов $\to_\beta$.
+  \item<4-> Поэтому $\twoheadrightarrow_\ell$ совпадает с $\twoheadrightarrow_{\beta}$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item {\bf Лемма о подстановке:} 
+  если $u \to_\ell u'$ и $v \to_\ell v'$, то
+  $u[x:=v] \to_\ell u'[x:=v']$ (в один шаг!).
+  \item Отсюда выводится {\em свойство ромба} для $\to_\ell$:\\
+  \centerline{
+  \xymatrix@-.5em{
+  u \ar^{\ell}[r]\ar^{\ell}[d] & 
+  u_1 \ar@{.>}^{\ell}[d] \\
+  u_2 \ar@{.>}^{\ell}[r] & u_3
+  }}
+  \item Из свойства ромба конфлюэнтность следует <<заполнением прямоугольника>>:
+  \centerline{
+  \xymatrix@-.5em{
+  \bullet \ar[r]\ar[d] & \bullet \ar[r]\ar@{.>}[d] & \bullet \ar[r]\ar@{.>}[d]  &  \bullet \ar@{.>}[d]\\
+  \bullet \ar@{.>}[r]\ar[d] & \bullet \ar@{.>}[r]\ar@{.>}[d] & \bullet \ar@{.>}[r]\ar@{.>}[d]& \bullet \ar@{.>}[d] \\
+  \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r]  & \bullet
+  }}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+\begin{itemize}[<+->]
+ \item Интересный случай:\\
+ \centerline{
+\xymatrix{
+(\lambda x . u) v \ar^{\ell}[r] \ar^{\ell}[d]& 
+u_1[x := v_1] \ar@{.>}^{\ell}[d] \\
+(\lambda x. u_2) v_2 \ar@{.>}^{\ell}[r]  &
+u_3[x := v_3]
+}}
+(Здесь мы пользуемся <<ромбами>> для $u,u_1,u_2$ и $v,v_1,v_2$.)
+\item Для исходной $\to_\beta$, чтобы <<замкнуть>> ромб, одного шага редукции не хватит.
+\item Если же разрешить <<замыкать>> последовательностями редукций, то процесс <<заполнения прямоугольника>> может не сойтись.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Докажем теперь теорему о том, что если терм нормализуем, то его можно привести к нормальной форме, следуя нормальной стратегии редукций.
+ \item Введём понятие {\em головной редукции} --- это редукция, в которой редексом является весь терм: $(\lambda x. u) v \to_h u[x := v]$.
+ \item Прочие редукции называются {\em внутренними.} В частности, <<пакетная>> редукция типов 1--3, $u \stackrel{\text{1--3}}{\to}_\ell v$, --- это последовательность внутренних редукций.
+ \item {\bf Лемма 1.} Из произвольной <<пакетной>> редукции можно вынести в начало все головные:
+ если $u \to_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\to}_\ell w$ для некоторого $v$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Теперь сделаем то же для последовательности <<пакетных>> редукций.
+ \item {\bf Лемма 2.} Если $u \twoheadrightarrow_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\twoheadrightarrow}_\ell w$.
+ \item Лемма 2 доказывается перестановкой редукций.
+ \begin{itemize}
+ \item Было: $u \to_\ell u_1 \to_\ell u_2 \to_\ell \ldots \to_\ell w$.
+ \item Каждую $\to_\ell$ разбиваем на $\twoheadrightarrow_h$ и $\stackrel{\text{1--3}}{\to}_\ell$.
+ \item Наконец, переносим вправо <<неправильные>> применения $\stackrel{\text{1--3}}{\to}_\ell$, идущие перед $\to_h$. 
+ \item А именно, $p \stackrel{\text{1--3}}{\to}_\ell q \to_h r$ перестраивается в 
+ $p \to_h p' \to_\ell r$ (поскольку $q = (\lambda x. q_1) q_2$, а значит, $p = (\lambda x. p_1) p_2$), а это, в свою очередь, в $p \twoheadrightarrow_h q^* \stackrel{\text{1--3}}{\to}_\ell r$.
+ \item Далее --- индукция по количеству <<неправильных>> $\stackrel{\text{1--3}}{\to}_\ell$.
+ \end{itemize}
+ \end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+ 
+ \begin{itemize}[<+->]
+  \item  Важное {\bf следствие} из леммы 2: если терм нормализуем, то он допускает только конечную цепочку головных редукций, дальнейшие редукции только внутренние:
+  \[
+   u \twoheadrightarrow_h v \twoheadrightarrow_i w.
+  \]
+  \item Пусть $w$ --- нормальная форма. Рассуждаем индукцией по структуре $w$.
+  \begin{itemize}
+  \item Если $w = x$, то $v = x$, и $u \twoheadrightarrow_h w$.
+  \item Если $w = \lambda x. w'$, то $v = \lambda x. v'$, причём по предположению $v'$ приводится к $w'$ нормальной стратегией.
+  Получаем: $u \twoheadrightarrow_N \lambda x. v' \twoheadrightarrow_N \lambda x. w'$.
+  \item Если $w = w_1 w_2$, то $v = v_1 v_2$.
+  Опять же, $u \twoheadrightarrow_N v_1 v_2 \twoheadrightarrow_N w_1 v_2 \twoheadrightarrow_N w_1 w_2$.
+  %\item Если $w = \lambda x_1 \ldots x_n. (w_0 w_1 \ldots w_m)$, то $v = \lambda x_1 \ldots \lambda x_n. (v_0 v_1 \ldots v_m)$, где $v_i \twoheadrightarrow_\beta w_i$.
+  %\item По предположению, $v_i$ приводится к $w_i$ нормальной стратегией.
+  %\item Из этого собирается нормальная стратегия приведения $v$ к $w$, а значит и $u$ к $w$.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Далее...}
+ 
+ \begin{itemize}
+  \item Пока что у нас не было типов данных: любую функцию можно было применять к любому объекту.
+  \item В следующий раз мы ограничим класс термов теми термами, в которых можно правильно расставить типы.
+  \item При этом, к сожалению, комбинатор неподвижной точки $\Yx = \lambda f. \bigl( 
+  (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$.
+  \item Однако его можно типизовать как <<чёрный ящик>>: $\Yx : (A \to A) \to A$.
+ \end{itemize}
+
+\end{frame}
+
+ \end{document}
+ 
+
+\begin{frame}{Доказательство свойств $\lambda$-исчисления}
+ 
+ \begin{itemize}
+  \item Приведём схемы доказательств основных свойств редукций в <<чистом>> $\lambda$-исчислении: свойства Чёрча -- Россера и нормализации посредством нормальной стратегии.
+  \item<2-> Для этого нам будет нужно понятие <<пакетной>> редукции, обозначаемой $\to_\ell$:
+  \begin{enumerate}
+  \item $u \to_\ell u$;
+  \item если $u \to_\ell u'$, то
+  $\lambda x. u \to_\ell \lambda x. u'$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(uv) \to_\ell (u'v')$;
+  \item если $u \to_\ell u'$ и $v \to_\ell v'$, то $(\lambda x. u) v \to_\ell 
+  u'[x := v']$.
+  \end{enumerate}
+  \item<3-> Один шаг $\to_\ell$ состоит из нескольких (возможно, нуля) шагов $\to_\beta$.
+  \item<4-> Поэтому $\twoheadrightarrow_\ell$ совпадает с $\twoheadrightarrow_{\beta}$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item {\bf Лемма о подстановке:} 
+  если $u \to_\ell u'$ и $v \to_\ell v'$, то
+  $u[x:=v] \to_\ell u'[x:=v']$ (в один шаг!).
+  \item Отсюда выводится {\em свойство ромба} для $\to_\ell$:\\
+  \centerline{
+  \xymatrix@-.5em{
+  u \ar^{\ell}[r]\ar^{\ell}[d] & 
+  u_1 \ar@{.>}^{\ell}[d] \\
+  u_2 \ar@{.>}^{\ell}[r] & u_3
+  }}
+  \item Из свойства ромба конфлюэнтность следует <<заполнением прямоугольника>>:
+  \centerline{
+  \xymatrix@-.5em{
+  \bullet \ar[r]\ar[d] & \bullet \ar[r]\ar@{.>}[d] & \bullet \ar[r]\ar@{.>}[d]  &  \bullet \ar@{.>}[d]\\
+  \bullet \ar@{.>}[r]\ar[d] & \bullet \ar@{.>}[r]\ar@{.>}[d] & \bullet \ar@{.>}[r]\ar@{.>}[d]& \bullet \ar@{.>}[d] \\
+  \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r] & \bullet \ar@{.>}[r]  & \bullet
+  }}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Свойство Чёрча -- Россера (схема доказательства)}
+\begin{itemize}[<+->]
+ \item Интересный случай:\\
+ \centerline{
+\xymatrix{
+(\lambda x . u) v \ar^{\ell}[r] \ar^{\ell}[d]& 
+u_1[x := v_1] \ar@{.>}^{\ell}[d] \\
+(\lambda x. u_2) v_2 \ar@{.>}^{\ell}[r]  &
+u_3[x := v_3]
+}}
+(Здесь мы пользуемся <<ромбами>> для $u,u_1,u_2$ и $v,v_1,v_2$.)
+\item Для исходной $\to_\beta$, чтобы <<замкнуть>> ромб, одного шага редукции не хватит.
+\item Если же разрешить <<замыкать>> последовательностями редукций, то процесс <<заполнения прямоугольника>> может не сойтись.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Докажем теперь теорему о том, что если терм нормализуем, то его можно привести к нормальной форме, следуя нормальной стратегии редукций.
+ \item Введём понятие {\em головной редукции} --- это редукция, в которой редексом является весь терм: $(\lambda x. u) v \to_h u[x := v]$.
+ \item Прочие редукции называются {\em внутренними.} В частности, <<пакетная>> редукция типов 1--3, $u \stackrel{\text{1--3}}{\to}_\ell v$, --- это последовательность внутренних редукций.
+ \item {\bf Лемма 1.} Из произвольной <<пакетной>> редукции можно вынести в начало все головные:
+ если $u \to_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\to}_\ell w$ для некоторого $v$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Теперь сделаем то же для последовательности <<пакетных>> редукций.
+ \item {\bf Лемма 2.} Если $u \twoheadrightarrow_\ell w$, то $u \twoheadrightarrow_h v$ и $v \stackrel{\text{1--3}}{\twoheadrightarrow}_\ell w$.
+ \item Лемма 2 доказывается перестановкой редукций.
+ \begin{itemize}
+ \item Было: $u \to_\ell u_1 \to_\ell u_2 \to_\ell \ldots \to_\ell w$.
+ \item Каждую $\to_\ell$ разбиваем на $\twoheadrightarrow_h$ и $\stackrel{\text{1--3}}{\to}_\ell$.
+ \item Наконец, переносим вправо <<неправильные>> применения $\stackrel{\text{1--3}}{\to}_\ell$, идущие перед $\to_h$. 
+ \item А именно, $p \stackrel{\text{1--3}}{\to}_\ell q \to_h r$ перестраивается в 
+ $p \to_h p' \to_\ell r$ (поскольку $q = (\lambda x. q_1) q_2$, а значит, $p = (\lambda x. p_1) p_2$), а это, в свою очередь, в $p \twoheadrightarrow_h q^* \stackrel{\text{1--3}}{\to}_\ell r$.
+ \item Далее --- индукция по количеству <<неправильных>> $\stackrel{\text{1--3}}{\to}_\ell$.
+ \end{itemize}
+ \end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Нормальная стратегия редукций}
+ 
+ \begin{itemize}[<+->]
+  \item  Важное {\bf следствие} из леммы 2: если терм нормализуем, то он допускает только конечную цепочку головных редукций, дальнейшие редукции только внутренние:
+  \[
+   u \twoheadrightarrow_h v \twoheadrightarrow_i w.
+  \]
+  \item Пусть $w$ --- нормальная форма. Рассуждаем индукцией по структуре $w$.
+  \begin{itemize}
+  \item Если $w = x$, то $v = x$, и $u \twoheadrightarrow_h w$.
+  \item Если $w = \lambda x. w'$, то $v = \lambda x. v'$, причём по предположению $v'$ приводится к $w'$ нормальной стратегией.
+  Получаем: $u \twoheadrightarrow_N \lambda x. v' \twoheadrightarrow_N \lambda x. w'$.
+  \item Если $w = w_1 w_2$, то $v = v_1 v_2$.
+  Опять же, $u \twoheadrightarrow_N v_1 v_2 \twoheadrightarrow_N w_1 v_2 \twoheadrightarrow_N w_1 w_2$.
+  %\item Если $w = \lambda x_1 \ldots x_n. (w_0 w_1 \ldots w_m)$, то $v = \lambda x_1 \ldots \lambda x_n. (v_0 v_1 \ldots v_m)$, где $v_i \twoheadrightarrow_\beta w_i$.
+  %\item По предположению, $v_i$ приводится к $w_i$ нормальной стратегией.
+  %\item Из этого собирается нормальная стратегия приведения $v$ к $w$, а значит и $u$ к $w$.
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Далее...}
+ 
+ \begin{itemize}
+  \item Пока что у нас не было типов данных: любую функцию можно было применять к любому объекту.
+  \item В следующий раз мы ограничим класс термов теми термами, в которых можно правильно расставить типы.
+  \item При этом, к сожалению, комбинатор неподвижной точки $\Yx = \lambda f. \bigl( 
+  (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$.
+  \item Однако его можно типизовать как <<чёрный ящик>>: $\Yx : (A \to A) \to A$.
+ \end{itemize}
+
+\end{frame}
+
+
+\end{document}
+
+\begin{frame}{*Нормальная стратегия редукций}
+
+\begin{itemize}[<+->]
+ \item Чтобы доказать теорему, введём понятие {\em головной редукции} --- это редукция, в которой редексом является весь терм: $(\lambda x. u) v \to_\beta^h u[x := v]$.
+ \item Прочие редукции называются {\em внутренними:} $u \to_\beta^i u'$.
+ \item Если головная редукция идёт после внутренней, то их можно переставить. При этом внутренняя редукция может превратиться в несколько, например:
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v \to_\beta^i
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v' \to_\beta^h
+  \mbox{\fbox{$\:\ldots\: v' \:\ldots\: v' \:\ldots\: v' \:\ldots\:$}}
+ \]
+ преобразуется в
+ \[
+  (\lambda x. \mbox{\fbox{$\:\ldots\: x \:\ldots\: x \:\ldots\: x \:\ldots\:$}}) v \to_\beta^h
+ \mbox{\fbox{$\:\ldots\: v \:\ldots\: v \:\ldots\: v \:\ldots\:$}}
+ \twoheadrightarrow_\beta^i
+ \mbox{\fbox{$\:\ldots\: v' \:\ldots\: v' \:\ldots\: v' \:\ldots\:$}}
+ \]
+
+FIXME проблема!!! (вдруг редукция не внутренняя теперь!) --- аккуратно расписать параметры индукции
+(а лучше - отдельно рассмотреть случай $(\lambda x . x) v$)
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{О курсе}
+
+\begin{itemize}[<+->]
+ \item Курс посвящён функциональной парадигме программирования на примере одного из наиболее известных функциональных языков --- Haskell.
+ \item На лекциях: теоретические основы функционального программирования ($\lambda$-исчисление, выведение типов, монады-лимонады и проч.).
+ \item На практических занятиях (Даниил Рогозин и Юрий Сыровецкий): программирование на Haskell'е.
+ \item Теория и практика связаны между собой: как в шутку говорят, {\em Haskell --- это язык, в котором нельзя напечатать ``Hello, World'' без знания теории категорий.}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Функции как объекты}
+
+\begin{itemize}[<+->]
+ \item Функциональная парадигма программирования существенно отличается от обычной (императивной).
+ \item Мы постепенно будем обсуждать её особенности.
+ \item {\bf Первое свойство,} объясняющее термин {\em <<функциональный>>:} функции являются полноправными <<гражданами>> (объектами) языка. Functions are first-class citizens.
+ \item В частности, функция может быть передана как аргумент другой функции. В этом случае последняя называется {\em функцией высшего порядка.}
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функция как объект в C}
+ 
+\begin{itemize}[<+->]
+  \item Начнём с примеров функций высших порядков, которые встречаются в императивных языках.
+  \item Так, в стандартной библиотеке C есть функция сортировки:
+  \begin{minted}{c}
+   void qsort(void *base, size_t nmemb, size_t size,
+    int (*compar)(const void *, const void *));
+  \end{minted}
+
+  \item Эта функция может сортировать массив {\em произвольных данных.}
+  \item Отсюда тип \mintinline{c}{void*} --- указатель на произвольный объект. (При этом не производится проверка корректности типов данных, что плохо.)
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Функция как объект в C}
+ 
+\begin{itemize}[<+->]
+ \item Функция \mintinline{c}{compar} возвращает значение $<0$, если первый аргумент меньше второго, $=0$, если равны, и $>0$, если второй аргумент меньше.
+ \item Например, для сравнения строк (\mintinline{c}{char*}) по алфавиту используется функция \mintinline{c}{strcmp} с соответствующим приведением типов:
+ \begin{minted}{c}
+int cmpstringp(const void *p1, const void *p2)
+{
+  return strcmp(*(const char **) p1, *(const char **) p2);
+}
+ \end{minted}
+\item Технически передача функции как аргумента реализуется в C как передача указателя на место в памяти, где находится код этой функции --- так что сгенерировать новую функцию <<на лету>> не получится.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функция как объект в Python'е}
+
+\begin{itemize}[<+->]
+ \item Аналогично устроена сортировка в Python'е:
+\begin{minted}{python}
+bigrams = {"AB": [10, 11, 12], "BC": [5, -5, 8],
+  "CD": [105, 1, 0], "DE": [6, 6], "EF": [15, 20, 15], 
+  "FG": [22, 11, 32], "GH": [20, 20, 20]}
+srtbg = sorted(bigrams, key=lambda key: sum(bigrams[key]), 
+  reverse=True)
+\end{minted}
+\item Здесь ради эффективности используется не функция сравнения, а функция вычисления ключа (которые потом сравниваются как целые числа).
+\item Интересно использование ключевого слова \mintinline{python}{lambda} для создания безымянной функции <<на месте>>.
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}{$\lambda$-оператор}
+
+\begin{itemize}[<+->]
+ \item Знаком $\lambda$ выделяется та переменная, которую мы будем считать аргументом функции.
+ \item В теоретическом материале мы будем использовать обозначение $\lambda x. u$, где $u$ --- выражение ({\em терм}), возможно содержащее $x$:
+ \[
+  \lambda x . \underbrace{\mbox{\fbox{ $\ldots x \ldots x \ldots x \ldots$}}}_u
+ \]
+ \item При вычислении значения функции $\lambda x . u$ на аргументе $x = a$ нужно подставить $a$ вместо $x$ вместо всех {\em свободных} (т.е. не связанных другими $\lambda$'ми) вхождений $x$ в $u$.
+ \item Это называется {\em $\beta$-преобразованием,} о нём мы поговорим позже.
+ \item В математике вместо $\lambda x .u $ пишут $x \mapsto u$.
+\end{itemize}
+
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Функции и изменяемость}
+
+\begin{itemize}[<+->]
+ \item Посмотрим на следующий код:
+\begin{minted}{python}
+x=5
+f=lambda y : y+x
+print f(2)
+x=7
+print f(2)
+\end{minted}
+\item Значение \mintinline{python}{f(2)} изменилось: действительно, \mintinline{python}{lambda} создаёт новую безымянную функцию, которая, помимо своего аргумента \mintinline{python}{y} имеет также неявный доступ к переменной \mintinline{python}{x}.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Функции и изменяемость}
+ 
+ \begin{itemize}[<+->]
+  \item Таким образом, в Python'е функции, введённые с помощью \mintinline{python}{lambda}, ведут себя всё же не совсем как обычные объекты.
+  \item Действительно, если бы вместо \mintinline{python}{f} была бы числовая переменная:
+\begin{minted}{python}
+x=5
+f=x+2
+print f
+x=7
+print f
+\end{minted}
+то значение бы не поменялось.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Функции и изменяемость}
+
+\begin{itemize}[<+->]
+ \item Во многих функциональных языках (в частности, в Haskell'е) проблема с изменением значений решена радикально.
+ \item В этом состоит {\bf второе свойство} --- immutability: значения переменных вообще запрещено изменять!
+ \item Это свойство выглядит довольно дико, принуждая к созданию большого числа объектов вместо изменений одного. Однако этот негативный эффект компенсируется сборкой мусора и оптимизацией.
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{Неизменяемость}
+\begin{itemize}[<+->]
+ \item За счёт неизменяемости функции получаются {\em чистыми} в математическом смысле: возвращаемое значение однозначно определяется значениями аргументов, и при этом функция не имеет {\em побочных эффектов.}
+ \item В императивных языках, наоборот, функции взаимодействуют с неким {\em состоянием внешнего мира.}
+ \item Это делает осмысленными, в частности, функции, которые ничего не принимают и не возвращают:
+ \mintinline{c}{void func();}
+ \item Конечно, связь с внешним миром нужна, но в <<чистых>> функциональных языках она прописывается явно.
+ \item В Haskell'е для этого (в частности --- для ввода-вывода) используется механизм {\em монад,} основанный на теоретико-категорной конструкции.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Вычисление как преобразование}
+
+\begin{itemize}[<+->]
+ \item Наконец, ещё более фундаментальное {\bf третье свойство,} отличающее функциональные языки от императивных, заключается в самом понятии вычислительного процесса.
+ \item В функциональной парадигме вычисление есть последовательное {\em преобразование} некоего выражения ({\em терма}), пока он не дойдёт до некоторой далее не преобразуемой формы. (Например, терм, в явном виде представляющий натуральное число.)
+ \item Преобразования призваны <<упрощать>> терм, и поэтому также называются {\em редукциями.}
+ \item В реальности редукции не всегда упрощают терм, и возможны бесконечные их последовательности (что соответствует неостанавливающейся программе на императивном языке).
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Вычисление как преобразование}
+
+\begin{itemize}[<+->]
+ \item В этом смысле исполнение функциональной программы напоминает вычисление арифметического выражения:
+ \[
+  (1+2) \cdot (3+4) \to 
+  3 \cdot (3+4) \to 3 \cdot 7 \to 21.
+ \]
+\item При этом, в отличие от императивной программы, порядок преобразований не задан жёстко:
+\[
+ (1+2) \cdot (3+4) \to 
+ (1+2) \cdot 7 \to 3 \cdot 7 \to 21.
+\]
+
+\item Преобразование можно применить к любому подвыражению (подтерму), которое может быть упрощено. Такой подтерм называется {\em редексом.}
+\end{itemize}
+
+
+ 
+\end{frame}
+
+
+\begin{frame}{Конфлюэнтность}
+
+\begin{itemize}[<+->]
+\item Если синтаксис разработан неправильно, то разные последовательности редукций могут давать разные ответы. Например, так получится, если не использовать скобки:
+\[
+\xymatrix@-1em{
+1+2 \cdot 3+4 \ar[r]\ar[dd] & 3 \cdot 3 + 4 \ar[r]\ar[d] & 3 \cdot 7 \ar[r] & 21\\
+& 9 + 4 \ar[r] & 13\\
+1+6+4 \ar[r] & 7+4 \ar[r] & 11
+}
+\]
+\item В <<хороших>> системах этого не происходит за счёт {\em конфлюэнтности (свойства Чёрча -- Россера):}
+если $u \twoheadrightarrow v_1$ и $u \twoheadrightarrow v_2$, то существует такой терм $w$, что $v_1 \twoheadrightarrow w$ и $v_2 \twoheadrightarrow w$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Ленивость}
+
+\begin{itemize}[<+->]
+ \item За счёт порядка преобразований какие-то подтермы могут оказаться вообще не вычисленными.
+ \item Например, $\mathrm{length} [ u,v,w ]$ можно сразу редуцировать к $3$, не пытаясь вычислить значения $u$, $v$, $w$.
+\item Это свойство называется {\em ленивостью} вычислений.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{$\lambda$-исчисление}
+
+\begin{itemize}
+ \item $\lambda$-исчисление --- простейшая модель и основа функциональных языков программирования.
+ \item<2-> Термы $\lambda$-исчисления ({\em $\lambda$-термы}) строятся из переменных с помощью всего лишь двух операций:
+ \begin{itemize}
+ \item {\em применение:} если $u$ и $v$ --- термы, то $(uv)$ --- терм;
+ \item {\em $\lambda$-абстракция:} 
+ если $u$ --- терм, $x$ --- переменная, то
+ $\lambda x . u$ --- терм.
+ \end{itemize}
+ \item<3-> Запись $(uv)$ означает применение функции $u$ к  $v$. 
+ \item<4-> Более привычное обозначение было бы $u(v)$, однако бесскобочное обозначение также применяется в математике --- например, $\sin \alpha$.
+ \item<5-> В функциональных языках чаще используется бесскобочная запись.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Функции многих аргументов}
+
+\begin{itemize}[<+->]
+ \item С помощью $\lambda$-абстракции можно задать функцию {\em одного} аргумента $x$. Как быть с функциями многих аргументов?
+ \item Для этого используется приём, называемый {\em каррированием} (в честь Х.\,Карри): $f = \lambda x. \lambda y.\lambda z. u$.
+ \item В каррированном виде функция $f$ является функцией одного аргумента ($x$), возвращающая, в свою очередь, опять же функцию одного аргумента ($y$) и т.д.
+ \item Для каррированных функций многих аргументов используется сокращённое обозначение $\lambda xyz. u$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Примеры и бестиповость}
+ 
+ \begin{itemize}[<+->]
+  \item Простейший пример $\lambda$-терма: $\Ix = \lambda x.x$. Этот терм реализует тождественную функцию:
+\begin{minted}{python}
+def identity(x):
+  return x
+\end{minted}
+  \item Отметим, что наше $\lambda$-исчисление (как и Python) {\em бестиповое:} любой терм можно применить, как функцию, к любому другому.
+  
+  \item Более содержательный пример --- абстрактная программа для композиции функций
+  \[
+   \Bx = \lambda f g x . f(gx).
+  \]
+
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Преобразования $\lambda$-термов}
+
+\begin{itemize}[<+->]
+ \item Главное преобразование термов в $\lambda$-исчислении --- {\em $\beta$-редукция:}
+ \[
+  (\lambda x . u) v \to_\beta
+  u[x := v].
+ \]
+ \vspace*{-1em}
+ \begin{itemize}
+ \item Запись $u[x:=v]$ означает подстановку $v$ вместо каждого свободного вхождения $x$ в $u$.
+ \item Условие корректности подстановки: переменные, свободные в $v$, не должны оказаться связанными в $u$. (Например,
+ $(\lambda x. \lambda y. x) y \mathop{\not\to_\beta} \lambda y .y$.)
+ \end{itemize}
+ \item $\beta$-редукция может применяться к произвольному редексу вида $(\lambda x .u)v$:
+ \[
+  \mbox{\fbox{$\quad\ldots\quad (\lambda x.u)v \quad \ldots\quad$}} \to_\beta
+  \mbox{\fbox{$\quad\ldots\quad u[x:=v] \quad \ldots\quad$}}
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Преобразования $\lambda$-термов}
+
+\begin{itemize}[<+->]
+ \item Помимо $\beta$-редукции имеется вспомогательное преобразование --- {\em $\alpha$-конверсия:}
+ \[
+  \lambda x. u \to_\alpha \lambda y. u[x := y],
+ \]
+ где $y$ --- новая переменная.
+
+ \item Термы, которые можно свести к одному и тому же $\alpha$-конверсиями, называются {\em $\alpha$-равными} и в дальнейшем считаются вариантами одного терма.
+ 
+ \item $\alpha$-конверсия помогает решить проблему с недопустимой подстановкой при $\beta$-редукции:
+ \[
+  (\lambda x .\lambda y. x) y =_\alpha 
+  (\lambda x . \lambda z. x) y \to_\beta
+  \lambda z. y
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормализация}
+
+\begin{itemize}[<+->]
+ \item {\em Нормальная форма} --- это терм, в котором нет $\beta$-редексов (т.е. который далее нельзя редуцировать).
+ 
+ \item {\bf Теорема.} $\beta$-редукция обладает свойством Чёрча -- Россера:
+ \[
+  \xymatrix{
+   & v_1 \ar@{-->>}[dr] & \\
+  u \ar@{->>}[ur]\ar@{->>}[dr] & & w \\
+  & v_2 \ar@{-->>}[ur]
+  }
+ \]
+
+ \begin{itemize}
+ \item Доказательство этой, как и некоторых других, теорем, будет опубликовано в виде конспекта.
+ \end{itemize}
+ 
+ 
+ \item {\bf Следствие.} Данный терм не может редуцироваться к двум $\alpha$-разным нормальным формам.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Нормализация}
+
+\begin{itemize}[<+->]
+ \item Поскольку нормальная форма не зависит от пути, которым мы к ней пришли, её можно считать {\em результатом вычисления значения} данного $\lambda$-терма.
+ 
+ \item Однако всё не так просто.
+ 
+ \item Бывают термы, которые вообще не приводятся к нормальной форме (любое вычисление бесконечно).
+ 
+ \item Бывают и такие, для которых один путь приводит к нормальной форме ({\em слабая нормализуемость}), а другой бесконечен.
+ 
+ \item Наконец, если все пути приводят к нормальной форме, то такой терм {\em сильно нормализуем.}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Примеры}
+
+\begin{itemize}
+ \item Пусть $\omega = \lambda x. (xx)$, а $\Omega = \omega\omega$. Тогда $\Omega$ редуцируется только сам к себе: 
+ \[\Omega = (\lambda x.(xx)) (\lambda x. (xx)) \to_\beta (xx)[x := \omega] = \omega\omega = \Omega,\]
+ значит, он не нормализуем.
+ \item Можно построить и терм, который будет при <<редукции>> бесконечно разрастаться.
+ \item Бывает и слабо нормализуемый терм, не являющийся сильно нормализуемым: например, $(\lambda x . y) \Omega$.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Нормализуемость}
+
+\begin{itemize}[<+->]
+ \item Из-за существования слабо, но не сильно нормализуемых термов важен порядок, или {\em стратегия,} применения редукций.
+ \item О различных стратегиях редукций мы поговорим на следующей лекции.
+ \item А пока что коротко обсудим вычислительные возможности бестипового $\lambda$-исчисления.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Натуральные числа по Чёрчу}
+
+\begin{itemize}[<+->]
+ \item Натуральное число $n$ можно представить следующим образом с помощью константы $o$ (ноль) и функции $s$ (взятие следующего):
+ \[
+  \underbrace{s(s \ldots (s}_{\text{$n$ раз}}
+  o) \ldots)
+ \]
+
+ \item В <<чистом>> $\lambda$-исчислении у нас нет констант, поэтому мы просто абстрагируем $s$ и $o$ как переменные, получив замкнутый (без свободных переменных) терм, называемый {\em нумералом Чёрча:}
+ \[
+  \underline{n} = \lambda s o. \underbrace{s(s \ldots (s}_{\text{$n$ раз}}
+  o) \ldots)
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}[<+->]
+ \item Заметим, что нумералы Чёрча не содержат $\beta$-редексов, т.е. являются нормальными формами.
+ 
+ \item Таким образом, можно считать, что некий $\lambda$-терм $F$ является программой, вычисляющей $k$-местную функцию $f$ на натуральных числах, если 
+ \[F \, \underline{n_1} \ldots \underline{n_k}
+ \twoheadrightarrow_\beta 
+ \underline{f(n_1, \ldots, n_k)}\]
+ 
+ \item Здесь, в соответствии с функциональной парадигмой, процесс {\em вычисления} значения функции $f$ представляется в виде {\em редукции} терма $F \, \underline{n_1} \ldots \underline{n_k}$.
+ 
+ \item В силу конфлюэнтности, результат вычисления определяется однозначно.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}[<+->]
+ \item Однако возможна ситуация слабой нормализуемости, при которой мы можем пойти по <<неправильному>> пути и не достичь нормальной формы (которая при этом существует).
+ 
+ \item Бороться с этим нужно выбором правильной {\em стратегии нормализации,} о чём мы поговорим на следующей лекции.
+ 
+ \item Короткий ответ: если нормальная форма существует, то её можно достичь, всегда редуцируя {\em самый левый} (считая по начальной $\lambda$'е) $\beta$-редекс.
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}{Представление функций}
+
+\begin{itemize}
+ \item На нумералах Чёрча легко определить операции сложения и умножения:
+ \begin{align*}
+ & \underline{n} + \underline{m} = 
+ \lambda s o. (\underline{n} s)(\underline{m} s o);
+ \\
+ & \underline{n} \cdot \underline{m} = 
+ \lambda s o. \underline{m}(\underline{n} s) o. 
+ \end{align*}
+
+ \item Абстрагируя, получаем термы для (двуместных) функций сложения и умножения:
+ \begin{align*}
+  & \boldsymbol{+} = \lambda xyso. (xs)(yso);\\
+  & \boldsymbol{\cdot} = \lambda xyso. x(ys)o.
+ \end{align*}
+
+ \item {\bf Задача.} Задайте $\lambda$-термом функцию <<предшественник>>:
+ \[
+  \mathrm{Prev}(n) = \left\{
+  \begin{aligned}
+   & 0, && \mbox{если $n = 0$;}\\
+   & n-1, && \mbox{если $n > 0$.}
+  \end{aligned} \right.
+ \]
+
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}{Представление функций}
+ 
+ \begin{itemize}[<+->]
+  \item На самом деле, $\lambda$-термы умеют намного больше, чем сложение и умножение: с их помощью можно записать {\bf любую алгоритмически вычислимую} функцию на натуральных числах.
+  \item При этом функция может быть не всюду определённой --- тогда на соответствующих значениях аргументов терм $F\, \underline{n_1} \ldots \underline{n_k}$ будет ненормализуемым.
+  \item Мы обсуждаем такой <<низкоуровневый>> язык, как $\lambda$-исчисление, чтобы не перегружать изложение синтаксическими деталями.
+  \item Можно сказать, что всё остальное в функциональных языках --- надстройка для удобства, <<синтаксический сахар>>.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Булевы операции}
+ 
+ \begin{itemize}[<+->]
+  \item В $\lambda$-исчислении можно ввести константы <<истина>> и <<ложь>> как функции выбора из двух аргументов:
+  \[
+   \Tx = \lambda t. \lambda f. t; \qquad
+   \Fx = \lambda t. \lambda f. f.
+  \]
+
+  \item Условный оператор:
+  \(
+   \ifxx{b}{u}{v} = b\,u\, v.
+  \)
+
+  \item Логические операции:
+  \begin{align*}
+& (b_1 \mathop{\mathbf{and}} b_2) = 
+\ifxx{b_1}{\ifxx{b_2}{\Tx}{\Fx}}{\Fx}\\
+& \ldots
+  \end{align*}
+
+  \item Проверка на ноль: 
+  $\mathbf{Zero} = \lambda x. (x \, (\lambda z. \Fx) \, \Tx)$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+
+\begin{itemize}[<+->]
+ \item Чтобы достичь полноты по Тьюрингу, осталось реализовать {\bf рекурсию} (которая в функциональных языках используется повсеместно, в т.ч. вместо циклов).
+ 
+ \item Пример: факториал $f(n) = n! = 1 \cdot 2 \cdot \ldots \cdot n$.
+ 
+ \item Рекурсивная реализация:
+ \[
+  \Factx = \lambda x. 
+  \ifxx{\mathbf{Zero}\ x}{\underline{1}}{(\Factx\,(\Prevx\ x) \cdot x)}
+ \]
+
+ \item Проблема: $\Factx$ определяется через самоё себя.
+ 
+ \item С помощью $\lambda$-абстракции можно сделать зависимость в правой части явной (функциональной):
+ \[
+  \Factx = \underbrace{\bigl(\lambda g. \lambda x. 
+  \ifxx{\mathbf{Zero}\ x}{\underline{1}}{(g\,(\Prevx\ x) \cdot x)} \bigr)}_F \, 
+  \Factx
+ \]
+
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}{Рекурсия}
+
+\begin{itemize}[<+->]
+ \item Чтобы реализовать рекурсивно определённую функцию, используется {\em комбинатор неподвижной точки} ($\Yx$-комбинатор, или комбинатор Карри) со следующим свойством: $\Yx\, F =_\beta F(\Yx\,F)$.
+ \item $\Yx = \lambda f. \bigl(
+ (\lambda x. f(xx)) (\lambda x. f(xx)) \bigr)$
+ \item Имеем $\Yx\, F \to_\beta Y_F = 
+ (\lambda x. F(xx)) (\lambda x. F(xx))$, при этом $Y_F$ --- неподвижная точка для $F$: $Y_F \to_\beta F(Y_F)$.
+ \item Терм, использующий $\Yx$-комбинатор, никогда не будет сильно нормализуемым:
+ $Y_F \to_\beta F(Y_F) \to_\beta F(F(Y_F)) \to_\beta \ldots$
+ \item Однако если разбирать $F$, то процесс может сойтись: например, $\Factx \, \underline{n} \twoheadrightarrow_\beta \underline{n!}$
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+ \[\hspace*{-1em}
+  \Factx\, \underline{0} \to_\beta
+  Y_F \, \underline{0} \to_\beta F \, Y_F \, \underline{0} \twoheadrightarrow_\beta 
+  \ifxx{\mathbf{Zero}\, \underline{0}}{\underline{1}}{(Y_F \, (\Prevx\ \underline{0})) \cdot \underline{0}} \twoheadrightarrow_\beta \underline{1}
+ \]
+ 
+ \visible<2->{
+ \begin{multline*}
+  \Factx\, \underline{n+1} \to_\beta
+  Y_F \, \underline{n+1} \to_\beta
+  F \, Y_F \, \underline{n+1} 
+  \twoheadrightarrow_\beta\\
+  \twoheadrightarrow_\beta
+  \ifxx{\mathbf{Zero}\, \underline{n+1}}
+  {\underline{1}}
+  {(Y_F \, (\Prevx\ \underline{n+1})) \cdot \underline{n+1}} 
+  \twoheadrightarrow_\beta\\
+  \twoheadrightarrow_\beta
+  (Y_F  \, \underline{n}) \cdot \underline{n+1}
+ \end{multline*}
+
+ }
+
+ 
+\end{frame}
+
+
+\begin{frame}{Рекурсия}
+ 
+ \begin{itemize}[<+->]
+  \item Если рекурсивное определение <<плохое>> (например, забыто $\Prevx$), то терм будет ненормализуемым: {\bf любая} последовательность редукций бесконечна.
+  \item Статически проверить это невозможно, поскольку задача останова алгоритмически неразрешима.
+  \item $\Yx$ --- не единственный комбинатор неподвижной точки. Таков, например, также {\em комбинатор Тьюринга}
+  $\boldsymbol{\Theta} = 
+  (\lambda xy. y(xxy)) (\lambda xy. y(xxy))$
+  \item ... и даже $??????????????????????????$, где\\
+  \mbox{$? = \lambda abcdef ghijklmnopqstuvwxyzr.r(thisisaf ixedpointcombinator)$}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Y-комбинатор в Python'е}
+
+\begin{itemize}[<+->]
+ \item Терм, содержащий $\Yx$-комбинатор, не будет корректным, если следить за типами данных. Действительно, он содержит $xx$, значит, переменная $x$ должна одновременно быть некоторого типа $A$ и типа функции $A \to B$.
+ \item Тем не менее, в бестиповом языке, таком как Python, $\Yx$-комбинатор можно реализовать.
+ \item Наивная попытка:
+\begin{minted}{python}
+Y = lambda f : ((lambda x : f(x(x))) (lambda x : f(x(x))))
+fact = Y (lambda g : lambda n : (n and n * g(n-1)) or 1)
+\end{minted}
+\item Не работает: ``maximum recursion depth exceeded''. Python использует не тот порядок вычислений и уходит в бесконечное вычисление.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Y-комбинатор в Python'е}
+ 
+ \begin{itemize}
+  \item Положение можно исправить, заменив $xx$ на $\lambda z . xxz$:
+  \end{itemize}
+  \vspace*{-1.5em}
+  {\footnotesize
+  \hspace*{-2em}
+\begin{minted}{python}
+Y = lambda f : ((lambda x : f(x(x))) (lambda x : f(lambda z : x(x)(z))))   
+ \end{minted}
+}
+ 
+ 
+ \begin{itemize}
+  \item<2-> Математически $h$ и $\lambda z. hz$ эквивалентны (если $h$ не зависит от $z$), однако $\beta$-редукцией друг к другу не сводятся --- это {\em $\eta$-эквивалентность.}
+  \item<3-> Вычисление откладывается до тех пор, пока \mintinline{python}{lambda z : x(x)(z)} окажется к чему-то применено.
+  \item<4-> Теперь всё работает: например, \mintinline{python}{fact(6)} даёт 720.
+ \end{itemize}
+
+
+ 
+\end{frame}
+
+\begin{frame}{Y-комбинатор в Python'е}
+
+\begin{itemize}[<+->]
+ \item {\bf Упражнение.} Реализуйте на Python'е комбинатор Тьюринга $\boldsymbol{\Theta} = 
+  (\lambda xy. y(xxy)) (\lambda xy. y(xxy))$ (с соответствующим $\eta$-преобразованием).
+ \item {\bf Упражнение.} Верно ли, что для комбинатора $\widetilde{\Yx} = \lambda f. (\lambda x. f(xx)) (\lambda x. f(\lambda z. xxz))$ и терма $F$ из определения факториала терм $\widetilde{\Yx} F$ сильно нормализуем?
+\end{itemize}
+
+ 
+\end{frame}
+
+
+
+\end{document}
+
