@@ -1,0 +1,682 @@
+\documentclass[xcolor=dvipsnames]{beamer}
+
+\usetheme[progressbar=frametitle,numbering=fraction,block=fill]{metropolis}
+\usepackage{proof}
+\usepackage{multirow,bigdelim}
+\usepackage[russian]{babel}
+\usepackage{minted}
+\usepackage{amssymb,amsmath}
+\usepackage{libertinus}
+\usefonttheme{serif}
+
+\usepackage[matrix,arrow]{xy}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,patterns,positioning,matrix,calc,arrows,shapes,fit,decorations,decorations.pathmorphing}
+%\usepackage{pifont}
+\setmathfont{Asana Math}[range={\cup}]
+
+\newcommand{\bind}{\mathop{\mbox{\tt {>}>=}}}
+
+\newcommand{\Rc}{\mathcal{R}}
+\definecolor{lightblue}{HTML}{ADD8E6}
+
+\newcommand{\letin}[2]{\mathbf{let}\ {#1}\ \mathbf{in}\ {#2}}
+
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\One}{\mathbf{1}}
+
+\newcommand{\Int}{\mbox{\texttt{Int}}}
+\newcommand{\Bool}{\mbox{\texttt{Bool}}}
+\newcommand{\Char}{\mbox{\texttt{Char}}}
+
+
+\newcommand{\Cx}{\mathbf{C}}
+
+\newcommand{\Cc}{\mathcal{C}}
+
+\newcommand{\Sc}{\mathcal{S}}
+\newcommand{\Yr}{\mathrm{Y}}
+
+
+\newcommand{\Ix}{\mathbf{I}}
+\newcommand{\Yx}{\mathbf{Y}}
+\newcommand{\Bx}{\mathbf{B}}
+\newcommand{\Yb}{\mathbb{Y}}
+
+\newcommand{\Fx}{\mathbf{F}}
+\newcommand{\Tx}{\mathbf{T}}
+\newcommand{\Kx}{\mathbf{K}}
+
+\newcommand{\adisj}{\vee}
+\newcommand{\aconj}{\wedge}
+
+\newcommand{\Kc}{\mathcal{K}}
+
+
+
+\newcommand{\ifxx}[3]{\bigl(\mathbf{if}\ {#1}\ \mathbf{then}\ {#2}\ \mathbf{else}\ {#3}\bigr)}
+
+\newenvironment{mypic}
+{\begin{center}\begin{tikzpicture}[line width=1.5pt]}
+{\end{tikzpicture}\end{center}}
+
+
+\newcommand{\BS}{\mathop{\backslash}}
+\newcommand{\SL}{\mathop{/}}
+\newcommand{\Pc}{\mathcal{P}}
+\newcommand{\ACT}{\mathbf{ACT}}
+\newcommand{\ACTomega}{\ACT_\omega}
+\newcommand{\TM}{\mathfrak{M}}
+\newcommand{\Gc}{\mathcal{G}}
+
+\newcommand{\MALC}{\mathbf{MALC}}
+\newcommand{\ILL}{\mathbf{ILL}}
+\newcommand{\IAL}{\mathbf{IAL}}
+\newcommand{\AMALC}{\mathbf{AMALC}}
+
+\newcommand{\eL}{\mathbf{\boldsymbol{!}L}}
+\newcommand{\rL}{\mathbf{\boldsymbol{!}^r L}}
+\newcommand{\reL}{\mathbf{\boldsymbol{!}^{re} L}}
+
+\newcommand{\exL}{\boldsymbol{!}_{\leqslant 1}\mathbf{L}}
+\newcommand{\rxL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{r}} \mathbf{L}}
+\newcommand{\rexL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{re}} \mathbf{L}}
+
+\newcommand{\Dc}{\mathcal{D}}
+
+
+\newcommand{\Factx}{\mathrm{Fact}}
+\newcommand{\Prevx}{\mathbf{Prev}}
+
+\newtheorem{theoremr}{Теорема}
+
+\definecolor{lightcyan}{HTML}{E0FFFF}
+
+\begin{document}
+
+\title{Функциональное программирование}
+\subtitle{Лекция 5}
+\date{}
+\author{Степан Львович Кузнецов}
+\institute{НИУ ВШЭ, факультет компьютерных наук}
+
+\maketitle
+
+\begin{frame}{Классы типов}
+ 
+ \begin{itemize}[<+->]
+  \item Классы типов {\em (type classes)} служат для реализации ad hoc полиморфизма.
+  \item Принадлежность типа некоторому классу влечёт необходимость реализации для этого типа функций, свойственных данному классу.
+  \item При этом, в отличие от классов в ООП, сам класс типов абстрактен, и содержит только объявления функций (<<методов>>) класса.
+  \begin{itemize}
+    \item Таким образом, класс в смысле ООП будет состоять из класса типов и его конкретной реализации (как правило, алгебраического типа).
+    \item Есть и {\em наследование} (абстрактных) классов типов: класс-наследник расширяет исходный класс новыми функциями.
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Классы типов}
+ 
+ \begin{itemize}[<+->]
+  \item Пример: класс <<числовых>> типов \mintinline{haskell}{Num}.
+{\scriptsize
+\begin{minted}{haskell}
+type Num :: * -> Constraint
+class Num a where
+  (+) :: a -> a -> a
+  (-) :: a -> a -> a
+  (*) :: a -> a -> a
+  negate :: a -> a
+  abs :: a -> a
+  signum :: a -> a
+  fromInteger :: Integer -> a
+  {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
+    -- Defined in ‘GHC.Num’
+\end{minted}
+}
+\begin{itemize}
+  \item Следующие типы реализуют этот класс: \mintinline{haskell}{Int},
+  \mintinline{haskell}{Integer} (``big int''), \mintinline{haskell}{Float}, \mintinline{haskell}{Double}
+\end{itemize}
+ \item {<<Тип>>} для \mintinline{haskell}{Num}, равный \mintinline{haskell}{* -> Constraint}, это {\em сорт (kind).}
+ \item Если <<применить>> \mintinline{haskell}{Num} к переменной по типам \mintinline{text}{a}, то получится ограничение {\em (constraint):} \mintinline{haskell}{Num a => ...}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Классы типов}
+ 
+ \begin{itemize}[<+->]
+  \item Ограничения учитываются при выведении типов.
+  \item Это происходит одновременно с унификацией: например, если в контексте появляется \texttt{+}, то на соответствующие типы \texttt{a} накладывается ограничение \mintinline{haskell}{Num a}.
+  \item В простом случае, \mintinline{haskell}{(\x y -> x + 2 * y) :: Num a => a -> a -> a} \\
+  --- это условие на переменную по типам.
+  \item Однако тип может стать и сложным (за счёт унификации):
+  \begin{minted}{haskell}
+(\f g x -> (f + g) x)
+  :: Num (t1 -> t2) => (t1 -> t2) -> (t1 -> t2) -> t1 -> t2
+  \end{minted}
+    \begin{itemize}
+    \item Для этого нужна прагма 
+    \mintinline{haskell}{{-# LANGUAGE FlexibleContexts #-}}
+    \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Классы типов}
+ \begin{itemize}[<+->]
+  \item Функция, конечно, не число, но операции можно определить, например, покоординатно:
+  {\scriptsize
+\begin{minted}{haskell}
+ {-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+ 
+ instance (Num a, Num b) => Num (a -> b) where
+    f + g = \x -> (f x + g x)
+    f * g = \x -> (f x * g x)
+    abs f = \x -> (abs (f x))
+    signum f = \x -> (signum (f x))
+    fromInteger n = \x -> fromInteger n
+    negate f = \x -> (negate (f x))
+
+  fff = (\f g x -> (f + g*g) x)
+\end{minted}
+  }
+  \begin{itemize}
+  \item Здесь появляется ещё одна прагма: \texttt{NoMonomorphismRestriction}. 
+  \item Без неё тип для \texttt{fff} будет не полиморфным, а конкретизируется, и при её различном 
+  использовании выведение типов не сработает. 
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Параметрические классы типов}
+ 
+ \begin{itemize}[<+->]
+  \item Бывают и более сложные классы типов. 
+  \item Рассмотрим классы типов сорта \mintinline{haskell}{(* -> *) -> Constraint}
+  \item Сорт \mintinline{haskell}{* -> *} содержит {\em однопараметрические конструкторы типов.} 
+  \item Например, таковы уже известный нам \mintinline{haskell}{Maybe} и конструктор типа списков \mintinline{text}{[ ]}: каждый из них по типу-аргументу строит новый тип.
+  \begin{itemize}
+  \item Заметим, что конструктор типов (например, \mintinline{haskell}{Maybe}) не следует путать с конструктором объектов алгебраического типа, таким как \mintinline{haskell}{Just}. Последний имеет тип (а не сорт) \texttt{a}\mintinline{haskell}{ -> Maybe a}
+  \item Сложные сорта содержат не только алгебраические типы: например, \mintinline{haskell}{(->) :: * -> * -> *}
+  \end{itemize}
+  \item В \mintinline{haskell}{(* -> *) -> Constraint}  тоже живут классы типов.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Параметрические классы типов}
+
+\begin{itemize}[<+->]
+ \item Например, класс типов \mintinline{haskell}{Foldable} включает однопараметрические типы, для которых определено <<сворачивание>>:
+ 
+{\scriptsize
+\begin{minted}{haskell}
+type Foldable :: (* -> *) -> Constraint
+class Foldable t where
+  ...
+  foldl :: (b -> a -> b) -> b -> t a -> b
+  ...
+\end{minted}
+
+}
+
+\item Естественная реализация (instance) класса \mintinline{haskell}{Foldable} --- это тип списков \texttt{[a]}.
+\item Здесь \texttt{foldl op w}\mintinline{haskell}{ [x,y,z]} означает
+\mintinline{haskell}{((w `op` x) `op` y) `op` z}:
+
+{\scriptsize
+\begin{minted}{haskell}
+foldl f z []     = z
+foldl f z (x:xs) = let z' = z `f` x in foldl f z' xs
+\end{minted}
+}
+\item Однако \mintinline{haskell}{Maybe} также \mintinline{haskell}{Foldable} (угадайте, как там работает \texttt{foldl}).
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{<<Категория типов>>}
+ 
+ \begin{itemize}[<+->]
+  \item Систему типов можно представить как очень большой граф,
+  где вершины --- типы, а стрелки (рёбра) --- функции между ними.
+  \begin{itemize}
+  \item Этот граф ориентированный, в нём есть петли и кратные рёбра.
+  \end{itemize}
+  \item В математике такие графы, с естественными условиями на стрелки (композиция, существование петли-<<единицы>>), называются {\bf категориями.}
+    \item Вершины называются {\em объектами} категории, а стрелки --- {\em морфизмами.}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{<<Категория типов>>}
+
+\begin{itemize}[<+->]
+ \item  В Haskell'е система типов содержит функциональные (<<стрельчатые>>) типы, т.е. совокупность морфизмов между двумя объектами сама представляется как объект.
+ \item Категории с таким свойством называются {\bf декартово замкнутыми.}
+ \item Ближайший пример из математики: категория $\mathsf{SET}$ множеств и функций между ними.
+ \item Огрубляя, можно мыслить типы как множества, но есть и тонкие отличия.
+ \begin{itemize}
+ \item Например, объединение $A \cup B$ множеств содержит как подмножества $A$ и $B$, а для его ближайшего аналога в системе типов, конструкции \texttt{Either}, имеются только функции-вложения \texttt{Left} и \texttt{Right}.
+ \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{<<Категория типов>>}
+ 
+ \begin{itemize}[<+->]
+  \item Из теории категорий <<импортированы>> некоторые идеи в функциональном программировании, о которых пойдёт речь дальше.
+  \item Аккуратное изложение самой теории категорий целью этого курса не является.
+  \item Нам достаточно будет категорного взгляда <<с высоты птичьего полёта>>, при котором большие и сложные типы представляются точками.
+  \item Итак, теоретико-категорные конструкции
+{\em мотивируют} конструкции в системе типов, в т.ч. {\em монады.}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Функторы}
+ 
+ \begin{itemize}[<+->]
+  \item Сами категории можно также воспринимать как
+алгебраические структуры, и между ними можно строить
+<<морфизмы>>.
+  \item Такие <<морфизмы категорий>> называются {\em функторами.}
+  \item Функтор $F \colon \Cc \Rightarrow \Dc$ отображает объекты в объекты, морфизмы в морфизмы, при этом сохраняя начало/конец:
+ \[
+  \xymatrix{
+  A \ar_f[d]\ar@{=>}^{F}[r] & F A 
+     \ar^{F f}[d] \\
+  B \ar@{=>}^{F}[r] & F B
+  }
+ \]
+\vspace*{-10pt}
+\item При этом функтор <<уважает>> композицию и единицу: $F(f \circ g) = (F f) \circ (F g)$ и $F \One_A = \One_{F A}$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Функторы}
+\begin{itemize}[<+->]
+ \item Кабы не логические парадоксы, можно было бы говорить о
+<<категории всех категорий>>, где морфизмы --- это
+функторы.
+ \item У нас одна категория --- абстрактная категория, приближённо описывающая систему типов языка.
+ \item Поэтому нас будут интересовать {\em эндофункторы}
+ $F \colon \Cc \Rightarrow \Cc$ (т.е. действующие
+внутри одной категории).
+\item С точки зрения системы типов (эндо)функтор должен реализоваться как {\em преобразование типов} и связанная с ним {\em функция на функциях.}
+\end{itemize}
+
+ 
+
+\end{frame}
+
+
+
+\begin{frame}{Функторы}
+ 
+ \begin{itemize}[<+->]
+  \item Пример: взятие списка элементов данного типа, \texttt{a} $\Rightarrow$ \texttt{[a]}.
+  \item Соответствующее преобразование на функциях \mintinline{haskell}{map :: (a -> b) -> [a] -> [b]}
+  \item Близкая математическая конструкций --- функтор $\Pc$ в категории $\mathsf{SET}$, сопоставляющий множеству множество всех его подмножеств.
+  \begin{itemize}
+ \item Для $f \colon A \to B$ и $X \subseteq A$ имеем $\Pc f \colon X \mapsto \{ f(x) \mid x \in X \}$.
+ \item Можно рассмотреть $\Pc_{\mathrm{fin}}$ --- взятие множества конечных подмножеств.
+ \item Кстати, список в Haskell'е не обязательно конечный.
+ \item Отличие множества от списка --- во множестве не имеет значения порядок и кратность элементов.
+ \item К функтору $\Pc_{\mathrm{fin}}$ мы ещё вернёмся.
+ \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Функторы}
+
+\begin{itemize}[<+->]
+ \item В общем случае понятие функтора реализуется как параметрический класс типов \mintinline{haskell}{Functor}
+ 
+ {\footnotesize
+\begin{minted}{haskell}
+type Functor :: (* -> *) -> Constraint
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b 
+\end{minted}
+
+ }
+ \item При этом реализация этого класса --- это не обязательно алгебраический тип, т.е. \texttt{f a} не обязательно является <<новым>> типом, построенным из \texttt{a}.
+ \item Пример:
+ 
+{\footnotesize
+ \begin{minted}{haskell}
+instance Functor ((->) r)
+ \end{minted}
+
+ }
+ 
+ \item Этот функтор преобразует тип \texttt{a} в \texttt{r -> a} (\texttt{r} --- фиксированный тип-параметр).
+ \begin{itemize}
+ \item Здесь \mintinline{text}{fmap h = \g z -> h (g z)}
+ \item \texttt{a} $\Rightarrow$ \texttt{a -> r} --- это {\em контравариантный функтор} (переворачивает стрелки).
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Условия функториальности}
+ \begin{itemize}[<+->]
+ \item От типа, реализующего класс \mintinline{haskell}{Functor}, требуется соблюдение условий функториальности: $F(f \circ g) = (F f) \circ (F g)$ и $F \One_A = \One_{FA}$.
+ \item В терминах \mintinline{text}{fmap}:\\
+ \mintinline{text}{fmap (f . g) = (fmap f) . (fmap g)} и \mintinline{text}{fmap (\x -> x) = \x -> x}.
+ \item При работе с типом класса \mintinline{haskell}{Functor} можно предполагать, что эти равенства выполнены, однако, к сожалению, они не {\em верифицируются} в самом Haskell'е.
+ \item Например, для списков можно определить альтернативный \mintinline{haskell}{fmap' = \f -> reverse .                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   (map f)}, для которого эти равенства неверны.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Функтор}
+ 
+ \begin{itemize}[<+->]
+  \item Вернёмся к примеру \texttt{a} $\Rightarrow$ \texttt{r -> a}. <<Внутри>> \texttt{r -> a} находится бесконечно много элементов типа \texttt{a}, по одному для каждого \texttt{z :: r}.
+  \item То же происходит для функтора взятия списка или множества.
+  \item Уже знакомый нам конструктор типов \mintinline{haskell}{Maybe} также является функтором, и в \mintinline{haskell}{Maybe a} лежит либо один элемент, либо ни одного элемента типа \texttt{a}.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{<<Чёрный ящик>>}
+
+\begin{itemize}[<+->]
+\item Таким образом, если $X$ --- тип, а $F$ --- функтор, то $FX$ --- это <<чёрный ящик>>, в котором каким-то образом спрятаны элементы типа $X$, к которым можно применить функцию $f \colon X \to Y$.
+\begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (6,2) node[below left] {$FX$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (1.5,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (2,.5) rectangle (3,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+\item Однако чего-то не хватает: непонятно, как <<положить>> что-то в $FX$, и вообще, как создать объект типа $FX$.
+\end{itemize}
+ 
+ 
+\end{frame}
+
+
+
+\begin{frame}{Монада}
+ 
+ \begin{itemize}[<+->]
+  \item {\em Монада} $M$ --- это эндофунктор с дополнительными операциями.
+  \item Первая из них позволяет <<положить элемент в чёрный ящик>>, $\eta_X \colon X \to M X$.
+  \begin{itemize}
+  \item \mintinline{haskell}{return :: Monad m => a -> m a}
+  \end{itemize}
+  \item Вторая более сложная и позволяет <<поднимать>> аргумент функции, ведущей в монаду. Для $f \colon X \to M Y$ эта операция даёт $f^* \colon M X \to M Y$.
+  \begin{itemize}
+  \item \mintinline{haskell}{(>>=) :: Monad m => m a -> (a -> m b) -> m b}
+  \end{itemize}
+  \item При этом должны выполняться определённые условия, о которых чуть позже.
+  \item Набор $(M, \eta, {}^*)$ в теории категорий называется {\em тройкой Клейсли,} а собственно монадой --- другая, но эквивалентная конструкция.
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt {>}>=}}
+\begin{itemize}[<+->]
+ \item Операция $^*$, или {\tt {>}>=}, соответствует идее, что можно внутри монады войти ещё раз в монаду, и остаться в той же монаде.
+ \item Пример: \mintinline{haskell}{[1,2,3] >>= (\x -> [x,x])} даёт \mintinline{haskell}{[1,1,2,2,3,3]}
+ \item Если бы вместо $f^*$ применили $M$ как функтор, то получилось бы $Mf \colon MX \to M(MY)$.
+ 
+ \begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (8.5,3.2) node[below left] {$M(MY)$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (4,2.5) node[below left] {$MY$};
+ \draw[rounded corners,thick,fill=lightcyan] (4.5,.5) rectangle (8,2.5) node[below left] {$MY$};
+ \draw[rounded corners,thick,fill=white]
+ (1,1) rectangle (2,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (2.5,1) rectangle (3.5,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (5,1) rectangle (6,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (6.5,1) rectangle (7.5,2) node[below left] {$Y$};
+ %\draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$\mu$}
+
+\begin{itemize}[<+->]
+ \item Таким образом,  $f^*$ можно свести к более простой операции <<разглаживания>> двойной монады в одинарную, $\mu_X \colon M(MY) \to MY$.
+ \item Тогда $f^* = \mu \circ (M f)$.
+ \item Собственно, в теории категорий именно эндофунктор $M$, оснащённый семействами морфизмов $\eta$ и $\mu$, удовлетворяющий огромному количеству условий корректности, и называют монадой.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Условия монады}
+ 
+  Для тройки Клейсли $(M, \eta, {}^*)$ условия формулируются намного короче:
+  \begin{center}
+   \begin{tabular}{ll}
+    $\eta_X^* = \One_{M X}$ & 
+    \mintinline{text}{(z >>= return) = z} \\
+    \multicolumn{2}{l}{\hspace*{1em} $MX \to MX$} \\[10pt]
+    $f^* \circ \eta_X = f$ &
+    \mintinline{text}{(return x >>= f) = (f x)} \\
+    \multicolumn{2}{l}{\hspace*{1em} $X \stackrel{\eta}{\to} MX \stackrel{f^*}{\to} MY$} \\[10pt]
+    $g^* \circ f^* = (g^* \circ f)^*$ &
+    \mintinline{text}{((x >>= f) >>= g) =}
+    \\&\hspace*{10pt}
+    \mintinline{text}{(x >>= (\y -> (f y >>= g)))} \\
+    \multicolumn{2}{l}{\hspace*{1em} 
+    $MX \stackrel{f^*}{\to} MY \stackrel{g^*}{\to} MZ$} \\
+    \multicolumn{2}{l}{\hspace*{1em} 
+    $X \stackrel{f}{\to} MY \stackrel{g^*}{\to} MZ$} \\
+   \end{tabular}
+  \end{center}
+\end{frame}
+
+
+\begin{frame}{Выражение остальных операций}
+
+\begin{itemize}[<+->]
+ \item Через $\eta$ и $^*$ можно выразить всё остальное.
+ \item Так, $\mu \colon M(MY) \to MY$, или {\tt join}, выражается так: $\mu = \One_{MY}^*$.
+ \begin{itemize}
+ \item \mintinline{haskell}{join = \x -> (x >>= (\y -> y))}
+ \end{itemize}
+ \item Преобразование на морфизмах (функтор), $Mf \colon MX \to MY$ (для $f \colon X \to Y$) также выражается: $Mf = (\eta_Y \circ f)^*$.
+ \begin{itemize}
+ \item \mintinline{haskell}{fmap = (\f -> (\z -> (z >>= \x -> return (f x))))}
+ \item При этом $Mg \circ Mf = (\eta_Z \circ g)^* \circ (\eta_Y \circ f)^* = ((\eta_Z \circ g)^* \circ \eta_Y \circ f)^* = (\eta_Z \circ g \circ f)^* = M(g \circ f)$.
+ \item Таким образом, в определении монады не нужно требовать, что это функтор.
+ \end{itemize}
+ \item Более того, каждая монада --- это {\em аппликативный функтор} с операцией применения функции внутри монады:
+ \mintinline{haskell}
+ {(<*>) :: m (a -> b) -> m a -> m b}
+ \begin{itemize}
+ \item
+  \mintinline{text}{h } \mintinline{haskell}{<*> t = h >>= \f -> fmap f t}
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item При вычислении последовательности функций <<внутри>> монады сама монада каждый раз заменяется на новую.
+  \item Таким образом поддерживается порядок вычислений, что приближает работу в монаде к императивному языку.
+  \begin{itemize}
+  \item Явно это выражается в т.н. do-нотации, о которой чуть позже.
+  \end{itemize}
+  \item В частности, с помощью специальной монады можно реализовать взаимодействие с <<внешним миром>> (побочные эффекты вычислений), в частности, ввод-вывод.
+  \item Эта специальная монада называется \mintinline{haskell}{IO}.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ \begin{itemize}
+  \item Объект типа \mintinline{haskell}{IO a} можно понимать как объект типа \mintinline{haskell}{a}, помещённый в большой и страшный внешний мир.
+ \end{itemize}
+
+ \visible<2->{
+ \begin{center}
+  \includegraphics[scale=.3]{ezhik.jpg}
+  \\ \vspace*{-5pt}
+  {\tiny\color{gray}\sf <<Ёжик в тумане>>, Союзмультфильм}
+ \end{center}
+
+ }
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ \begin{itemize}[<+->]
+  \item Грубое приближение монады \mintinline{haskell}{IO} --- это взятие пары с контекстом: ``({\tt a}, {\tt RealWorld})''. При операциях с монадой состояние {\tt RealWorld} может меняться. 
+  \item Есть операция \mintinline{text}{return}, погружающая объект в окружение \mintinline{haskell}{IO} (<<выпускающая во внешний мир>>), а вот обратного преобразования нет.
+  \item \mintinline{haskell}{putChar :: Char -> IO ()} берёт символ и возвращает новый <<мир>>, в котором растворился (был напечатан в консоли) этот символ.
+  \item \mintinline{haskell}{getChar :: IO Char} --- мы можем получить символ из внешнего мира, но только внутри монады.
+  \item Достать его из монады мы не можем, но можем работать с ним внутри \mintinline{haskell}{IO} с помощью \mintinline{haskell}{>>=}.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+
+\begin{itemize}[<+->]
+\item Например: \mintinline{text}{getChar} \mintinline{haskell}{>>= (\x -> (putChar x >> putChar x))}
+\item Здесь \mintinline{text}{>>} --- это версия \mintinline{text}{>>=}, игнорирующая аргумент ({\tt putChar} всё равно ничего не выдаёт, а настоящий {\tt x} ранее абстрагирован).
+ \item В процессе выполнения программы, содержащей \mintinline{haskell}{IO}, объекты типов \mintinline{haskell}{IO a} остаются временно невычисленными, как задумки.
+ \item Например, если мы где-то напишем \mintinline{text}{putChar} \mintinline{haskell}{'a'}, то символ не будет тут же напечатан.
+ \item Вместо этого нужно дождаться, пока соберётся <<главный>> объект типа \mintinline{haskell}{IO ()}, и уже при его вычислении все операции с внешним миром будут выполнены, причём в правильном порядке.
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}[fragile]{do-нотация}
+ 
+ \begin{itemize}[<+->]
+  \item {\em do-нотация} --- это альтернативный синтаксис работы с \mintinline{text}{>>=} и \mintinline{text}{>>}, делающий код похожим на императивный.
+  \item Пример:
+\begin{minted}{haskell}
+main :: IO ()
+main = do
+  putStrLn "What's your name?"
+  name <- getLine
+  putStrLn $ "Hello, " ++ name ++ "!"
+\end{minted}
+\item do-нотация раскрывается так. <<Команды>>, у которых нет возвращаемого значения, соединяются с помощью \mintinline{text}{>>}. Если возвращаемое значение есть: \mintinline{text}{x} \mintinline{haskell}{<- ...}, то пишется \mintinline{haskell}{... >>= \x -> ...}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{do-нотация}
+ 
+ \begin{itemize}[<+->]
+ \item Таким образом переменная по имени {\tt x} становится доступной в дальнейшем контексте.
+ \item Более того, в <<присваивании>> \mintinline{haskell}{<-} можно (как в императивных языках) использовать одно и то же имя несколько раз.
+ \begin{itemize}
+ \item При этом более раннее забывается, поскольку переменная связана более глубокой лямбдой: $\lambda x. (... \lambda x. (... x ...) ...)$.
+ \end{itemize}
+ \item Пример:
+ \begin{minted}{haskell}
+main =
+  putStrLn "What's your name?" >>
+  getLine >>=
+  \name -> putStrLn $ "Hello, " ++ name ++ "!"
+ \end{minted}
+ 
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{do-нотация}
+ \begin{itemize}[<+->]
+ \item do-нотация работает не только с \mintinline{haskell}{IO}, но и с любой другой монадой.
+ \item Например, вот такой код рекурсивно генерирует все булевы наборы данной длины:
+ 
+ {
+\scriptsize
+\begin{minted}{haskell}
+allVals 0 = [[]]
+allVals n = do
+  v <- allVals (n-1)
+  [True:v, False:v]
+\end{minted}
+
+}
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Монады}
+ \begin{itemize}[<+->]
+  \item Итак, {\em монада} --- это абстрактная конструкция преобразования типов: $X$ преобразуется в $MX$, при этом внутри <<монадического>> объекта типа $MX$ в некотором <<живут>> элементы исходного типа $X$:
+  \begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (6,2) node[below left] {$MX$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (1.5,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (2,.5) rectangle (3,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+\item Внутри монады можно применять функцию к исходному типу --- $f \colon X \to Y$ <<поднимается>> до $Mf \colon MX \to MY$, т.е. монада является функтором.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монады}
+ 
+ \begin{itemize}[<+->]
+  \item Более того, $f$ сама может создавать монадический объект, и этот объект помещается в исходную монаду.
+  \item А именно, $f \colon X \to MY$ даёт $f^* \colon MX \to MY$. Другое обозначение:
+  $f^*(t) = (t \bind f)$.
+  \item Можно определить $f^*$ через операцию <<разглаживания двойной монады>> $\mu \colon MMY \to MY$, а именно, $f^* = \mu \circ f$.
+  \item Наконец, в монаду можно помещать объект <<чистого>> типа, $\eta \colon X \to MX$.
+  \item Для корректно определённых монад эти операции должны удовлетворять нескольким естественным соотношениям.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Монады}
+ 
+ \begin{itemize}[<+->]
+  \item Основный примером является монада \mintinline{haskell}{IO}, осуществляющая взаимодействие с <<внешним миром>>.
+  \item Рассмотрим ещё два примера использования монад --- для моделирования недетерминированных и вероятностных вычислений.
+  \item Общая идея: помещение внутрь монады помещает вычисления в некоторое своеобразное окружение.
+ \end{itemize}
+
+\end{frame}
+
+\end{document}
