@@ -504,12 +504,10 @@ go2 = do
     mp >>= \(a,b) -> f a >>= \c -> g b >>= \d ->
     return (c, d)
   \end{minted}
-
-  \vspace{\baselineskip}
-  The function above might be implemented as follows with the do-notation sugar
+  The function above can be implemented as follows:
   \begin{minted}{haskell}
   prodM :: Monad m => (a -> m b) -> (c -> m d)
-    -> m (a, c) -> m (b, d)
+        -> m (a, c) -> m (b, d)
   prodM f g mp = do
     (a, b) <- mp
     c <- f a

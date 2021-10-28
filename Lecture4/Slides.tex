@@ -481,10 +481,10 @@ Take a look at these functions
 \begin{frame}[fragile]
 \frametitle{The definition of a right fold}
 \begin{itemize}
-  \item The definition of a right is the following one
+  \item The definition of a right fold is the:
   \begin{minted}{haskell}
   foldr :: (a -> b -> b) -> b -> [a] -> b
-  foldr _ ini [] = []
+  foldr _ ini [] = ini
   foldr f ini (x : xs) = f x (foldr f ini xs)
   \end{minted}
   \item An informal explanation:
@@ -554,7 +554,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
       == (...((ini `f` x1) `f` x2) `f`...) `f` xn
     \end{minted}
     \onslide<2->{
-    \item The implementation of the left fold function might be optimised.
+    \item We can optimise the implementation of \verb"foldl".
     \item \verb"foldl" is the most optimal function, but we are not capable of processing infinite lists using the left fold function.
     }
   \end{itemize}
@@ -564,7 +564,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   \frametitle{Are \verb"foldr" and \verb"foldl" equivalent?}
 
 \begin{itemize}
-  \item Note that \verb"foldr" and \verb"foldl" are not equivalent to each other
+  \item Note that \verb"foldr" and \verb"foldl" are not equivalent generally
   \begin{minted}{haskell}
   > foldl (/) 64 [4,2,4]
   2.0
@@ -575,7 +575,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   > foldr (\x y -> 2*x + y) 4 [1,2,3]
   16
   \end{minted}
-  \item \verb"foldr" and \verb"foldl" are equivalent if the folding operation is commutative
+  \item \verb"foldr" and \verb"foldl" are equivalent if the folding operation is associative and commutative
 \end{itemize}
 \end{frame}
 
@@ -685,7 +685,7 @@ One may visualise that for some list \verb"[a,b,c]". The list from the left and 
   > seq (id . undefined) 5
   5
   \end{minted}
-  \item The library \verb"deepseq" contains the same titled combinator that \emph{fully} evaluates the first argument.
+  \item The library \verb"deepseq" contains the same titled combinator that evaluates the first argument completely.
 \end{itemize}
 \end{frame}
 
