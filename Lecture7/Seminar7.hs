@@ -107,3 +107,31 @@ cartesianProduct' xs ys = do
 
 cartesianProduct'' :: [a] -> [b] -> [(a, b)]
 cartesianProduct'' xs ys = [(x, y) | x <- xs, y <- ys]
+
+main :: IO ()
+main = do
+  putStrLn "Hello, what is your name?"
+  name <- getLine
+  putStrLn $ "Hi, " ++ name
+  putStrLn $
+    "Gotta go, " ++ name ++
+    ", have a nice day"
+
+getLine' :: IO String
+getLine' = do
+  c <- getChar
+  case c == '\n' of
+    True -> return []
+    False -> do
+      cs <- getLine'
+      return (c : cs)
+
+putStr' :: String -> IO ()
+putStr' [] = return ()
+putStr' (x : xs) = putChar x >> putStr' xs
+
+putStr'' :: String -> IO ()
+putStr'' = sequence_ . map putChar
+
+putStr''' :: String -> IO ()
+putStr''' = mapM_ putChar
