@@ -1,0 +1,1434 @@
+\documentclass[xcolor=dvipsnames]{beamer}
+
+\usetheme[progressbar=frametitle,numbering=fraction,block=fill]{metropolis}
+\usepackage{proof}
+\usepackage{multirow,bigdelim}
+\usepackage[russian]{babel}
+\usepackage{wrapfig}
+\usepackage{minted}
+\usepackage{libertinus} 
+\usefonttheme{serif}
+
+\usepackage[all]{xy}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,patterns,positioning,matrix,calc,arrows,shapes,fit,decorations,decorations.pathmorphing}
+%\usepackage{pifont}
+\setmathfont{TeX Gyre Bonum Math}[range={\mathbb}]
+\setmathfont{TeX Gyre Bonum Math}[range={\exists,\forall,\Upsilon}]
+
+
+\newcommand{\Rc}{\mathcal{R}}
+
+\definecolor{lightcyan}{HTML}{E0FFFF}
+\definecolor{lightblue}{HTML}{ADD8E6}
+
+\makeatletter
+%\newcommand\notsotiny{\@setfontsize\notsotiny\@vipt\@viipt}
+\newcommand\notsotiny{\@setfontsize\notsotiny{7}{8}} %6.31415}{7.1828}}
+\makeatother
+
+
+\newcommand{\nrm}[1]{[\![{#1}]\!]}
+\newcommand{\ev}{\mathrm{ev}}
+
+\newcommand{\adisj}{\vee}
+\newcommand{\aconj}{\wedge}
+
+\newcommand{\Kc}{\mathcal{K}}
+
+\newcommand{\Ix}{\mathbf{I}}
+\newcommand{\Yx}{\mathbf{Y}}
+\newcommand{\Bx}{\mathbf{B}}
+\newcommand{\Yb}{\mathbb{Y}}
+\newcommand{\Yr}{\mathrm{Y}}
+
+\newcommand{\Cx}{\mathbf{C}}
+
+\newcommand{\Fx}{\mathbf{F}}
+\newcommand{\Tx}{\mathbf{T}}
+\newcommand{\Kx}{\mathbf{K}}
+
+\newcommand{\NN}{\mathbb{N}}
+
+\newcommand{\Fc}{\mathcal{F}}
+
+\newcommand{\Int}{\mbox{\texttt{Int}}}
+\newcommand{\Bool}{\mbox{\texttt{Bool}}}
+\newcommand{\Char}{\mbox{\texttt{Char}}}
+
+\newcommand{\One}{\mathbf{1}}
+
+\newcommand{\ifxx}[3]{\bigl(\mathbf{if}\ {#1}\ \mathbf{then}\ {#2}\ \mathbf{else}\ {#3}\bigr)}
+
+\newenvironment{mypic}
+{\begin{center}\begin{tikzpicture}[line width=1.5pt]}
+{\end{tikzpicture}\end{center}}
+
+
+\newcommand{\BS}{\mathop{\backslash}}
+\newcommand{\SL}{\mathop{/}}
+\newcommand{\Pc}{\mathcal{P}}
+\newcommand{\ACT}{\mathbf{ACT}}
+\newcommand{\ACTomega}{\ACT_\omega}
+\newcommand{\TM}{\mathfrak{M}}
+\newcommand{\Gc}{\mathcal{G}}
+
+\newcommand{\Sc}{\mathcal{S}}
+
+\newcommand{\MALC}{\mathbf{MALC}}
+\newcommand{\ILL}{\mathbf{ILL}}
+\newcommand{\IAL}{\mathbf{IAL}}
+\newcommand{\AMALC}{\mathbf{AMALC}}
+
+\newcommand{\eL}{\mathbf{\boldsymbol{!}L}}
+\newcommand{\rL}{\mathbf{\boldsymbol{!}^r L}}
+\newcommand{\reL}{\mathbf{\boldsymbol{!}^{re} L}}
+
+\newcommand{\exL}{\boldsymbol{!}_{\leqslant 1}\mathbf{L}}
+\newcommand{\rxL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{r}} \mathbf{L}}
+\newcommand{\rexL}{\boldsymbol{!}_{\leqslant 1}^{\mathbf{re}} \mathbf{L}}
+
+\newcommand{\Dc}{\mathcal{D}}
+
+%\newcommand{\Int}{\mathbf{Int}}
+
+\newcommand{\Factx}{\mathrm{Fact}}
+\newcommand{\Prevx}{\mathbf{Prev}}
+
+\newcommand{\SET}{\mathsf{SET}}
+
+\newcommand{\letin}[2]{\mathbf{let}\ {#1}\ \mathbf{in}\ {#2}}
+\newtheorem{theoremr}{Теорема}
+
+\newcommand{\Cc}{\mathcal{C}}
+%\newcommand{\Dc}{\mathcal{D}}
+\newcommand{\Ob}{\mathrm{Ob}}
+\newcommand{\Mor}{\mathrm{Mor}}
+
+\newcommand{\bind}{\mathop{\mbox{\tt {>}>=}}}
+
+\begin{document}
+
+\title{Функциональное программирование}
+\subtitle{Лекция 7}
+\date{}
+\author{Степан Львович Кузнецов}
+\institute{НИУ ВШЭ, факультет компьютерных наук}
+
+\maketitle
+
+\begin{frame}{Монады}
+ 
+ \begin{itemize}[<+->]
+  \item Напомним, что мы продолжаем обсуждать {\em монады.}
+  \item Монада в Haskell'е --- это преобразование типов, превращающее произвольный тип {\tt a} в тип {\tt m a}.
+  \item Можно мыслить, что внутри объекта типа {\tt m a} каким-то образом присутствуют объекты исходного типа {\tt a}, и монадические операции позволяют некоторым образом работать с этими объектами. 
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Монады}
+ \begin{itemize}[<+->]
+  \item Во-первых, объект типа {\tt a} можно преобразовать в объект типа {\tt m a} --- <<положить объект в монаду>>:
+\begin{minted}{haskell}
+return :: Monad m => a -> m a
+\end{minted}
+  \item Во-вторых, к объектам внутри монады можно применять функции, причём возможно с монадическим результатом (bind):
+\begin{minted}{haskell}
+(>>=) :: Monad m => m a -> (a -> m b) -> m b
+\end{minted}
+  \item В частности, можно применить <<чистую>> функцию:
+\begin{minted}{haskell}
+fmap :: Functor m => (a -> b) -> m a -> m b
+\end{minted}
+причём для монады {\tt fmap f x = (x >{>}= return . f))}
+\item А вот <<извлечь объект из монады>> в общем случае невозможно.
+
+
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Примеры монад}
+ 
+ \begin{itemize}[<+->]
+  \item Монада \mintinline{haskell}{IO} для взаимодействия с <<внешним миром>>.
+  \item Вычисление в монаде родственно императивному программированию, что ясно видно в do-нотации.
+  \item {<<}Чистые>> монады:
+  \begin{itemize}
+  \item список,
+  \item множество (для недетерминированных вычислений),
+  \item вероятностные монады (монада Жири).
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}{Монада Eval}
+ 
+ \begin{itemize}[<+->]
+  \item Ещё один пример монады связан с {\em порядком вычислений.}
+  \item Вспомним, что в Haskell'е есть операторы для изменения нормального порядка редукций.
+  \item Таковые операторы --- {\tt seq} (строгость), {\tt par} (параллелизм).
+ \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Монада Eval}
+ 
+ \begin{itemize}[<+->]
+  \item Более удобное средство работы с параллелизмом (и вообще со стратегиями редукций) даёт монада {\tt Eval} из {\tt Control.Parallel.Strategies}.
+\begin{minted}{haskell}
+data Eval a = Done a
+instance Monad Eval where
+  return x = Done x
+  Done x >>= k = k x   -- Note: pattern 'Done x' makes 
+                       -- '>>=' strict
+\end{minted}
+
+\begin{itemize}
+\item Комментарий о строгости означает следующее: если первый аргумент \mintinline{haskell}{>>=} окажется \mintinline{text}{undefined}, то вычисление прервётся (он не отождествится с \mintinline{haskell}{Done x}).
+\end{itemize}
+\item Смысл \mintinline{haskell}{Eval a} --- объект типа {\tt a}, вычисляемый с определённым порядком редукций.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Монада Eval}
+
+\begin{itemize}[<+->]
+ \item В монаду {\tt Eval} есть другие <<входы>>, кроме стандартного {\tt return}. Они имеют тип \mintinline{haskell}{Strategy a}, т.е.
+ \mintinline{haskell}{ a -> Eval a}
+ \item Например:
+\begin{minted}{haskell}
+rpar x = x `par` return x
+rseq x = x `pseq` return x
+\end{minted}
+\item В частности, {\tt rpar} начинает вычисление {\tt x} в параллельном потоке (spark'е), а также передаёт {\tt x} для дальнейшего использования.
+\item При этом монада {\tt Eval} является <<чистой>>, и из неё есть <<выход>>: 
+\begin{minted}{haskell}
+runEval :: Eval a -> a
+runEval (Done x) = x
+\end{minted}
+
+
+\end{itemize}
+
+
+ \end{frame}
+
+\begin{frame}[fragile]{Монада Eval}
+ 
+ \begin{itemize}[<+->]
+ \item Обычный {\tt return}, он же {\tt r0}, не вызывает вычисление аргумента, он сохраняется как thunk.
+  \item С помощью {\tt Eval} можно реализовать параллельное применение {\tt map} к элементам списка:
+\begin{minted}{haskell}
+parMap' :: (a -> b) -> [a] -> Eval [b]
+parMap' f [] = return []
+parMap' f (a:as) = do
+    b <- rpar (f a)
+    bs <- parMap' f as
+    return (b:bs)
+\end{minted}
+
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Пример: ParitySAT}
+ 
+\scriptsize
+\begin{minted}{haskell}
+xor :: Bool -> Bool -> Bool
+xor = (/=)
+
+satPartial fm valset = foldr xor False $ map (fmEval fm) valset
+partValSet partVals m = map (partVals ++) (allVals m)
+
+n = 22
+k = 4
+m = n + 1 - k
+
+xsat = runEval $ parMap' (satPartial (myFm n)) (map (partValSet m) (allVals k))
+
+main = putStrLn $ show xsat
+\end{minted}
+
+\end{frame}
+
+
+\begin{frame}{Свойства полиморфных функций}
+ 
+ \begin{itemize}[<+->]
+  \item Отвлечёмся от монад и посмотрим, какие свойства функции можно установить, опираясь только на её полиморфный тип, --- так называемые свободные, или <<бесплатные>>, теоремы {\em (free theorems).}
+  \begin{itemize}
+   \item P. Wadler. Theorems for free! Proc. FPCA 1989
+  \end{itemize}
+  \item Например, если $f \colon \forall r. (r \to r)$ и $f$ {\em вычисляется без ошибки и за конечное время} на $x$, то, наверное, $f(x) = x$.
+  \begin{itemize}
+   \item Действительно, тип $f$ настолько общий, что она не может сделать с $x$'ом ничего содержательного, только вернуть его как было.
+  \end{itemize}
+  \item Другой пример --- $\mathbf{B} \colon 
+  \forall p q r . ((q \to r) \to (p \to q) \to p \to r)$ может быть только операцией композиции --- опять же, если не зависнет.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Свойства полиморфных функций}
+ 
+ \begin{itemize}[<+->]
+  \item Иногда по полиморфному типу невозможно точно определить поведение функции, но возможно установить какие-то её свойства.
+  \item Например, функция \mintinline{haskell}{f :: [a] -> [a]} может делать разные вещи со списком, но должна коммутировать с {\tt map g}:
+  \mintinline{text}{f . (map g) = (map g) . f}
+  \item Действительно, для {\tt f} элемены списка --- это <<чёрные ящики>>. Функция может их перетасовывать, но никак не может использовать то, что внутри.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Свойства полиморфных функций}
+ 
+ \begin{itemize}[<+->]
+  \item При этом другие желаемые свойства полиморфных функций вот так <<за бесплатно>> не получаются.
+  \item Например,
+\begin{minted}{haskell}
+map' :: (a -> b) -> [a] -> [b]
+\end{minted}
+не только не обязательно совпадает с <<настоящим>> {\tt map}, но может и не удовлетворять законам функториальности.
+   \item Например, 
+\begin{minted}{haskell}
+map' = \f -> ((map f) . reverse)
+\end{minted}
+ нарушает оба закона: не переводит {\tt id} в {\tt id} и не коммутирует с композицией.
+ \item Как же выявлять и обосновывать  истинные свободные теоремы?
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Сопоставление элементов}
+
+\begin{itemize}[<+->]
+ \item Пусть \mintinline{haskell}{f :: forall a. [a] -> [a]} и \mintinline{haskell}{g :: c -> d}, причём {\tt g} биективна.
+ \item Заменим в типе {\tt c} каждый элемент {\tt x} на его образ {\tt g x}.
+ \item Поскольку {\tt f} определена {\em единообразно} для всех типов, подставляемых вместо {\tt a}, она должна действовать после замены так же, как и до.
+ \item Это и означает, что \mintinline{text}{f . (map g) = (map g) . f}
+ \item Коммутативная диаграмма:
+ \[
+  \xymatrix
+  {
+  [C] \ar[r]^{[g]} \ar[d]_{f_C} & [D] 
+  \ar[d]^{f_D} \\
+  [C] \ar[r]^{[g]} & [D]
+  }
+ \]
+
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Отношения вместо функций}
+ \begin{itemize}[<+->]
+  \item В общем случае, если $g$ не биективна, а $f$ имеет более сложный тип, такой простой подход с <<заменой типа>> не работает.
+  \item Например, в тип композиции $(q \to r) \to (p \to q) \to p \to r$ переменная $p$ входит как позитивно, так и негативно, и непонятно, в какую сторону рисовать стрелки:
+  \[
+   \xymatrix@{}{
+   p_1 \ar[r]^{g} & p_2 \\
+   p_1 \to A & \ar[l]_{A\to g}  p_2 \to A \\
+   (p_1 \to C) \to D \ar[r]^{(g \to C) \to D} & (p_2 \to C) \to D
+   }
+  \]
+  \item В процессе построения $\lambda$-терма могут возникать очень сложные типы.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Отношения вместо функций}
+ 
+ \begin{itemize}[<+->]
+  \item Вместо функций (<<стрелок>>) будем рассматривать {\em отношения} между типами, подставляемыми вместо данной переменной.
+  \item Для этого предполагаем теоретико-множественную интерпретацию системы типов (т.е. интерпретацию в категории $\SET$).
+  \begin{itemize}
+    \item Здесь мы ограничиваемся системой типов Хиндли -- Милнера: бескванторный тип $T$ интерпретируется множеством, а терму $u : \forall r_1 \ldots r_n . T$ соответствует семейство элементов $u_{r_1 \ldots r_n}$ соответствующих множеств.
+    \item Например, $\Bx_{\Int,\Int,\Int}$ --- композиция целочисленных функций.
+    \item В общем случае системы $\lambda 2$ у нас нет теоретико-множественной интерпретации для $\forall$, и пришлось бы использовать более сложную семантику.
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Отношения}
+ 
+ \begin{itemize}[<+->]
+  \item Бинарным отношением (точнее, бинарным соответствием) между множествами $A$ и $A'$ называется подмножество $R \subseteq A \times A'$.
+  \begin{itemize}
+   \item Частный случай --- функция $f \colon A \to A'$, где $R_f = \{ (x,f(x)) \mid x \in A \}$.
+   \item Мы будем считать <<похожими>> элементы, находящиеся в отношении.
+  \end{itemize}
+  \item Пусть дан полиморфный тип $\forall p_1 \ldots p_n . T(p_1, \ldots, p_n)$, где $T$~бескванторный, и даны отношения $R_1 \subseteq A_1 \times A'_1$, \ldots, 
+  $R_n \subseteq A_n \times A'_n$.
+  \item Определим отношение $R \subseteq T(A_1, \ldots, A_n) \times T(A'_1, \ldots, A'_n)$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Отношения}
+ 
+ \begin{itemize}[<+->]
+  \item Отношение $R$ определяется рекурсивно. Если $T = p_i$, то $R = R_i \subseteq A_i \times A'_i$.
+  \item Если $T = T_1 \to T_2$ и $f \colon T_1(A_1, \ldots, A_n) \to T_2(A_1, \ldots, A_n)$, а $f' \colon T_1(A'_1, \ldots, A'_n) \to T_2(A'_1, \ldots, A'_n)$, положим
+  $f R f'$ тогда и только тогда, когда для любого $a, a'$, если $a R a'$, то $f(a) R f'(a')$.
+  \item Можно распространить это определение на другие конструкторы типов, например, для списков $[c_1, \ldots, c_n] \, R \, [c'_1, \ldots, c'_n]$ тогда и только тогда, когда $c_i R c'_i$.
+  \begin{itemize}
+  \item В частности, всегда $[]\, R\, []$.
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Теорема о полиморфизме}
+ 
+ \begin{theoremr}
+  %Если $a_1 R_1 a'_1$, \ldots, $a_n R_n a'_n$, а $u$ --- полиморфный терм типа $\forall a_1 \ldots a_n . T$, то 
+  %$u_{A_1, \ldots, A_N} [x_i := a_(a_1, \ldots, a_n) 
+  Пусть $u$ --- терм типа $\forall p_1 \ldots p_n . T$ без свободных переменных, то $u_{A_1, \ldots, A_n} \: R \:
+  u_{A'_1, \ldots, A'_n}$ для {\bfseries\itshape произвольных} $R_1, \ldots, R_n$.
+ \end{theoremr}
+\begin{itemize}
+ \item<2-> Смысл этой теоремы: разные реализации полиморфного терма всегда <<похожи>> друг на друга.
+ \item<3-> Пример: $u \colon \forall p. (p \to p)$. Докажем, что $u$ реализует тождественную функцию. 
+ \item<4-> Пусть $u_A \colon A \to A$ и $u_A(b) = d \ne b$. Зададим на $A \times A$ отношение $a R a' \iff a' = b$.
+ \item<5-> Тогда $b R b$, но неверно, что $u_A(b) \,R \,u_A (b)$. Противоречие с $u_A \, R \, u_A$. 
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Теорема о полиморфизме}
+ 
+ \begin{itemize}[<+->]
+  \item Чтобы доказать теорему о полиморфизме, нужно её немного обобщить, разрешив свободные переменные $x_1 : T_1$, \ldots, $x_n : T_n$ и добавив условия $c_1 R c'_1$, \ldots, $c_n R c'_n$, где $c_i$ и $c'_i$ --- элементы, подставляемые вместо $x_i$.
+  \item В таком виде теорема доказывается индукцией по построению $u$.
+  \item Если $u = vw$, то $w R w'$ и $v R v'$, поэтому $u R u'$.
+  \item Если $u = (\lambda x . v) : (T_1 \to T_2)$, то действуем так: возьмём $a$ и $a'$, где $a \in T_1$, $a' \in T'_1$, $a R a'$. Тогда по предположению индукции $v R v'$.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Композиция}
+ 
+ \begin{itemize}
+  \item Пусть $v \colon \forall p q r . 
+  ((q \to r) \to (p \to q) \to p \to r)$, докажем, что это комбинатор композиции.
+  \item Предположим противное: для каких-то типов $A,B,C$ и элементов $g \colon A \to B$, $f \colon B \to C$ и $z \in A$ имеем $v f g z \ne f(g z)$. 
+  \item Определим отношения $R_A, R_B, R_C$ на множествах $A,B,C$: $a R a' \iff a' = z$; $b R b' \iff b' = g z$; $c R c' \iff c' = f(g z)$. 
+  \item Тогда $z R z$, $g R g$ и $f R f$, но неверно, что $(v f g z)\, R\, (v f g z)$. Противоречие.
+  \item В силу полноты $\beta\eta$-исчисления в категории $\SET$ получаем $v =_{\beta\eta} \Bx = \lambda f g x . f(gx)$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Выбор}
+ 
+ \begin{itemize}[<+->]
+  \item Более сложный пример. $w : \forall p. (p \to (p \to p))$.
+  \item Здесь есть две существенно разные функции: $w_1 = \lambda x y . x$ и $w_2 = \lambda x y. y$.
+  \item Есть ли ещё?
+  \item Докажем, что нет. Сначала пусть есть такие $b_1$ и $b_2$, что $w b_1 b_2 = d \notin \{ b_1, b_2 \}$. Тогда рассмотрим отношение $a R a' \iff (a' = b_1 \mbox{ или } a' = b_2)$ и получим противоречие.
+  \item В частности, всегда $w b b = b$.
+  \item Но возможна ситуация, когда $w b_1 b_2 = b_1$, а $w c_1 c_2 = c_2$, причём $b_1 \ne b_2$ и $c_1 \ne c_2$. 
+  \item Положим $b_1 R c_1$ и $b_2 R c_2$. Противоречие:
+  $b_1 = w b_1 b_2 \: R \: w c_1 c_2 = c_2$, что не так.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Задача}
+ 
+ \begin{itemize}
+  \item Сколько существует различных (с точностью до $\beta\eta$-эквивалентности) термов типа 
+  $\forall p q. ((p \to p \to q) \to
+  (p \to p \to p \to q))$\: ?
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[t]{Free Theorems}
+
+%\begin{itemize}
+
+%\end{itemize}
+
+\footnotesize\noindent
+\hspace*{-2em}
+\begin{tabular}{l@{\quad}|@{\quad}l}
+ \mintinline{haskell}
+ {reverse :: [a] -> [a]}
+ &
+ \mintinline{text}
+ {reverse . (map f) = (map f) . reverse} \\
+ \mintinline{haskell}
+ {(++) :: [a] -> [a] -> [a]} 
+ &
+ \mintinline{text}
+ {map f (x ++ y) = (map f x) ++ (map f y)} \\
+ \mintinline{haskell}
+ {concat :: [[a]] -> [a]}
+ &
+ \mintinline{text}
+ {(map f) . concat = 
+ concat . (map (map f))} \\
+ \mintinline{haskell}
+ {fst :: (a,b) -> a} &
+ \mintinline{text}
+ {fst (x,y) = x} \\
+ \mintinline{haskell}
+ {filter :: (a -> Bool) -> [a] -> [a]} &
+ \mintinline{text}
+ {(map f) . (filter (p.f)) =}
+ \\ & \hspace*{2em} \mintinline{text}{(filter p) . (map f)} \\
+ \mintinline{haskell}
+ {k :: a -> b -> a} &
+ \mintinline{text}{f (k x y) = k (f x) (g y)} \\
+ \mintinline{haskell} 
+ {id :: a -> a} &
+ \mintinline{text} 
+ {f . id = id . f}
+\end{tabular}
+
+
+\end{frame}
+
+
+\begin{frame}{Неподвижные точки}
+
+\begin{itemize}[<+->]
+ \item Рекурсию можно реализовать через комбинатор неподвижной точки 
+ $\Yb : \forall p. ((p \to p) \to p)$.
+ \item Если $f_1 \, R \, f_2$, то 
+ {\bf если вычисления завершаются,} 
+ имеем $(\Yb f_1) \, R \, (\Yb f_2)$.
+ \begin{itemize}
+ \item Действительно, $\Yb f_i \to f_i (\Yb f_i)$, и далее действуем по индукции по длине цепочки редукций.
+ \end{itemize}
+ \item Поэтому в присутствии $\Yb$-комбинатора мы получаем те же свободные теоремы {\em в слабом смысле:} если обе части вычисляются (на данном входе) за конечное время, то результат одинаков.
+\end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Неподвижные точки}
+ 
+ \begin{itemize}[<+->]
+  \item Убрать это условие нельзя.
+  \item Действительно, с помощью $\Yb$ можно определить константу $\Yb (\lambda x . x) : \forall p . p$.
+  \item Значит, $f = \lambda z . (\Yb (\lambda x . x))$ можно присвоить тип $\forall p . (p \to p)$.
+  \vspace*{-1em}
+  \begin{itemize}[<+->]
+  \item Наиболее общий тип: $\forall p q . (p \to q)$.
+  \end{itemize}
+  \item Однако это не тождественная функция $\mathrm{id} = \lambda x . x$.
+  \item С соотношением вида \mintinline{text}{f.g = g.f} ситуация более тонкая.
+  \begin{itemize}
+  \item При ретивом порядке вычислений и слева, и справа получим бесконечный цикл.
+  \item Однако в ленивом порядке (как в Haskell'е) для \mintinline{text}{g = \x -> 0}
+  имеем \mintinline{text}{(g.f) 1 = 0}, а
+  \mintinline{text}{(f.g) 1} зацикливается.
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Неопределённость}
+ 
+ \begin{itemize}[<+->]
+  \item Вместо $\Yb \mathrm{id}$ можно взять {\tt undefined}.
+  \item То же происходит в случае списков.
+  \item Пусть \mintinline{haskell}{r :: [a] -> [a]}
+  \item Равенство \mintinline{text}{(map f).r = r.(map f)} можно <<сломать>>, взяв
+  \begin{minted}{haskell}
+r = (map (\x -> undefined)) :: [a]->[a]
+f = \y -> 0
+  \end{minted}
+  \item Здесь \mintinline{text}{((map f). r) [1,2,3]} вернёт \mintinline{text}{[0,0,0]}, а вот \mintinline{text}{(r . (map f)) [1,2,3]} выдаст исключение.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Free Theorems}
+ 
+ \begin{itemize}[<+->]
+  \item Проблемы с неопределённостью в наших свободных теоремах можно исправить, потребовав, чтобы функции {\tt f}, {\tt g} были {\em строгими} в смысле вычисления:
+  $f \bot = \bot$, где $\bot$ --- это undefined или незавершающееся вычисление.
+  \item Это свойство выполнено при аппликативном порядке вычислений, но не при нормальном.
+  \item При этих условиях можно добавить $\bot$ в наши отношения, при этом будет только $\bot R \bot$, но не $a R \bot$.
+  \item Свободные теоремы --- ещё один пример использования системы типов для частичной {\em верификации} программного кода: правильно расставленные типы позволяют установить, без анализа кода, некоторые свойства функций.
+ \end{itemize}
+
+\end{frame}
+
+
+\end{document}
+
+
+
+
+
+
+\begin{frame}{Монады}
+ \begin{itemize}[<+->]
+  \item Напомним, что {\em монада} --- это абстрактная конструкция преобразования типов: $X$ преобразуется в $MX$, при этом внутри <<монадического>> объекта типа $MX$ в некотором <<живут>> элементы исходного типа $X$:
+  \begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (6,2) node[below left] {$MX$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (1.5,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (2,.5) rectangle (3,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+\item Внутри монады можно применять функцию к исходному типу --- $f \colon X \to Y$ <<поднимается>> до $Mf \colon MX \to MY$, т.е. монада является функтором.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монады}
+ 
+ \begin{itemize}[<+->]
+  \item Более того, $f$ сама может создавать монадический объект, и этот объект помещается в исходную монаду.
+  \item А именно, $f \colon X \to MY$ даёт $f^* \colon MX \to MY$. Другое обозначение:
+  $f^*(t) = (t \bind f)$.
+  \item Можно определить $f^*$ через операцию <<разглаживания двойной монады>> $\mu \colon MMY \to MY$, а именно, $f^* = \mu \circ f$.
+  \item Наконец, в монаду можно помещать объект <<чистого>> типа, $\eta \colon X \to MX$.
+  \item Для корректно определённых монад эти операции должны удовлетворять нескольким естественным соотношениям.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Монады}
+ 
+ \begin{itemize}[<+->]
+  \item В прошлый раз мы обсудили важную монаду \mintinline{haskell}{IO}, осуществляющую взаимодействие с <<внешним миром>>, а также увидели монадические свойства некоторых чисто теоретико-типовых конструкций, таких как списки, функциональные типы, типы кортежей.
+  \item На этой лекции мы рассмотрим два примера использования монад для моделирования недетерминированных и вероятностных вычислений.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Монада для недетерминизма}
+ 
+ \begin{itemize}[<+->]
+  \item В первом примере мы будем моделировать поведение {\em недетерминированного конечного автомата (НКА).}
+  \item Напомним, что конечный автомат имеет конечное множество {\em состояний} $Q$ и перемещается между ними в зависимости от очередного символа входного слова $w$.
+  \item Автомат недетерминированный, если буква входного слова не обязательно однозначно определяет переход:
+  
+  \begin{center}
+  \begin{tikzpicture}
+   \node[circle,draw] (p) at (0,0) {$p$};
+   \node[circle,draw] (q1) at (3,.5) {$q_1$};
+   \node[circle,draw] (q2) at (3,-.5) {$q_2$};
+   
+   \draw[->] (p)--(q1) node[midway,above] {$a$};
+   \draw[->] (p)--(q2) node[midway,below] {$a$};
+  \end{tikzpicture}
+  \end{center}
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Монада для недетерминизма}
+ 
+ \begin{itemize}[<+->]
+  \item Таким образом, после $n$ шагов, т.е. входного слова $w = a_1 \ldots a_n$, мы имеем некоторое подмножество {\em возможных} состояний автомата, $\Delta(w) \subseteq Q$.
+  \item При этом сама функция перехода действует из состояния во множество состояний, $\delta \colon \Sigma \to (Q \to \Pc Q)$.
+  \item Это в точности ситуация {\em монадического связывания} для монады $\Pc$:
+  
+  \centerline{\(
+   \Delta(w) = (\eta\, q_0) \bind \delta(a_1) \bind \ldots \bind \delta(a_n) 
+  \)}
+  \begin{itemize}
+  \item Здесь $\eta\, q_0 = \mbox{\tt return\ } q_0 = \{ q_0 \}$.
+  \end{itemize}
+
+  
+  %FIXME пример конечного автомата
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Пример конечного автомата}
+ \begin{tikzpicture}
+   \node[circle,draw] (q0) at (0,0) {$q_0$};
+   \node[circle,draw] (q1) at (3,1) {$q_1$};
+   \node[circle,draw] (q2) at (3,-.5) {$q_2$};
+   \node[circle,draw] (q3) at (6,-.5) {$q_3$};
+   
+   \draw (q0) edge[->,bend left] node[midway,above] {$a$} (q1) ;
+   \draw[->] (q1)--(q0) node[midway,below] {$a$};
+   \draw[->] (q0)--(q2) node[midway,below] {$a$};
+   \draw (q2) edge[->,bend left] node[midway,above] {$a$} (q3);
+   \draw (q3) edge[->,bend left] node[midway,below] {$a$} (q2);
+   
+   \draw (q1) edge[->,loop] node[midway,above] {$b$} (q1);
+   
+   \draw (q2) edge[->,out=-45,in=-135,looseness=7] node[midway,below] {$b$} (q2);
+ \end{tikzpicture}
+ 
+ \begin{itemize}
+  \item<2-> На входном слове из $(ab^*a)^*$ этот автомат переходит либо в $q_0$, либо в $q_3$.
+ \end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Монада для недетерминизма}
+ 
+ Идея монады $\Pc$ для недетерминизма в точности реализуется: % на практике:
+
+ 
+\begin{minted}{haskell}
+import Control.Monad
+import Data.Set.Monad
+
+data NFA q sigma = NFA (sigma -> q -> Set q) q
+
+runq :: NFA q sigma -> q -> [sigma] -> Set q
+runq (NFA delta qi) q0 [] = return q0
+runq (NFA delta qi) q0 (a:ss) = do
+    q1 <- delta a q0
+    q2 <- runq (NFA delta qi) q1 ss
+    return q2
+
+run (NFA delta qi) a = runq (NFA delta qi) qi a
+\end{minted}
+
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Монада для недетерминизма}
+ 
+ Далее, можно закодировать автомат из нашего примера:
+ 
+ {\footnotesize
+ \begin{minted}{haskell}
+data Q = Q0 | Q1 | Q2 | Q3 deriving (Eq, Ord, Show)
+  
+delta :: Char -> Q -> Set Q
+delta 'a' Q0 = fromList [Q1,Q2]
+delta 'b' Q0 = fromList []
+delta 'a' Q1 = fromList [Q0]
+delta 'b' Q1 = fromList [Q1]
+delta 'a' Q2 = fromList [Q3]
+delta 'b' Q2 = fromList [Q2]
+delta 'a' Q3 = fromList [Q2]
+delta 'b' Q3 = fromList []
+
+automaton = NFA delta Q0
+ \end{minted}
+}
+
+\end{frame}
+
+\begin{frame}[fragile]{Монада для недетерминизма}
+ \begin{itemize}[<+->]
+  \item Наконец, запускаем:
+\begin{minted}{haskell}
+main = putStrLn $ show $ run automaton "abbaabbba"
+\end{minted}
+и получаем ответ: {\tt fromList [Q0,Q3]}.
+\item Заметим, что если использовать монаду списка вместо \mintinline{haskell}{Set}, то состояния будут дублироваться: {\tt [Q0,Q3,Q3]}.
+\item Это может привести к экспоненциальному расходу ресурсов.
+\item Переход от $Q$ к $\Pc Q$ и замена функции перехода $\delta(a) \colon Q \to \Pc Q$ на $\delta(a)^* \colon \Pc Q \to \Pc Q$ --- это и есть {\em алгоритм детерминизации} конечного автомата.
+\item В нашей реализации мы не храним детерминированную версию конечного автомата, тем самым избегая экспоненциального расхода памяти (ленивость!).
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}{Случайные числа}
+
+\begin{itemize}[<+->]
+ \item Функции в Haskell'е должны быть чистыми. Таким образом, мы не можем определить функцию (без аргументов) ``random'', которая будет при каждом вызове давать новое (псевдо)случайное число.
+ \item Однако это возможно внутри монады. 
+ \item В частности, в монаде \mintinline{haskell}{IO} имеется {\tt randomIO}, который выдаёт псевдослучайное число (в зависимости от конкретизации типа).
+ \item Однако Haskell поддерживает и более абстрактный способ работы с вероятностными объектами.
+\end{itemize}
+
+
+ %FIXME ... поговорить, что в Хаскеле нельзя просто написать random, из-за проблем с чистотой. Самый простой способ --- генератор случайного числа в монаде IO
+\end{frame}
+
+
+\begin{frame}{Вероятностные распределения}
+ 
+ \begin{itemize}[<+->]
+  \item Вероятностное распределение на конечном множестве $X = \{ x_1, \ldots, x_n \}$ (дискретное) задаётся набором чисел $(p_1, \ldots, p_n)$, где $p_i \geqslant 0$ и $p_1 + \ldots + p_n = 1$.
+  \item $p_i = p(x_i)$.
+  \item Для события $A \subseteq X$ имеем $P(A) = \sum\limits_{x\in A} p(x)$.
+  \item В непрерывном случае вероятностное распределение задано функцией плотности $p$; $p(x) \geqslant 0$ и $\int\limits_X p(x) \, dx = 1$.
+  \item При этом $P(A) = \int\limits_A p(x)\, dx$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада Жири}
+ 
+ \begin{itemize}[<+->]
+  \item Обозначим через $\Rc X$ множество всех вероятностных распределений на $X$.
+  \item $\Rc$ является функтором. Функция $f \colon X \to Y$ переносит вероятностное распределение c $X$ на $Y$ следующим образом: $p'(y) = P(f^{-1}(y)) = \sum\limits_{f(x) = y} p(x)$.
+  \begin{itemize}
+  \item При этом выполняются условия функтора.
+  \end{itemize}
+  \item Более того, $\Rc$ является монадой.
+  \item Эта монада называется {\em монадой Жир\'{и}} (Giry monad).
+  \begin{itemize}
+  \item M. Giry. A categorical approach to probability theory
+  \end{itemize}
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада Жири}
+ 
+ \begin{itemize}[<+->]
+  \item Морфизм $\eta \colon X \to \Rc X$ реализуется взятием распределения, сосредоточенного в одной точке:
+\[
+ p(y) = \left\{ \begin{aligned}
+       & 1, && \mbox{если $y = x$;}\\
+       & 0, && \mbox{иначе.}
+                \end{aligned}
+\right.
+\]
+  \item Операцию связывания ($\bind$) будем определять через $\mu$ (join): если $f \colon X \to \Rc Y$, то $(p \bind f) = \mu \circ (\Rc f)$. 
+  \item Морфизм $\mu \colon \Rc\Rc X \to \Rc X$ делает обычное распределение из <<распределения распределений>>.
+  \item Чтобы получить случайный $x$ по распределению $P \in \Rc \Rc X$,  мы сначала случайно выбираем распределение $p \in \Rc X$, а потом по этому распределению выбираем $x \in X$.
+  \item $(\mu P)(x) = \sum\limits_{p \in \Rc X} (P(p) \cdot p(x))$
+  \end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Монада Жири}
+ 
+ \begin{itemize}[<+->]
+  \item Связывание, $p \bind f$, где $p : \Rc X$ и $f : X \to \Rc Y$, получается таким образом:
+  \[
+   (p \bind f) (y) = \sum_{x \in X} (p(x) \cdot f(x)(y))
+  \]
+  \item Вероятностный смысл: выбираем случайный $x \in X$ и по нему строим новое распределение $f(x)$, с помощью которого выбираем $y \in Y$.
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Вычисления со случайностью}
+
+\begin{itemize}[<+->]
+ \item Внутри монады $\Rc$ можно <<присваивать>> переменной случайное значение (в рамках do-нотации):
+ \begin{minted}{haskell}
+ 
+import Control.Monad.Random
+fair = fromList [("heads",0.5),("tails",0.5)]
+quart = do
+    a <- fair
+    b <- fair
+    if (a == "heads") && (b == "heads") 
+       then return "heads"
+       else return "tails"
+ \end{minted}
+\item Однако здесь просто {\em вычисляются} параметры вероятностного распределения, а не {\em генерируется случайное число.}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Абстрактная работа со случайными объектами}
+ 
+ \begin{itemize}[<+->]
+  \item Посмотрим внимательнее на типы.
+\begin{minted}{haskell}
+fromList :: MonadRandom m => [(a, Rational)] -> m a
+fair :: MonadRandom m => m [Char] 
+\end{minted}
+  \item Мы видим {\em полиморфный} объект, тип которого параметризован {\em произвольной} <<монадой случайности>> {\tt m} (которая как-то хранит вероятностное распределение).
+  \item На этом этапе детали реализации {\tt m} не важны, они понадобятся в тот момент, когда мы захотим на самом деле <<подбросить монеты>>.
+
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}{Реализация MonadRandom}
+ \begin{itemize}[<+->]
+  \item Стандартная реализация класса \mintinline{haskell}{MonadRandom} даётся двупараметрическим типом \mintinline{haskell}{Rand g a} при фиксированном первом параметре.
+  \item Параметр-тип {\tt g}, который должен принадлежать классу \mintinline{haskell}{RandomGen}, задаёт тип {\em генератора} (источника) случайности.
+  \item Одним из таких типов является \mintinline{haskell}{StdGen}.
+  \item Из объекта типа \mintinline{haskell}{StdGen} (источник случайности) можно извлечь некоторое случайное значение и, кроме того, новый, модифицированный источник.
+  \item Таким образом реализуется последовательность псевдослучайных чисел.
+  \item Важно понимать, что сам источник --- это константа, и он всегда будет выдавать одно и то же значение.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Реализация MonadRandom}
+ 
+ \begin{itemize}[<+->]
+  \item В нашем примере {\tt quart} имеет полиморфный тип \mintinline{haskell}{MonadRandom m => m [Char]}, который может конкретизироваться в \mintinline{haskell}{Rand StdGen [Char]}.
+  \item Имеется функция \mintinline{haskell}{evalRand :: Rand g a -> g -> a} \\ (в частности, \mintinline{haskell}{evalRand :: Rand StdGen a -> StdGen -> a}), которая выдаёт случайное значение, с данным распределением, используя данный источник случайности.
+  \item Чтобы получить новый источник, нужно воспользоваться другой функцией, 
+  \mintinline{haskell}{runRand :: Rand g a -> g -> (a,g)}
+  \item Остаётся последний вопрос --- откуда изначально взять источник случайности?
+  %FIXME: поговорить о чистом коде и методах Монте-Карло...
+  %FIXME: работающий пример с числом $\pi$
+  %FIXME: runRand --- выдаёт новый генератор!
+  %FIXME: примеры с бесконечным вычислением (thunk)
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Метод Монте-Карло}
+
+\begin{itemize}[<+->]
+\item Иногда бывает достаточно использовать фиксированный источник псевдослучайных чисел (<<зерно>>), что позволяет писать чистый и фактически детерминированный код.
+\item Одна из таких ситуаций --- вычисление меры и интеграла {\em методом Монте-Карло.}
+\item Пример: случайно <<бросаем>> много точек в квадрат $[0,1] \times [0,1]$ и вычисляем долю точек, попавших в круг:
+\begin{center}
+ \begin{tikzpicture}[scale=2]
+  \draw[thick] (0,0)--(0,1)--(1,1)--(1,0)--(0,0);
+  \draw[thick,fill=lightblue] (0.5,0.5) circle (0.5);
+ \end{tikzpicture}
+\end{center}
+\item Результат по вероятности стремится к площади круга: $\pi/4$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Метод Монте-Карло}
+ 
+ \begin{itemize}[<+->]
+  \item Для реализации метода Монте-Карло вычисления числа $\pi$ нам понадобится следующая операция на монадах:
+  \begin{minted}{haskell}
+replicateM :: Applicative m => Int -> m a -> m [a]   
+  \end{minted}
+  \item В частности, для монады {\tt replicateM} можно определить так:
+  \begin{minted}{haskell}
+myreplicateM 0 mon = return []
+myreplicateM n mon = mon >>= (\x -> myreplicateM (n-1) xs 
+    >>= \xs -> return (x:xs))
+  \end{minted}
+  или в do-нотации:
+  \begin{minted}{haskell}
+myreplicateM n mon = do
+    x <- mon
+    xs <- myreplicateM (n-1) mon
+    return (x:xs)
+  \end{minted}
+
+
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Метод Монте-Карло}
+ 
+ \begin{itemize}[<+->]
+  \item Получается, что {\tt replicateM} создаёт {\em выборку} --- список значений случайной величины, причём каждый раз используется обновлённый генератор.
+  \item Таким образом, значения получаются псевдонезависимы, что достаточно для статистических целей.
+  \item Выбор изначального генератора в этом случае не имеет значения, и можно создать константный генератор с помощью {\tt mkStdGen} --- например, {\tt mkStdGen}\ \mintinline{haskell}{42}.
+  \item Функция {\tt mkStdGen} чистая:
+  \begin{minted}{haskell}
+mkStdGen :: Int -> StdGen
+  \end{minted}
+  \item Равномерное распределение на $[0,1)$ даётся функцией {\tt getRandom} с конкретизированным типом:
+  \begin{minted}{haskell}
+unif = getRandom  :: MonadRandom m => m Double
+  \end{minted}
+
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Метод Монте-Карло}
+
+\begin{minted}{haskell}
+import Control.Monad.Random
+
+unif = getRandom :: MonadRandom m => m Double
+
+inCircle x y = ( (x-0.5)^2 + (y-0.5)^2 <= 0.25 )
+
+mcCheck = do
+    x <- unif
+    y <- unif
+    return (inCircle x y)
+
+xs = evalRand (replicateM 100000 mcCheck) (mkStdGen 42)
+t = 4 * (length [x | x <- xs, x == True])
+main = putStrLn $ show t
+\end{minted}
+\end{frame}
+
+\begin{frame}{Метод Монте-Карло}
+
+\begin{itemize}[<+->]
+ \item Эта программа функционально чистая, и потому всегда выдаёт одно и то же значение:
+ $314128 \approx \pi \cdot 100000$.
+ \item Кстати, профилирование показывает, что с ленивостью здесь всё в порядке: вся выборка (100000 булевых значений) в памяти не хранится.
+ \item Однако как же сгенерировать <<настоящее>> случайное число, т.е. взять источник случайности из системы?
+ \item Поскольку здесь происходит взаимодействие с <<внешним миром>>, понадобится монада {\tt IO}.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Внешний генератор случайных чисел}
+ \begin{itemize}[<+->]
+  \item Монада \mintinline{haskell}{IO} хранит {\em глобальный} генератор случайности, который инициализируется в начале работы программы.
+  \item Доступ к нему
+\begin{minted}{haskell}
+getStdGen :: IO StdGen
+\end{minted}
+  \item При этом этот генератор --- это просто глобальная переменная, и два вызова {\tt getStdGen} дадут одно и то же.
+  \item Генератор можно <<обновить>> с помощью
+\begin{minted}{haskell}
+newStdGen :: IO StdGen
+\end{minted}
+  но при этом он будет просто заменён на следующее значение псевдослучайной последовательности.
+  \item Чтобы получить <<настоящее>> новое случайное число, см. {\tt Data.Random.Source.DevRandom}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Бесконечные вероятностные вычисления}
+ 
+ \begin{itemize}[<+->]
+  \item Ленивость позволяет программировать внутри монады класса \mintinline{haskell}{MonadRandom} вычисления со случайными числами, которые при некоторых их значениях длятся бесконечно долго.
+  \item Пример: дана <<нечестная>> монета, выпадающая орлом с вероятностью $p$, где $0 < p < 1$, $p \ne 1/2$. Нужно с её помощью сымитировать <<честное>> бросание, с вероятностью $1/2$.
+  \item Соображение: если бросить монету два раза, то последовательности орёл-решка и решка-орёл равновероятны.
+  \item В случаях орёл-орёл или решка-решка пробуем ещё раз.
+  \item Процесс может оказаться бесконечным, но вероятность этого равна нулю.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]{Бесконечные вероятностные вычисления}
+ 
+ \begin{minted}{haskell}
+unfair = fromList [("heads",0.25),("tails",0.75)]
+
+fair = do
+    a <- unfair
+    b <- unfair
+    if (a /= b) then (return a) else fair
+ \end{minted}
+
+ \begin{itemize}
+  \item<2-> Если попытаться предвычислить распределение {\tt fair}, то мы уйдём в бесконечный цикл (хотя математически оно равно $(1/2,1/2)$).
+  \item<3-> К счастью, Haskell ленив, и {\tt fair} остаётся как задумка (thunk). Настоящее вычисление произойдёт потом, когда мы уже получим конкретные значения.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{frame}{Функторы в <<категории типов>>}
+ 
+\begin{itemize}[<+->]
+ \item Абстрактно в теории категорий функтор $F$ --- это преобразование объектов одной категории в другую, согласованное с соответствующим преобразованием морфизмов (сам функтор является как бы гомоморфизмом категорий).
+ \item У нас объекты категории --- это типы.
+ \item Таким образом, функтор $F$ сопоставляет каждому типу $A$ некоторый <<модифицированный>> тип $FA$.
+ \item При этом функция $f \colon A \to B$ может быть <<поднята>> на модифицированные типы, $Ff \colon FA \to FB$.
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}[fragile]{Примеры функторов}
+
+\begin{itemize}[<+->]
+ \item $FX = X \times A$; $Ff = f \times \One_A$.
+ \begin{itemize}
+ \item После применения этого функтора элемент произвольного типа $X$ находится в некотором {\em контексте:} к нему добавлено нечто типа $A$.
+ \item При применении <<поднятой>> функции контекст сохраняется неизменным.
+ \end{itemize}
+ \item $FX = X + A$; $Ff = f + \One_A$.
+ \begin{itemize}
+ \item Здесь в $FX$ находится либо элемент типа $X$, либо элемент фиксированного типа $A$.
+ \item Пример в Haskell'е --- \mintinline{haskell}{Maybe}.
+ \begin{minted}{haskell}
+data  Maybe a  =  Nothing | Just a
+ \end{minted}
+ \item \mintinline{haskell}{Maybe a} может содержать либо значение типа \mintinline{text}{a}, либо <<ничего>>.
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Примеры функторов}
+ 
+ \begin{itemize}[<+->]
+  \item $FX = A \to X$, или $X^A$ (экспоненциальный объект)
+  \begin{itemize}
+  \item Абстрактно $Ff = f'$ получается как транспонент:
+  \[
+   \xymatrix{
+   X^A \times A \ar[r]^{\ev}
+   \ar@{-->}[d]^{f' \times \One_A} & 
+   X \ar[d]^{f} \\
+   Y^A \times A \ar[r]^{\ev} & Y
+   }
+  \]
+ \item Если $f \colon X \to Y$, то $\bigl(\lambda g. \lambda a. f(ga)\bigr) : (A \to X) \to (A \to Y)$.
+ \item {<<}Внутри>> $FX = A \to X$ находится бесконечно много элементов типа, по одному для каждого $a : A$, и $f$ применяется к каждому из них.
+  \end{itemize}
+  \item То же происходит для функтора $\Pc$ (множество подмножеств) или $[X]$ (списки).
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{<<Чёрный ящик>>}
+
+\begin{itemize}[<+->]
+\item Таким образом, $FX$ --- это <<чёрный ящик>>, в котором каким-то образом спрятаны элементы типа $X$, к которым можно применить функцию $f \colon X \to Y$.
+\begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (6,2) node[below left] {$FX$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (1.5,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (2,.5) rectangle (3,1.5) node[below left] {$X$};
+ \draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+\item Однако чего-то не хватает: непонятно, как <<положить>> что-то в $FX$, и вообще, как создать объект типа $FX$.
+\end{itemize}
+ 
+ 
+\end{frame}
+
+
+\begin{frame}{Монада}
+ 
+ \begin{itemize}[<+->]
+  \item {\em Монада} $M$ --- это эндофунктор с дополнительными операциями.
+  \item Первая из них позволяет <<положить элемент в чёрный ящик>>, $\eta_X \colon X \to M X$.
+  \begin{itemize}
+  \item \mintinline{haskell}{return :: Monad m => a -> m a}
+  \end{itemize}
+  \item Вторая более сложная и позволяет <<поднимать>> аргумент функции, ведущей в монаду. Для $f \colon X \to M Y$ эта операция даёт $f^* \colon M X \to M Y$.
+  \begin{itemize}
+  \item \mintinline{haskell}{(>>=) :: Monad m => m a -> (a -> m b) -> m b}
+  \end{itemize}
+  \item При этом должны выполняться определённые условия, о которых чуть позже.
+  \item Набор $(M, \eta, {}^*)$ в теории категорий называется {\em тройкой Клейсли,} а собственно монадой --- другая, но эквивалентная конструкция.
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt {>}>=}}
+\begin{itemize}[<+->]
+ \item Операция $^*$, или {\tt {>}>=}, соответствует идее, что можно внутри монады войти ещё раз в монаду, и остаться в той же монаде.
+ \item Пример: \mintinline{haskell}{[1,2,3] >>= (\x -> [x,x])} даёт \mintinline{haskell}{[1,1,2,2,3,3]}
+ \item Если бы вместо $f^*$ применили $M$ как функтор, то получилось бы $Mf \colon MX \to M(MY)$.
+ 
+ \begin{center}
+\begin{tikzpicture}
+ \draw[rounded corners,thick,fill=gray] (0,0) rectangle (8.5,3.2) node[below left] {$M(MY)$};
+ \draw[rounded corners,thick,fill=lightcyan]
+ (.5,.5) rectangle (4,2.5) node[below left] {$MY$};
+ \draw[rounded corners,thick,fill=lightcyan] (4.5,.5) rectangle (8,2.5) node[below left] {$MY$};
+ \draw[rounded corners,thick,fill=white]
+ (1,1) rectangle (2,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (2.5,1) rectangle (3.5,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (5,1) rectangle (6,2) node[below left] {$Y$};
+ \draw[rounded corners,thick,fill=white]
+ (6.5,1) rectangle (7.5,2) node[below left] {$Y$};
+ %\draw[rounded corners,thick,fill=lightcyan] (3.5,.5) rectangle (4.5,1.5) node[below left] {$X$};
+\end{tikzpicture}
+\end{center}
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$\mu$}
+
+\begin{itemize}[<+->]
+ \item Таким образом,  $f^*$ можно свести к более простой операции <<разглаживания>> двойной монады в одинарную, $\mu_X \colon M(MY) \to MY$.
+ \item Тогда $f^* = \mu \circ (M f)$.
+ \item Собственно, в теории категорий именно эндофунктор $M$, оснащённый семействами морфизмов $\eta$ и $\mu$, удовлетворяющий огромному количеству условий корректности, и называют монадой.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Условия монады}
+ 
+  Для тройки Клейсли $(M, \eta, {}^*)$ условия формулируются намного короче:
+  \begin{center}
+   \begin{tabular}{ll}
+    $\eta_X^* = \One_{M X}$ & 
+    \mintinline{text}{(z >>= return) = z} \\
+    \multicolumn{2}{l}{\hspace*{1em} $MX \to MX$} \\[10pt]
+    $f^* \circ \eta_X = f$ &
+    \mintinline{text}{(return x >>= f) = (f x)} \\
+    \multicolumn{2}{l}{\hspace*{1em} $X \stackrel{\eta}{\to} MX \stackrel{f^*}{\to} MY$} \\[10pt]
+    $g^* \circ f^* = (g^* \circ f)^*$ &
+    \mintinline{text}{((x >>= f) >>= g) =}
+    \\&\hspace*{10pt}
+    \mintinline{text}{(x >>= (\y -> (f y >>= g)))} \\
+    \multicolumn{2}{l}{\hspace*{1em} 
+    $MX \stackrel{f^*}{\to} MY \stackrel{g^*}{\to} MZ$} \\
+    \multicolumn{2}{l}{\hspace*{1em} 
+    $X \stackrel{f}{\to} MY \stackrel{g^*}{\to} MZ$} \\
+   \end{tabular}
+  \end{center}
+\end{frame}
+
+
+\begin{frame}{Выражение остальных операций}
+
+\begin{itemize}[<+->]
+ \item Через $\eta$ и $^*$ можно выразить всё остальное.
+ \item Так, $\mu \colon M(MY) \to MY$, или {\tt join}, выражается так: $\mu = \One_{MY}^*$.
+ \begin{itemize}
+ \item \mintinline{haskell}{join = \x -> (x >>= (\y -> y))}
+ \end{itemize}
+ \item Преобразование на морфизмах (функтор), $Mf \colon MX \to MY$ (для $f \colon X \to Y$) также выражается: $Mf = (\eta_Y \circ f)^*$.
+ \begin{itemize}
+ \item \mintinline{haskell}{fmap = (\f -> (\z -> (z >>= \x -> return (f x))))}
+ \item При этом $Mg \circ Mf = (\eta_Z \circ g)^* \circ (\eta_Y \circ f)^* = ((\eta_Z \circ g)^* \circ \eta_Y \circ f)^* = (\eta_Z \circ g \circ f)^* = M(g \circ f)$.
+ \item Таким образом, в определении монады не нужно требовать, что это функтор.
+ \end{itemize}
+ \item Более того, каждая монада --- это {\em аппликативный функтор} с операцией применения функции внутри монады:
+ \mintinline{haskell}
+ {(<*>) :: m (a -> b) -> m a -> m b}
+ \begin{itemize}
+ \item
+  \mintinline{text}{h } \mintinline{haskell}{<*> t = h >>= \f -> fmap f t}
+ \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ 
+ \begin{itemize}[<+->]
+  \item При вычислении последовательности функций <<внутри>> монады сама монада каждый раз заменяется на новую.
+  \item Таким образом поддерживается порядок вычислений, что приближает работу в монаде к императивному языку.
+  \begin{itemize}
+  \item Явно это выражается в т.н. do-нотации, о которой чуть позже.
+  \end{itemize}
+  \item В частности, с помощью специальной монады можно реализовать взаимодействие с <<внешним миром>> (побочные эффекты вычислений), в частности, ввод-вывод.
+  \item Эта специальная монада называется \mintinline{haskell}{IO}.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ \begin{itemize}
+  \item Объект типа \mintinline{haskell}{IO a} можно понимать как объект типа \mintinline{haskell}{a}, помещённый в большой и страшный внешний мир.
+ \end{itemize}
+
+ \visible<2->{
+ \begin{center}
+  \includegraphics[scale=.3]{ezhik.jpg}
+  \\ \vspace*{-5pt}
+  {\tiny\color{gray}\sf <<Ёжик в тумане>>, Союзмультфильм}
+ \end{center}
+
+ }
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+ 
+ \begin{itemize}[<+->]
+  \item Грубое приближение монады \mintinline{haskell}{IO} --- это взятие пары с контекстом: ``({\tt a}, {\tt RealWorld})''. При операциях с монадой состояние {\tt RealWorld} может меняться. 
+  \item Есть операция \mintinline{text}{return}, погружающая объект в окружение \mintinline{haskell}{IO} (<<выпускающая во внешний мир>>), а вот обратного преобразования нет.
+  \item \mintinline{haskell}{putChar :: Char -> IO ()} берёт символ и возвращает новый <<мир>>, в котором растворился (был напечатан в консоли) этот символ.
+  \item \mintinline{haskell}{getChar :: IO Char} --- мы можем получить символ из внешнего мира, но только внутри монады.
+  \item Достать его из монады мы не можем, но можем работать с ним внутри \mintinline{haskell}{IO} с помощью \mintinline{haskell}{>>=}.
+ \end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Монада IO}
+
+\begin{itemize}[<+->]
+\item Например: \mintinline{text}{getChar} \mintinline{haskell}{>>= (\x -> (putChar x >> putChar x))}
+\item Здесь \mintinline{text}{>>} --- это версия \mintinline{text}{>>=}, игнорирующая аргумент ({\tt putChar} всё равно ничего не выдаёт, а настоящий {\tt x} ранее абстрагирован).
+ \item В процессе выполнения программы, содержащей \mintinline{haskell}{IO}, объекты типов \mintinline{haskell}{IO a} остаются временно невычисленными, как задумки.
+ \item Например, если мы где-то напишем \mintinline{text}{putChar} \mintinline{haskell}{'a'}, то символ не будет тут же напечатан.
+ \item Вместо этого нужно дождаться, пока соберётся <<главный>> объект типа \mintinline{haskell}{IO ()}, и уже при его вычислении все операции с внешним миром будут выполнены, причём в правильном порядке.
+\end{itemize}
+
+ 
+ 
+\end{frame}
+
+\begin{frame}[fragile]{do-нотация}
+ 
+ \begin{itemize}[<+->]
+  \item {\em do-нотация} --- это синтаксический сахар над \mintinline{text}{>>=} и \mintinline{text}{>>}, делающий код похожим на императивный.
+  \item Пример:
+\begin{minted}{haskell}
+main :: IO ()
+main = do
+  putStrLn "What's your name?"
+  name <- getLine
+  putStrLn $ "Hello, " ++ name ++ "!"
+\end{minted}
+\item do-нотация раскрывается так. <<Команды>>, у которых нет возвращаемого значения, соединяются с помощью \mintinline{text}{>>}. Если возвращаемое значение есть: \mintinline{text}{x} \mintinline{haskell}{<- ...}, то пишется \mintinline{haskell}{... >>= \x -> ...}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{do-нотация}
+ 
+ \begin{itemize}[<+->]
+ \item Таким образом переменная по имени {\tt x} становится доступной в дальнейшем контексте.
+ \item Более того, в <<присваивании>> \mintinline{haskell}{<-} можно (как в императивных языках) использовать одно и то же имя несколько раз.
+ \begin{itemize}
+ \item При этом более раннее забывается, поскольку переменная связана более глубокой лямбдой: $\lambda x. (... \lambda x. (... x ...) ...)$.
+ \end{itemize}
+ \item Пример:
+ \begin{minted}{haskell}
+main =
+  putStrLn "What's your name?" >>
+  getLine >>=
+  \name -> putStrLn $ "Hello, " ++ name ++ "!"
+ \end{minted}
+ \item do-нотация работает не только с \mintinline{haskell}{IO}, но и с любой другой монадой.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Естественные преобразования}
+
+\begin{itemize}[<+->]
+ \item $\eta_X$ и $\mu_X$ --- это не просто семейства морфизмов, это {\em естественные преобразования} функторов.
+ \item $\eta \colon \mathrm{Id} \Rrightarrow M$ \qquad\qquad\qquad\qquad\qquad $\mu \colon M^2 \Rrightarrow M$
+ \[
+  \xymatrix{
+  X \ar^{f}[r] \ar_{\eta_X}[d] 
+     & Y \ar^{\eta_Y}[d] \\
+  MX \ar_{M f}[r] & M Y
+  }
+  \qquad
+  \xymatrix{
+  M(MX) \ar^{M(Mf)}[r] \ar_{\mu_X}[d] &
+     M(MY) \ar^{\mu_Y}[d] \\
+  MX \ar_{Mf}[r] & MY
+  }
+ \]
+ 
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Естественные преобразования}
+ 
+ \begin{itemize}[<+->]
+ \item Свойство естественности тесно связано с параметрическим полиморфизмом.
+ \item Можно доказать, к примеру, что если семейство функций $\varphi_X \colon FX \to GX$ задано полиморфным (по типу $X$) термом, то это естественное преобразование:
+ \[
+  \xymatrix{
+  FX \ar^{Ff}[r] \ar_{\varphi_X}[d] &
+  FY \ar^{\varphi_Y}[d] \\
+  GX \ar_{Gf}[r] & GY
+  }
+ \]
+\item Отсюда можно получать <<бесплатные теоремы>> {\em (free theorems)} вида $Gf \circ \varphi_X = \varphi_Y \circ Ff$ о полиморфных функциях, зная только общий тип $\varphi$.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+\begin{frame}[t]{Free theorems}
+ 
+ {\footnotesize\hspace*{-2em}
+ \begin{tabular}{ll}
+ \mintinline{text}{reverse :: [a] -> [a]} &
+ \mintinline{text}{reverse . (map f) = (map f). reverse} \\
+ \mintinline{text}{join :: Monad m => m (m a) -> m a} & 
+ \mintinline{text}{join . (fmap (fmap f)) = fmap . join} \\
+ \mintinline{text}{head :: [a] -> a} & 
+ \mintinline{text}{head . (map f) = f . head} \\
+ \mintinline{text}{id :: a -> a} & 
+ \mintinline{text}{f . id = id . f}
+ \end{tabular}
+ }
+ %\begin{itemize}
+  %\item<2-> Важно помнить, что <<бесплатные теоремы>> выполняются 
+ %\end{itemize}
+
+
+ 
+\end{frame}
+
+
+\end{document}
