@@ -200,40 +200,62 @@ instance Monad IO where
 newtype Reader r a = Reader { runReader :: r -> a }
 
 instance Functor (Reader r) where
-  fmap = undefined
+  -- fmap :: (a -> b) -> Reader r a -> Reader r b
+  -- f :: a -> b, g :: r -> a
+  fmap f (Reader g) = Reader $ f . g
 
 instance Applicative (Reader r) where
-  pure = undefined
-  (<*>) = undefined
+  -- pure :: a -> Reader r a
+  pure x = Reader $ const x
 
-instance Monad (Reader r) where -- return :: a -> Reader r a return x = Reader $ const x
-      -- (>>=) :: Reader r a -> (a -> Reader r b) -> Reader r b
-  f >>= k = Reader $ \e -> let v = runReader f e in runReader (k v) e
+  -- (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
+  -- f :: r -> a -> b
+  -- g :: r -> a
+  -- smth :: r -> b
+  Reader f <*> Reader g = Reader $ (\x -> f x (g x))
+
+instance Monad (Reader r) where
+  -- (>>=) :: Reader r a -> (a -> Reader r b) -> Reader r b
+  -- runReader f :: r -> a
+  -- e :: r
+  -- v = runReader f e :: a
+
+  -- k :: a -> Reader r b
+  -- k v :: Reader r b
+  -- runReader (k v) :: r -> b
+  -- runReader (k v) e :: b
+  -- Reader r b
+  f >>= k =
+    Reader $ \e -> let v = runReader f e in runReader (k v) e
 
 ask :: Reader e e
 ask = Reader id
 
-asks ::(e -> a) -> Reader e a
+asks :: (e -> a) -> Reader e a
 asks f = Reader f
 
 local :: (e -> b) -> Reader b a -> Reader e a
 local f m = Reader $ runReader m . f
 
-data Environment = Environment { ids  :: [Int]
-                               , name :: Int -> String
-                               , near :: Int -> (Int, Int) }
+type Id = Int
 
-inEnv :: Int -> Reader Environment Bool
+data Environment = Environment { ids  :: [Id]
+                               , name :: Id -> String
+                               , near :: Id -> (Id, Id) }
+
+inEnv :: Id -> Reader Environment Bool
 inEnv i = asks (elem i . ids)
 
-anyInEnv :: (Int, Int) -> Reader Environment Bool
+anyInEnv :: (Id, Id) -> Reader Environment Bool
 anyInEnv (i, j) = inEnv i ||^ inEnv j
   where
+    -- Bool -> Bool -> Bool
+    -- Reader Env Bool -> Reader Env Bool -> Reader Env Bool
     (||^) = liftA2 (||)
 
-env = Environment [1..10] (\x -> show x) (\x -> (x - 1, x + 1))
+env = Environment [1..10] (\x -> "This is " ++ show x) (\x -> (x - 1, x + 1))
 
-checkNeighbours :: Int -> Reader Environment (Maybe String)
+checkNeighbours :: Id -> Reader Environment (Maybe String)
 checkNeighbours i =
   asks (`near` i) >>= \pair ->
   anyInEnv pair   >>= \res  ->
@@ -241,13 +263,12 @@ checkNeighbours i =
   then Just <$> asks (`name` i)
   else pure Nothing
 
-type Bindings = [(String,Int)]
-
 greeter :: Reader String String
 greeter = do
   name <- ask
   return ("hello, " ++ name ++ "!")
 
+type Bindings = [(String,Int)]
  -- Returns True if the "count" variable contains correct bindings size.
 isCountCorrect :: Bindings -> Bool
 isCountCorrect bindings = runReader calc_isCountCorrect bindings
@@ -259,10 +280,12 @@ calc_isCountCorrect = do
   bindings <- ask
   return (count == length bindings)
 
+-- lookup :: Eq a => a -> [(a,b)] -> Maybe b
+
 lookupVar :: String -> Bindings -> Int
 lookupVar name bindings = maybe 0 id (lookup name bindings)
 
-sampleBindings = [("count",3), ("1",1), ("b",2)]
+sampleBindings = [("1",1), ("b",2)]
 
 action = do
     putStr $ "Count is correct for bindings " ++ (show sampleBindings) ++ ": "
@@ -278,7 +301,7 @@ calculateModifiedContentLen :: Reader String Int
 calculateModifiedContentLen = local ("Prefix " ++) calculateContentLen
 
 action' = do
-  let s = "12345";
+  let s = "12345"
   let modifiedLen = runReader calculateModifiedContentLen s
   let len = runReader calculateContentLen s
   putStrLn $ "Modified 's' length: " ++ (show modifiedLen)
@@ -311,6 +334,12 @@ execWriter (Writer p) = snd p
 writer :: (a, w) -> Writer w a
 writer = Writer
 
+-- foo x y
+-- x `foo` y
+
+-- foo x y z
+-- y `foo x` z
+
 binPow :: Int -> Int -> Writer String Int
 binPow 0 _      = return 1
 binPow n a
@@ -337,6 +366,18 @@ example  = do
 output :: (String, [Int])
 output = runWriter example
 
+logNumber2 :: Int -> Writer [String] Int
+logNumber2 x = do
+  tell ["Got number: " ++ show x]
+  return x
+
+multWithLog :: Writer [String] Int
+multWithLog = do
+  a <- logNumber 3
+  b <- logNumber 5
+  tell ["multiplying " ++ show a ++ " and " ++ show b ]
+  return (a*b)
+
 deleteOn :: (Monoid w) => (w -> Bool) -> Writer w a -> Writer w a
 deleteOn p m = pass $ do
   (w, a) <- listen m
@@ -344,7 +385,6 @@ deleteOn p m = pass $ do
     True -> return (a, id)
     False -> return (a, const mempty)
 
-  -- Or pass alone
 deleteOn' :: (Monoid w) => (w -> Bool) -> Writer w a -> Writer w a
 deleteOn' p m = pass $ do
   a <- m
@@ -358,14 +398,136 @@ logTwo = do
 logNumber :: Int -> Writer [String] Int
 logNumber x = writer (x, ["Got number: " ++ show x])
 
-logNumber2 :: Int -> Writer [String] Int
-logNumber2 x = do
-  tell ["Got number: " ++ show x]
-  return x
+-------- State examples ---------------------------
 
-multWithLog :: Writer [String] Int
-multWithLog = do
-  a <- logNumber 3
-  b <- logNumber 5
-  tell ["multiplying " ++ show a ++ " and " ++ show b ]
-  return (a*b)
+newtype State s a = State { runState :: s -> (a,s) }
+
+instance Functor (State s) where
+  -- fmap :: (a -> b) -> State s a -> State s b
+  fmap f (State g) = State $ \s -> let (x, y) = g s in (f x, y)
+
+instance Applicative (State s) where
+  -- pure :: a -> State s a
+  pure x =  State $ \s -> (x, s)
+
+  -- (<*>) :: State s (a -> b) -> State s a -> State s b
+  (State sa) <*> (State sb) = State $
+                                \s -> let (fn, s1) = sa s
+                                          (a, s2)  = sb s1
+                                      in (fn a, s2)
+
+instance Monad (State s) where
+  -- (>>=) :: State s a -> (a -> State s b) -> State s b
+  State act >>= f = State $ \s ->
+    let (a, s') = act s
+    in runState (f a) s'
+
+get :: State s s
+get = State $ \s -> (s, s)
+
+put :: s -> State s ()
+put s = State $ \_ -> ((), s)
+
+modify :: (s -> s) -> State s ()
+modify f = do
+  s <- get
+  put (f s)
+
+gets :: (s -> a) -> State s a
+gets f = do
+  s <- get
+  return (f s)
+
+withState :: (s -> s) -> State s a -> State s a
+withState f s = modify f >> s
+
+evalState :: State s a -> s -> a
+evalState (State f) s = fst $ f s
+
+execState :: State s a -> s -> s
+execState (State f) s = snd $ f s
+
+type Stack = [Int]
+
+emptyStack :: Stack
+emptyStack = []
+
+pop :: State Stack Int
+pop = State $ \(x:xs) -> (x,xs)
+
+push :: Int -> State Stack ()
+push a = State $ \xs -> ((),a:xs)
+
+tos :: State Stack Int
+tos = State $ \(x:xs) -> (x,x:xs)
+
+stackManip :: State Stack Int
+stackManip = do
+    push 10
+    push 20
+    a <- pop
+    b <- pop
+    push (a+b)
+    tos
+
+actionIO :: IO ()
+actionIO = do
+  let res = evalState stackManip emptyStack
+  print res
+
+
+data Post = Post { pTitle :: String, pBody :: String }
+
+instance Show Post where
+  show (Post title body) = "Title:" ++ title ++ "\n" ++ "Text: " ++ body
+
+data Blog = Blog
+  { bPosts   :: [Post]
+  , bCounter :: Int
+  }
+
+mkBlog :: [Post] -> Blog
+mkBlog posts = Blog posts (length posts)
+
+type BlogS = State Blog
+
+readPostS :: Int -> BlogS Post
+readPostS i = do
+  modify (\b -> b { bCounter = bCounter b + 1 })
+  gets ((!! i) . bPosts)
+
+newPostS :: Post -> BlogS ()
+newPostS p = modify $ \b ->
+  b { bPosts = p : bPosts b }
+
+counterS :: BlogS Int
+counterS = gets bCounter
+
+read12AndNewS :: State Blog (Post, Post)
+read12AndNewS =
+  readPostS 1
+    >>= \post1 ->
+    newPostS (Post "Bla" "<text>") >>
+      readPostS 2 >>= \post2 ->
+      return (post1, post2)
+
+evalRead12AndNewS
+  :: Blog -> (Post, Post)
+evalRead12AndNewS =
+  evalState read12AndNewS
+
+myPost :: Post
+myPost = Post "Spam Title" "Whooo"
+
+spamWithPosts :: Int -> State Blog ()
+spamWithPosts n =
+    replicateM_ n (newPostS myPost)
+
+posts :: [Post]
+posts = (\(x, y) -> Post x y) <$> [("title 1", "lorem ipsum"), ("title 2", "dolor sit amet"), ("title 3", "consectetur adipiscing elit")]
+
+blog :: Blog
+blog = Blog posts (length posts)
+
+multiNewPost :: [Post] -> State Blog ()
+multiNewPost = mapM_ newPostS
